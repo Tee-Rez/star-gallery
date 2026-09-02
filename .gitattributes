@@ -1,0 +1,4 @@
+# Vendored build output: keep byte-exact, don't normalize line endings,
+# and collapse it in diffs/language stats.
+orion/bundle.js    -text linguist-vendored
+orion/external/**  -text linguist-vendored

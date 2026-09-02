@@ -1,0 +1,5 @@
+# Vendored 8th Wall / A-Frame build output — must stay minified.
+# Formatting these doubles the download size for phone AR over mobile data,
+# and they are build artifacts, not source we edit.
+orion/bundle.js
+orion/external/
