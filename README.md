@@ -6,15 +6,15 @@ A web-hosted gallery of augmented-reality constellation experiences, served as s
 
 - **`index.html`** — the gallery landing page. It fetches `data/catalog.json` and renders a card + "Launch" link for each constellation.
 - **`data/catalog.json`** — the catalog ("database") of constellations. Each entry points to a hosted experience folder.
-- **`<id>/`** — one folder per constellation, containing that constellation's self-contained AR build (e.g. `orion/`).
+- **`app/`** — a single self-contained AR build that serves every constellation. The constellation is chosen by a query parameter: `app/?c=orion`, `app/?c=andromeda`. A back control in the top-left of the experience returns to this gallery.
 
 ```
 star-gallery/
 ├── index.html            # gallery landing page
 ├── data/
 │   └── catalog.json      # list of constellations (the catalog)
-├── orion/                # Orion AR experience (self-contained build)
-│   ├── index.html
+├── app/                  # the AR experience (serves every constellation)
+│   ├── index.html        #   app/?c=orion  |  app/?c=andromeda
 │   ├── bundle.js
 │   ├── external/         # bundled AR engine
 │   └── assets/
@@ -23,7 +23,8 @@ star-gallery/
 
 ## Adding a new constellation
 
-1. Build/export the constellation experience and copy its files into a new folder, e.g. `lyra/`.
+1. Add the constellation to the app data (`src/data/constellations/<id>.json` plus the embedded
+   copy in `constellation-loader.js`), then rebuild and copy the build into `app/`.
 2. Add an entry to `data/catalog.json`:
 
    ```json
@@ -32,7 +33,7 @@ star-gallery/
      "name": "Lyra",
      "displayName": "Lyra the Harp",
      "description": "…",
-     "path": "lyra/",
+     "path": "app/?c=lyra",
      "stars": 5,
      "season": "Summer"
    }
@@ -49,5 +50,5 @@ This repo is served by GitHub Pages from the default branch root. HTTPS is requi
 
 ## Notes
 
-- Each constellation build is self-contained (bundles its own AR engine), so it keeps working independently. The bundled engine (`external/`) is the bulk of each build; a future optimization is to share one engine across constellations.
+- One build serves all constellations, so the bundled AR engine (`external/`, the bulk of the ~37 MB) is downloaded once and shared rather than duplicated per constellation.
 - The experiences use camera access (AR), so they must be opened over HTTPS on a supported mobile browser.

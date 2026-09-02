@@ -7,10 +7,20 @@
       "name": "Orion",
       "displayName": "Orion the Hunter",
       "description": "Place the Hunter's constellation on a wall, tap the stars for their physical data, toggle 2D/3D depth, and take the sourced Lore journey through its brightest stars.",
-      "path": "orion/",
+      "path": "app/?c=orion",
       "stars": 15,
       "season": "Winter",
       "hemisphere": "Both"
+    },
+    {
+      "id": "andromeda",
+      "name": "Andromeda",
+      "displayName": "Andromeda the Chained Princess",
+      "description": "The chained princess, running east from the Great Square of Pegasus. Her lore journey ends at the Little Cloud — the smudge al-Sufi recorded in 964 CE that turned out to be another galaxy.",
+      "path": "app/?c=andromeda",
+      "stars": 15,
+      "season": "Autumn",
+      "hemisphere": "Northern"
     }
   ]
 }
