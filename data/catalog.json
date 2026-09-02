@@ -1,0 +1,16 @@
+{
+  "title": "STAR Arts — AR Constellation Gallery",
+  "description": "Augmented-reality constellation experiences. Open on a phone (iPhone or Android) and allow the camera.",
+  "constellations": [
+    {
+      "id": "orion",
+      "name": "Orion",
+      "displayName": "Orion the Hunter",
+      "description": "Place the Hunter's constellation on a wall, tap the stars for their physical data, toggle 2D/3D depth, and take the sourced Lore journey through its brightest stars.",
+      "path": "orion/",
+      "stars": 15,
+      "season": "Winter",
+      "hemisphere": "Both"
+    }
+  ]
+}

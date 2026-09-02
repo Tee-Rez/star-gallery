@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>STAR Arts — AR Constellation Gallery</title>
+  <style>
+    :root { color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: #05070f; color: #e8eeff;
+      font-family: -apple-system, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+      background-image: radial-gradient(1px 1px at 20% 30%, #ffffff44 1px, transparent 0),
+                        radial-gradient(1px 1px at 70% 60%, #ffffff33 1px, transparent 0),
+                        radial-gradient(1px 1px at 40% 80%, #ffffff22 1px, transparent 0),
+                        radial-gradient(1px 1px at 85% 20%, #ffffff33 1px, transparent 0);
+      background-size: 380px 380px, 300px 300px, 500px 500px, 260px 260px; }
+    header { text-align: center; padding: 56px 20px 28px; }
+    header h1 { margin: 0 0 8px; font-size: 30px; font-weight: 600; letter-spacing: 0.5px; }
+    header p { margin: 0 auto; max-width: 620px; color: #9fb6d8; line-height: 1.55; font-size: 15px; }
+    .grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      max-width: 1000px; margin: 24px auto 60px; padding: 0 20px; }
+    .card { background: rgba(12,20,38,0.75); border: 1px solid #1e3358;
+      border-radius: 16px; padding: 22px; display: flex; flex-direction: column; gap: 12px;
+      backdrop-filter: blur(4px); }
+    .card h2 { margin: 0; font-size: 22px; font-weight: 600; }
+    .card .sub { color: #7fbfff; font-size: 13px; margin-top: -6px; }
+    .card p { margin: 0; color: #c5d3ec; line-height: 1.5; font-size: 14px; flex: 1; }
+    .meta { display: flex; gap: 14px; color: #8fa6c8; font-size: 12px; flex-wrap: wrap; }
+    .launch { margin-top: 6px; display: inline-block; text-align: center; text-decoration: none;
+      background: #163e6b; border: 1px solid #4cc3ff; color: #eaf3ff; padding: 12px 18px;
+      border-radius: 12px; font-size: 15px; font-weight: 500; transition: background .15s; }
+    .launch:hover { background: #1d5390; }
+    .hint { text-align: center; color: #7f93b5; font-size: 13px; padding: 0 20px 50px; }
+    footer { text-align: center; color: #55688a; font-size: 12px; padding: 20px; }
+    .err { max-width: 620px; margin: 20px auto; color: #ff9a9a; text-align: center; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1 id="title">STAR Arts — AR Constellation Gallery</h1>
+    <p id="subtitle">Loading…</p>
+  </header>
+
+  <div class="grid" id="grid"></div>
+  <p class="hint">📱 Best experienced on a phone (iPhone or Android). Open a constellation and allow the camera when asked.</p>
+  <footer>STAR Arts · hosted on GitHub Pages</footer>
+
+  <script>
+    fetch('data/catalog.json')
+      .then(function (r) { if (!r.ok) throw new Error('catalog.json ' + r.status); return r.json(); })
+      .then(function (cat) {
+        document.getElementById('title').textContent = cat.title || 'AR Constellation Gallery';
+        document.getElementById('subtitle').textContent = cat.description || '';
+        var grid = document.getElementById('grid');
+        (cat.constellations || []).forEach(function (c) {
+          var card = document.createElement('div');
+          card.className = 'card';
+          card.innerHTML =
+            '<h2>' + esc(c.displayName || c.name) + '</h2>' +
+            (c.name && c.displayName && c.name !== c.displayName ? '<div class="sub">' + esc(c.name) + '</div>' : '') +
+            '<p>' + esc(c.description || '') + '</p>' +
+            '<div class="meta">' +
+              (c.stars ? '<span>★ ' + c.stars + ' stars</span>' : '') +
+              (c.season ? '<span>❄ ' + esc(c.season) + '</span>' : '') +
+              (c.hemisphere ? '<span>🌐 ' + esc(c.hemisphere) + '</span>' : '') +
+            '</div>' +
+            '<a class="launch" href="' + encodeURI(c.path) + '">Launch AR Experience</a>';
+          grid.appendChild(card);
+        });
+      })
+      .catch(function (e) {
+        document.getElementById('subtitle').textContent = '';
+        var d = document.createElement('div'); d.className = 'err';
+        d.textContent = 'Could not load the catalog (' + e.message + ').';
+        document.body.appendChild(d);
+      });
+
+    function esc(s) { return String(s).replace(/[&<>"']/g, function (m) {
+      return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m]; }); }
+  </script>
+</body>
+</html>
