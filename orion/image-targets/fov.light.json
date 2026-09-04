@@ -1,0 +1,18 @@
+{
+  "imagePath": "image-targets/fov.light_target.jpeg",
+  "name": "fov.light",
+  "type": "PLANAR",
+  "properties": {
+    "top": 379,
+    "left": 284,
+    "width": 932,
+    "height": 1242,
+    "isRotated": false,
+    "originalWidth": 1500,
+    "originalHeight": 2000
+  },
+  "userMetadataIsJson": true,
+  "loadAutomatically": false,
+  "created": 1729708792545,
+  "updated": 1742519697093
+}

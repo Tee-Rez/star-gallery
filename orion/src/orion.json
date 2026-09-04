@@ -1,0 +1,602 @@
+{
+  "metadata": {
+    "name": "Orion",
+    "displayName": "Orion the Hunter",
+    "description": "Orion constellation is one of the brightest and best-known constellations in the night sky. It lies on the celestial equator and dominates the evening sky from November to February.",
+    "mythology": "In Greek mythology, it is associated with the hunter Orion, a legendary figure with exceptional skill and strength.",
+    "season": "winter",
+    "hemisphere": "both",
+    "coordinates": {
+      "ra": "5h 30m",
+      "dec": "+0°"
+    },
+    "size": "594 square degrees",
+    "rank": 26,
+    "abbreviation": "Ori"
+  },
+  "portal": {
+    "width": 6,
+    "height": 9,
+    "borderColor": "#00ff00",
+    "doorHeight": 10,
+    "doorDuration": 4000,
+    "lineDrawDuration": 1000,
+    "lineDelay": 100,
+    "position": {
+      "x": 0,
+      "y": 0,
+      "z": 0.1
+    }
+  },
+  "display": {
+    "gridWidth": 6,
+    "gridHeight": 9,
+    "gridSize": 0.5,
+    "gridColor": "#00ff00",
+    "distanceScale": 0.0009,
+    "zDepthScale": 0.7,
+    "scale": {
+      "x": 0.5,
+      "y": 0.5,
+      "z": 0.5
+    },
+    "position": {
+      "x": 0,
+      "y": 0,
+      "z": -1.5
+    }
+  },
+  "stars": [
+    {
+      "id": "betelgeuse",
+      "name": "Betelgeuse",
+      "designation": "α Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": -1.367,
+        "y": 1.207
+      },
+      "distance": 642.5,
+      "magnitude": 0.5,
+      "spectralClass": "M1-M2 Ia-ab",
+      "color": "#ff4400",
+      "size": 0.17,
+      "stellarType": "red_supergiant",
+      "info": {
+        "basic": "Betelgeuse, the celestial ruby of Orion's shoulder, marks the Hunter's right side.",
+        "scientific": {
+          "age": "8-14 million years old",
+          "mass": "14-19 times the Sun's mass",
+          "radius": "640-764 times the Sun's radius - if placed at our Sun's position, would extend beyond Jupiter's orbit",
+          "luminosity": "65,000 times brighter than the Sun",
+          "temperature": "3,600-3,800 K",
+          "fate": "Destined to explode as a supernova within ~100,000 years"
+        },
+        "esoteric": "In ancient Egypt, Betelgeuse was associated with the god Osiris, symbolizing death and rebirth. Its distinctly red color has been linked to the blood of the warrior in many cultures. Medieval astrologers believed it granted fortune and martial honor when well-aspected, but could bring violence and danger when afflicted."
+      }
+    },
+    {
+      "id": "rigel",
+      "name": "Rigel",
+      "designation": "β Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": 1.197,
+        "y": -3.645
+      },
+      "distance": 860,
+      "magnitude": 0.13,
+      "spectralClass": "B8 Ia",
+      "color": "#4477ff",
+      "size": 0.15,
+      "stellarType": "blue_supergiant",
+      "info": {
+        "basic": "Rigel, the commanding blue sentinel at Orion's foot, outshines even Betelgeuse despite being designated Beta Orionis.",
+        "scientific": {
+          "age": "8 million years old - extremely young for such a bright star",
+          "mass": "21 times the Sun's mass",
+          "radius": "74.1 times the Sun's radius",
+          "luminosity": "120,000 times brighter than the Sun",
+          "temperature": "12,100 K",
+          "composition": "Part of a multiple star system with at least three stellar companions"
+        },
+        "esoteric": "Rigel has been associated with the teachings of sacred wisdom in esoteric traditions. Its intense blue light symbolizes divine knowledge and cosmic energy. Babylonians considered Rigel a guardian of winter skies. In naval traditions, Rigel was a critical navigational beacon, guiding ships through the winter seas, and was believed to protect sailors from storms when visible."
+      }
+    },
+    {
+      "id": "bellatrix",
+      "name": "Bellatrix",
+      "designation": "γ Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": 0.672,
+        "y": 0.803
+      },
+      "distance": 243,
+      "magnitude": 1.64,
+      "spectralClass": "B2 V",
+      "color": "#bbbbff",
+      "size": 0.1,
+      "stellarType": "blue_main_sequence",
+      "info": {
+        "basic": "Bellatrix, the 'Female Warrior' star, stands proud at Orion's left shoulder, one of the nearest bright stars in Orion.",
+        "scientific": {
+          "age": "25.2 million years old",
+          "mass": "7.7 times the Sun's mass",
+          "radius": "5.75 times the Sun's radius",
+          "luminosity": "9,211 times brighter than the Sun",
+          "temperature": "21,800 K",
+          "distance": "243 light-years - one of the closest major stars in Orion"
+        },
+        "esoteric": "Bellatrix embodies the feminine warrior spirit and was revered by ancient cultures for its connection to female strength. In magical traditions, it was invoked for courage and battlefield victory. Arabic astrologers associated Bellatrix with sudden honor and quick success, but warned these might be followed by reversals if not approached with wisdom."
+      }
+    },
+    {
+      "id": "saiph",
+      "name": "Saiph",
+      "designation": "κ Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": -1.17,
+        "y": -4.138
+      },
+      "distance": 721,
+      "magnitude": 2.09,
+      "spectralClass": "B0.5 Ia",
+      "color": "#ffffff",
+      "size": 0.09,
+      "stellarType": "blue_supergiant",
+      "info": {
+        "basic": "Saiph, the often-overlooked guardian at Orion's right foot, nearly matches Rigel in stellar properties but appears dimmer from Earth.",
+        "scientific": {
+          "age": "11.1 million years old",
+          "mass": "15.5-21.1 times the Sun's mass",
+          "radius": "13-14 times the Sun's radius",
+          "luminosity": "60,300 times brighter than the Sun",
+          "temperature": "25,700 K",
+          "fate": "Destined to end its life in a spectacular supernova"
+        },
+        "esoteric": "In esoteric traditions, Saiph represents hidden power and unrecognized potential. Though less celebrated than its counterparts, it contains equal cosmic energy. Some mystical traditions view Saiph as a gateway to the underworld, marking one of the lower entrance points to celestial realms."
+      }
+    },
+    {
+      "id": "alnitak",
+      "name": "Alnitak",
+      "designation": "ζ Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": -0.466,
+        "y": -1.54
+      },
+      "distance": 817,
+      "magnitude": 1.77,
+      "spectralClass": "O9.5 Iab",
+      "color": "#99aaff",
+      "size": 0.1,
+      "stellarType": "blue_supergiant",
+      "info": {
+        "basic": "Alnitak, the easternmost jewel of Orion's Belt, anchors this famous cosmic alignment and illuminates spectacular nebulae in its vicinity.",
+        "scientific": {
+          "age": "6.4 million years old",
+          "mass": "Primary star - 33 times the Sun's mass",
+          "radius": "20 times the Sun's radius",
+          "luminosity": "250,000 times brighter than the Sun",
+          "temperature": "29,500 K",
+          "composition": "A triple star system with two confirmed supernova candidates"
+        },
+        "esoteric": "Alnitak guards the famous Horsehead and Flame Nebulae, serving as a cosmic lighthouse for these stellar nurseries. In mystical cosmology, it represents the first step on the spiritual journey symbolized by Orion's Belt. Alchemical traditions associated Alnitak with the transmutation of elements and the beginning of spiritual transformation."
+      }
+    },
+    {
+      "id": "alnilam",
+      "name": "Alnilam",
+      "designation": "ε Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": -0.126,
+        "y": -1.279
+      },
+      "distance": 1342,
+      "magnitude": 1.69,
+      "spectralClass": "B0 Ia",
+      "color": "#ffffff",
+      "size": 0.1,
+      "stellarType": "blue_supergiant",
+      "info": {
+        "basic": "Alnilam, the brilliant centerpiece of Orion's Belt, shines as Orion's brightest belt star despite being the most distant of the three.",
+        "scientific": {
+          "age": "4.47 million years old - remarkably young",
+          "mass": "40 times the Sun's mass",
+          "radius": "30.62 times the Sun's radius",
+          "luminosity": "419,600 times brighter than the Sun - among the most luminous stars visible to the naked eye",
+          "temperature": "26,540 K",
+          "distance": "1,342 light-years - furthest of the three belt stars"
+        },
+        "esoteric": "Alnilam represents the center point of consciousness in mystical traditions, balancing between material and spiritual realms. Ancient Egyptian texts associate it with the transformation of the soul. The star's immense distance yet apparent brightness symbolizes how spiritual truths may appear clear despite their profound depth and mystery."
+      }
+    },
+    {
+      "id": "mintaka",
+      "name": "Mintaka",
+      "designation": "δ Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": 0.121,
+        "y": -1.028
+      },
+      "distance": 916,
+      "magnitude": 2.23,
+      "spectralClass": "O9.5II",
+      "color": "#aaaaff",
+      "size": 0.1,
+      "stellarType": "blue_bright_giant",
+      "info": {
+        "basic": "Mintaka, the westernmost sentinel of Orion's Belt, precisely marks the celestial equator, making it a perfect navigational reference point.",
+        "scientific": {
+          "age": "Multiple components ranging from 4-7 million years",
+          "mass": "Primary star mass: 17.8 times the Sun's mass",
+          "radius": "13.1 times the Sun's radius",
+          "luminosity": "190,000 times the Sun's luminosity",
+          "composition": "A complex multiple star system and eclipsing binary",
+          "position": "Located directly on the celestial equator"
+        },
+        "esoteric": "Mintaka's position directly on the celestial equator gives it special significance as a cosmic balancing point between northern and southern skies. In mystical traditions, it represents perfect equilibrium between opposing forces. Some ancient navigators believed Mintaka contained wayfinding magic that could prevent travelers from becoming lost."
+      }
+    },
+    {
+      "id": "meissa",
+      "name": "Meissa",
+      "designation": "λ Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": -0.021,
+        "y": 1.842
+      },
+      "distance": 1055,
+      "magnitude": 3.7,
+      "spectralClass": "O8 III((f))",
+      "color": "#ffffff",
+      "size": 0.07,
+      "stellarType": "blue_giant",
+      "info": {
+        "basic": "Meissa, the radiant beacon marking Orion's head, illuminates a spectacular ring of cosmic gas and dust.",
+        "scientific": {
+          "age": "4.2 million years old",
+          "mass": "Primary star mass: 34 times the Sun's mass",
+          "radius": "13.4 times the Sun's radius",
+          "luminosity": "200,000 times the Sun's luminosity",
+          "temperature": "35,000 K",
+          "feature": "Center of the Lambda Orionis Cluster and the spectacular ring nebula Sh2-264"
+        },
+        "esoteric": "Meissa represents the cosmic mind and divine intelligence in esoteric traditions. The circular nebula surrounding it (the 'Head of Orion') symbolizes the halo of enlightenment or crown chakra in mystical interpretations. Ancient cultures saw Meissa as the seat of the heavenly judge or cosmic overseer."
+      }
+    },
+    {
+      "id": "pi3_orionis",
+      "name": "Pi3 Orionis",
+      "designation": "π³ Orionis (Tabit)",
+      "isMajor": false,
+      "position2D": {
+        "x": 2.328,
+        "y": 2.157
+      },
+      "distance": 26,
+      "magnitude": 3.65,
+      "spectralClass": "F6 V",
+      "color": "#ffffff",
+      "size": 0.05,
+      "stellarType": "main_sequence",
+      "info": {
+        "basic": "Pi3 Orionis (Tabit), a nearby sun-like star, serves as an important stellar 'standard candle' for astronomical classifications.",
+        "scientific": {
+          "age": "1.04 billion years old - much older than most Orion stars",
+          "mass": "1.288 times the Sun's mass",
+          "radius": "1.317 times the Sun's radius",
+          "luminosity": "2.816 times the Sun's luminosity",
+          "temperature": "6,518 K",
+          "distance": "Just 26.32 light-years - one of the closest stars in Orion"
+        },
+        "esoteric": "As one of the closest stars in Orion to Earth, Tabit has been associated with bringing distant cosmic wisdom into accessible form. Its name 'The Endurer' connects it to perseverance and stability. In some esoteric systems, Tabit represents the foundation of knowledge upon which greater understanding is built."
+      }
+    },
+    {
+      "id": "pi4_orionis",
+      "name": "Pi4 Orionis",
+      "designation": "π⁴ Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": 2.576,
+        "y": 1.1
+      },
+      "distance": 1050,
+      "magnitude": 3.685,
+      "spectralClass": "B2 III",
+      "color": "#bbbbff",
+      "size": 0.07,
+      "stellarType": "blue_giant",
+      "info": {
+        "basic": "Pi4 Orionis, one of the stars forming Orion's shield, hides its true nature as a spectroscopic binary system.",
+        "scientific": {
+          "age": "15.4 million years",
+          "mass": "Primary star: 10.95 times the Sun's mass",
+          "radius": "9.1 times the Sun's radius",
+          "luminosity": "19,726 times the Sun's luminosity",
+          "temperature": "21,874 K",
+          "composition": "Spectroscopic binary system with orbital period of 9.5 days"
+        },
+        "esoteric": "In esoteric traditions, Pi4 Orionis represents hidden duality and the concept that apparent singularities often contain multiple aspects. Its position in Orion's shield connects it to spiritual protection and cosmic guardianship. Its binary nature symbolizes the eternal cosmic dance between complementary forces."
+      }
+    },
+    {
+      "id": "pi5_orionis",
+      "name": "Pi5 Orionis",
+      "designation": "π⁵ Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": 2.439,
+        "y": 0.262
+      },
+      "distance": 1300,
+      "magnitude": 3.69,
+      "spectralClass": "B2 III",
+      "color": "#bbbbff",
+      "size": 0.06,
+      "stellarType": "blue_giant",
+      "info": {
+        "basic": "Pi5 Orionis, another sentinel of Orion's shield, constantly changes shape as its binary components orbit each other.",
+        "scientific": {
+          "age": "Multiple components with varying ages",
+          "mass": "Primary: 12 times the Sun's mass, Secondary: 5 times the Sun's mass",
+          "luminosity": "Primary: 11,262 times the Sun, Secondary: 525-741 times the Sun",
+          "composition": "Spectroscopic binary with 3.7-day orbital period",
+          "variability": "Ellipsoidal variable star - brightness varies by 0.05 magnitudes"
+        },
+        "esoteric": "Pi5 Orionis embodies the principle of perpetual cosmic change and adaptation. Its ellipsoidal variations symbolize how spiritual entities may appear different depending on one's perspective or timing. The star's binary nature symbolizes the union of greater and lesser forces working in harmony."
+      }
+    },
+    {
+      "id": "chi1_orionis",
+      "name": "Chi1 Orionis",
+      "designation": "χ¹ Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": -2.049,
+        "y": 4.266
+      },
+      "distance": 28,
+      "magnitude": 4.38,
+      "spectralClass": "G2 V",
+      "color": "#fff4e8",
+      "size": 0.06,
+      "stellarType": "main_sequence",
+      "info": {
+        "basic": "Chi1 Orionis, a nearby solar-type star, provides insights into our Sun's possible future and past states.",
+        "scientific": {
+          "age": "300-400 million years old - much younger than our Sun",
+          "mass": "1.01 times the Sun's mass",
+          "radius": "0.983 times the Sun's radius",
+          "luminosity": "1.042 times the Sun's luminosity",
+          "temperature": "5,883 K",
+          "composition": "RS Canum Venaticorum variable in binary system"
+        },
+        "esoteric": "Chi1 Orionis represents our cosmic siblings - stars similar to our Sun that remind us we are not alone in the universe. Its position in Orion's upraised club connects it to the power of conscious action and divine intervention. Its similarity to our Sun made it a focus for those seeking to understand humanity's place in the cosmic order."
+      }
+    },
+    {
+      "id": "chi2_orionis",
+      "name": "Chi2 Orionis",
+      "designation": "χ² Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": -2.427,
+        "y": 2.882
+      },
+      "distance": 1300,
+      "magnitude": 4.63,
+      "spectralClass": "B2Ia",
+      "color": "#bbbbff",
+      "size": 0.06,
+      "stellarType": "blue_supergiant",
+      "info": {
+        "basic": "Chi2 Orionis, a massive blue supergiant, pulsates rhythmically while wielding the cosmic club of Orion.",
+        "scientific": {
+          "age": "5 million years - extremely young",
+          "mass": "42.3 times the Sun's mass",
+          "luminosity": "446,000 times the Sun's luminosity",
+          "temperature": "19,000 K",
+          "variability": "Alpha Cygni variable with 2.8-day period"
+        },
+        "esoteric": "Chi2 Orionis symbolizes the rhythmic nature of cosmic power and divine intervention. Its position in Orion's club represents the capacity for decisive action from higher realms. The star's massive size but subtle variability reflects how great cosmic forces often operate in subtle pulses rather than constant output."
+      }
+    },
+    {
+      "id": "eta_orionis",
+      "name": "Eta Orionis",
+      "designation": "η Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": -0.01,
+        "y": -2.357
+      },
+      "distance": 1000,
+      "magnitude": 3.42,
+      "spectralClass": "Multiple system",
+      "color": "#ffffff",
+      "size": 0.06,
+      "stellarType": "multiple_star",
+      "info": {
+        "basic": "Eta Orionis, a complex multiple star system, marks the celestial sword of the cosmic hunter.",
+        "scientific": {
+          "age": "Various components with different ages",
+          "mass": "Primary components: 11 and 10.6 times the Sun's mass",
+          "composition": "Multiple star system with eclipsing binary components",
+          "variability": "Algol-type variable with brightness drops every 4 days",
+          "temperature": "26,600 K for main components"
+        },
+        "esoteric": "Eta Orionis embodies the principle of hidden complexity beneath apparent simplicity. Its multiple star nature reminds us that what appears as a single point of light may contain intricate systems. The star's regular eclipses symbolize the rhythmic alternation between revelation and concealment in the quest for spiritual knowledge."
+      }
+    },
+    {
+      "id": "theta1_orionis",
+      "name": "Theta1 Orionis",
+      "designation": "θ¹ Orionis (Trapezium)",
+      "isMajor": false,
+      "position2D": {
+        "x": -0.055,
+        "y": -2.783
+      },
+      "distance": 1344,
+      "magnitude": 4.0,
+      "spectralClass": "Multiple O and B stars",
+      "color": "#ffffff",
+      "size": 0.06,
+      "stellarType": "young_cluster",
+      "info": {
+        "basic": "Theta1 Orionis, the famous Trapezium Cluster, illuminates the heart of the Great Orion Nebula with its young, massive stars.",
+        "scientific": {
+          "age": "Only about 1 million years old",
+          "mass": "Primary star: 33 times the Sun's mass",
+          "composition": "Contains multiple massive O and B-type stars arranged in trapezoid pattern",
+          "luminosity": "Primary: 204,000 times the Sun's luminosity",
+          "feature": "Central star cluster of the Orion Nebula (M42)"
+        },
+        "esoteric": "The Trapezium represents the creative center where cosmic forces manifest new stars and potentially planetary systems. In mystical traditions, it symbolizes the divine generative principle and the birthplace of souls. The four main stars arranged in a trapezoid pattern have been associated with the four classical elements or fundamental forces that structure reality."
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from": "alnitak",
+      "to": "alnilam",
+      "type": "belt"
+    },
+    {
+      "from": "alnilam",
+      "to": "mintaka",
+      "type": "belt"
+    },
+    {
+      "from": "betelgeuse",
+      "to": "alnitak",
+      "type": "body"
+    },
+    {
+      "from": "alnitak",
+      "to": "saiph",
+      "type": "body"
+    },
+    {
+      "from": "bellatrix",
+      "to": "mintaka",
+      "type": "body"
+    },
+    {
+      "from": "mintaka",
+      "to": "rigel",
+      "type": "body"
+    },
+    {
+      "from": "meissa",
+      "to": "betelgeuse",
+      "type": "body"
+    },
+    {
+      "from": "meissa",
+      "to": "bellatrix",
+      "type": "body"
+    },
+    {
+      "from": "bellatrix",
+      "to": "pi4_orionis",
+      "type": "bow"
+    },
+    {
+      "from": "pi3_orionis",
+      "to": "pi4_orionis",
+      "type": "bow"
+    },
+    {
+      "from": "pi4_orionis",
+      "to": "pi5_orionis",
+      "type": "bow"
+    },
+    {
+      "from": "betelgeuse",
+      "to": "chi1_orionis",
+      "type": "club"
+    },
+    {
+      "from": "chi2_orionis",
+      "to": "chi1_orionis",
+      "type": "club"
+    },
+    {
+      "from": "alnilam",
+      "to": "eta_orionis",
+      "type": "sword"
+    },
+    {
+      "from": "eta_orionis",
+      "to": "theta1_orionis",
+      "type": "sword"
+    }
+  ],
+  "deepSkyObjects": [
+    {
+      "id": "m42",
+      "name": "Orion Nebula",
+      "designation": "M42, NGC 1976",
+      "type": "emission_nebula",
+      "position2D": {
+        "x": -0.055,
+        "y": -2.783
+      },
+      "distance": 1344,
+      "magnitude": 4.0,
+      "size": 1.5,
+      "description": "The Great Orion Nebula, one of the brightest nebulae in the sky and the nearest region of massive star formation to the Sun."
+    },
+    {
+      "id": "m43",
+      "name": "De Mairan's Nebula",
+      "designation": "M43, NGC 1982",
+      "type": "emission_nebula",
+      "position2D": {
+        "x": -0.1,
+        "y": -2.9
+      },
+      "distance": 1300,
+      "magnitude": 9.0,
+      "size": 0.8,
+      "description": "Part of the larger Orion Nebula but separated by a dark dust lane."
+    },
+    {
+      "id": "horsehead",
+      "name": "Horsehead Nebula",
+      "designation": "Barnard 33",
+      "type": "dark_nebula",
+      "position2D": {
+        "x": -0.466,
+        "y": -1.7
+      },
+      "distance": 1375,
+      "magnitude": 0,
+      "size": 0.3,
+      "description": "Famous dark nebula silhouetted against the bright emission nebula IC 434."
+    },
+    {
+      "id": "flame",
+      "name": "Flame Nebula",
+      "designation": "NGC 2024",
+      "type": "emission_nebula",
+      "position2D": {
+        "x": -0.466,
+        "y": -1.4
+      },
+      "distance": 1350,
+      "magnitude": 10.0,
+      "size": 0.5,
+      "description": "Bright emission nebula near Alnitak, part of the Orion B molecular cloud."
+    }
+  ]
+}

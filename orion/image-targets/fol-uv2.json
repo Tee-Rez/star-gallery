@@ -1,0 +1,18 @@
+{
+  "imagePath": "image-targets/fol-uv2_target.jpeg",
+  "name": "fol-uv2",
+  "type": "PLANAR",
+  "properties": {
+    "top": 402,
+    "left": 225,
+    "width": 995,
+    "height": 1326,
+    "isRotated": false,
+    "originalWidth": 1500,
+    "originalHeight": 2000
+  },
+  "userMetadataIsJson": true,
+  "loadAutomatically": false,
+  "created": 1734056248680,
+  "updated": 1742508947812
+}

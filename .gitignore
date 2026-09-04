@@ -1,0 +1,16 @@
+# Dependencies and build output — regenerable from source
+node_modules/
+orion/dist/
+
+# Distributable bundles, rebuilt by `npm run build` + the trim step
+*.zip
+
+# star-gallery/ is its own repository (the GitHub Pages deployment target) and carries a
+# built copy of the app. Keeping it out avoids nesting one repo inside another.
+star-gallery/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/

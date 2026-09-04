@@ -1,0 +1,127 @@
+<!-- Copyright (c) 2023 8th Wall, Inc. -->
+<!-- head.html is optional; elements will be added to your html head before app.js is loaded. -->
+
+<!-- Use "8thwall:" meta tags to hook into 8th Wall's build process and developer tools. -->
+<meta name="8thwall:renderer" content="aframe:1.3.0" />
+<meta name="8thwall:package" content="@8thwall.xrextras" />
+<meta name="8thwall:package" content="@8thwall.landing-page" />
+
+<!-- <script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/TexturePass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/LuminosityHighPassShader.js"></script> -->
+
+<!-- Core Three.js -->
+<!-- Then load shader dependencies -->
+<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/CopyShader.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+
+<!-- Then load postprocessing components in the correct order -->
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/EffectComposer.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/ShaderPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/RenderPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+<script src="https://unpkg.com/three@0.147.0/examples/js/postprocessing/TexturePass.js"></script>
+
+<!-- Verify all components are loaded correctly -->
+<script>
+  window.addEventListener('DOMContentLoaded', () => {
+    console.log('THREE loaded:', typeof THREE !== 'undefined');
+    console.log('EffectComposer loaded:', typeof THREE.EffectComposer !== 'undefined');
+    console.log('ShaderPass loaded:', typeof THREE.ShaderPass !== 'undefined');
+    console.log('TexturePass loaded:', typeof THREE.TexturePass !== 'undefined');
+    console.log('UnrealBloomPass loaded:', typeof THREE.UnrealBloomPass !== 'undefined');
+
+    // Wait for A-Frame to initialize
+    setTimeout(() => {
+      // Check if TexturePass exists
+      console.log('Checking TexturePass availability...');
+      if (!THREE.TexturePass) {
+        console.error('TexturePass is missing, creating it manually');
+        // Define TexturePass manually if it's missing
+        THREE.TexturePass = function (map, opacity) {
+          THREE.Pass.call(this);
+          this.map = map;
+          this.opacity = opacity !== undefined ? opacity : 1.0;
+          this.uniforms = {
+            tDiffuse: { value: null },
+            tAdd: { value: this.map },
+            opacity: { value: this.opacity },
+          };
+          this.material = new THREE.ShaderMaterial({
+            uniforms: this.uniforms,
+            vertexShader: [
+              'varying vec2 vUv;',
+              'void main() {',
+              'vUv = uv;',
+              'gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);',
+              '}',
+            ].join('\n'),
+            fragmentShader: [
+              'varying vec2 vUv;',
+              'uniform sampler2D tDiffuse;',
+              'uniform sampler2D tAdd;',
+              'uniform float opacity;',
+              'void main() {',
+              'vec4 texel = texture2D(tDiffuse, vUv);',
+              'vec4 add = texture2D(tAdd, vUv);',
+              'gl_FragColor = texel + add * opacity;',
+              '}',
+            ].join('\n'),
+          });
+        };
+        THREE.TexturePass.prototype = Object.assign(Object.create(THREE.Pass.prototype), {
+          constructor: THREE.TexturePass,
+          render: function (renderer, writeBuffer, readBuffer) {
+            this.uniforms.tDiffuse.value = readBuffer.texture;
+            this.uniforms.opacity.value = this.opacity;
+            this.material.transparent = this.opacity < 1.0;
+            THREE.Pass.prototype.render.call(this, renderer, writeBuffer, readBuffer);
+          },
+        });
+      }
+      console.log('TexturePass now available:', typeof THREE.TexturePass === 'function');
+    }, 1000);
+  });
+</script>
+
+<!-- Other external scripts and meta tags can also be added. -->
+<!-- <script type="importmap">
+  {
+    "imports": {
+      "three": "https://unpkg.com/three@0.147.0/build/three.module.js",
+      "three/addons/": "https://unpkg.com/three@0.147.0/examples/jsm/"
+    }
+  }
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+  import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+  import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+  import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+  import { TexturePass } from 'three/addons/postprocessing/TexturePass.js';
+  import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+  import { CopyShader } from 'three/addons/shaders/CopyShader.js';
+  import { LuminosityHighPassShader } from 'three/addons/shaders/LuminosityHighPassShader.js';
+  
+  // Make THREE and its components available globally
+  window.THREE = THREE;
+  // Attach loaders and postprocessing
+  window.THREE.GLTFLoader = GLTFLoader;
+  window.THREE.EffectComposer = EffectComposer;
+  window.THREE.RenderPass = RenderPass;
+  window.THREE.UnrealBloomPass = UnrealBloomPass;
+  window.THREE.TexturePass = TexturePass;
+  window.THREE.ShaderPass = ShaderPass;
+  // Attach shaders
+  window.THREE.CopyShader = CopyShader;
+  window.THREE.LuminosityHighPassShader = LuminosityHighPassShader;
+  
+  console.log('THREE.js and components loaded successfully');
+  window.dispatchEvent(new CustomEvent('threeloaded'));
+</script> -->

@@ -1,0 +1,18 @@
+{
+  "imagePath": "image-targets/skullMush_target.jpeg",
+  "name": "skullMush",
+  "type": "PLANAR",
+  "properties": {
+    "top": 467,
+    "left": 339,
+    "width": 765,
+    "height": 1020,
+    "isRotated": false,
+    "originalWidth": 1500,
+    "originalHeight": 2000
+  },
+  "userMetadataIsJson": true,
+  "loadAutomatically": true,
+  "created": 1733872778802,
+  "updated": 1733872778802
+}

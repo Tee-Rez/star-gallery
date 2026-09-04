@@ -1,0 +1,18 @@
+{
+  "imagePath": "image-targets/Fol-UV_target.jpeg",
+  "name": "Fol-UV",
+  "type": "PLANAR",
+  "properties": {
+    "top": 63,
+    "left": 485,
+    "width": 1031,
+    "height": 1374,
+    "isRotated": true,
+    "originalWidth": 2000,
+    "originalHeight": 1500
+  },
+  "userMetadataIsJson": true,
+  "loadAutomatically": false,
+  "created": 1729663505691,
+  "updated": 1734559986461
+}

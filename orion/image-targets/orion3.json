@@ -1,0 +1,18 @@
+{
+  "imagePath": "image-targets/orion3_target.jpeg",
+  "name": "orion3",
+  "type": "PLANAR",
+  "properties": {
+    "top": 85,
+    "left": 0,
+    "width": 1111,
+    "height": 1481,
+    "isRotated": false,
+    "originalWidth": 1111,
+    "originalHeight": 1651
+  },
+  "userMetadataIsJson": true,
+  "loadAutomatically": true,
+  "created": 1745115965951,
+  "updated": 1745115965951
+}

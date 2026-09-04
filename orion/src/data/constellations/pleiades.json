@@ -1,0 +1,308 @@
+{
+  "metadata": {
+    "name": "Pleiades",
+    "displayName": "The Pleiades - Seven Sisters",
+    "description": "The Pleiades (M45) is the most famous open star cluster in the sky: a compact knot of hot blue stars in Taurus, about 444 light-years away and only some 100 million years old. Unlike most constellation figures, these stars are genuinely related - they formed together and still travel together through the galaxy.",
+    "mythology": "In Greek myth the Pleiades were the seven daughters of the Titan Atlas and the sea-nymph Pleione: Alcyone, Asterope, Celaeno, Electra, Maia, Merope and Taygeta. Pursued relentlessly by the hunter Orion, they were placed among the stars by Zeus - and Orion still follows them across the sky each night.",
+    "season": "winter",
+    "hemisphere": "both",
+    "abbreviation": "M45"
+  },
+  "portal": {
+    "width": 8,
+    "height": 5,
+    "borderColor": "#00ff00",
+    "doorHeight": 7,
+    "doorDuration": 4000,
+    "lineDrawDuration": 1000,
+    "lineDelay": 100,
+    "position": {"x": 0, "y": 0, "z": 0.1}
+  },
+  "display": {
+    "gridWidth": 8,
+    "gridHeight": 5,
+    "gridSize": 0.5,
+    "gridColor": "#00ff00",
+    "distanceScale": 0.0009,
+    "zDepthScale": 0.7,
+    "scale": {"x": 0.5, "y": 0.5, "z": 0.5},
+    "position": {"x": 0, "y": 0, "z": -1.5}
+  },
+  "gridBox": {
+    "width": 8,
+    "height": 5,
+    "depth": 5,
+    "cellSize": 0.5,
+    "color": "#00ff00",
+    "opacity": 0.6,
+    "wallZ": -1.6
+  },
+  "stars": [
+    {
+      "id": "alcyone",
+      "name": "Alcyone",
+      "designation": "η Tauri (25 Tau)",
+      "isMajor": true,
+      "position2D": {"x": -1.292, "y": -0.722},
+      "distance": 444,
+      "magnitude": 2.85,
+      "spectralClass": "B7IIIe",
+      "color": "#a8c0ff",
+      "size": 0.12,
+      "stellarType": "blue_giant",
+      "info": {
+        "basic": "Alcyone is the brightest of the Pleiades and the eldest sister, a blue giant that anchors the whole cluster.",
+        "scientific": {
+          "class": "B7III blue giant with emission lines",
+          "luminosity": "Roughly 2,400 times the Sun",
+          "rotation": "Spins at about 215 km/s at its equator",
+          "feature": "Rotating fast enough to fling out a disc of its own gas; the brightest member of a multiple system"
+        }
+      }
+    },
+    {
+      "id": "atlas",
+      "name": "Atlas",
+      "designation": "27 Tauri",
+      "isMajor": true,
+      "position2D": {"x": -3.569, "y": -1.022},
+      "distance": 444,
+      "magnitude": 3.62,
+      "spectralClass": "B8III",
+      "color": "#b0c6ff",
+      "size": 0.09,
+      "stellarType": "blue_giant",
+      "info": {
+        "basic": "Atlas is the father of the seven sisters, the Titan condemned to hold up the sky. He stands at the eastern edge of the cluster beside Pleione.",
+        "scientific": {
+          "class": "B8III blue giant",
+          "feature": "A spectroscopic binary; with Pleione it forms the parent pair of the cluster"
+        }
+      }
+    },
+    {
+      "id": "pleione",
+      "name": "Pleione",
+      "designation": "28 Tauri",
+      "isMajor": false,
+      "position2D": {"x": -3.600, "y": -0.527},
+      "distance": 444,
+      "magnitude": 5.05,
+      "spectralClass": "B8IVpe",
+      "color": "#b0c6ff",
+      "size": 0.05,
+      "stellarType": "blue_subgiant",
+      "info": {
+        "basic": "Pleione is the mother of the seven sisters, sitting so close to Atlas that keen eyesight is needed to split the pair.",
+        "scientific": {
+          "class": "B8IV shell star",
+          "variability": "Varies between about magnitude 4.8 and 5.5",
+          "feature": "Spins near its break-up speed and periodically throws off a disc of gas, which makes its brightness change"
+        }
+      }
+    },
+    {
+      "id": "electra",
+      "name": "Electra",
+      "designation": "17 Tauri",
+      "isMajor": true,
+      "position2D": {"x": 2.248, "y": -0.671},
+      "distance": 444,
+      "magnitude": 3.72,
+      "spectralClass": "B6IIIe",
+      "color": "#a3bcff",
+      "size": 0.085,
+      "stellarType": "blue_giant",
+      "info": {
+        "basic": "Electra is the third-brightest sister. In one tradition she is the Lost Pleiad, who veiled herself in grief at the fall of Troy, founded by her descendants.",
+        "scientific": {
+          "class": "B6III blue giant with emission lines",
+          "feature": "A rapid rotator, flattened by its own spin and surrounded by a disc of ejected gas"
+        }
+      }
+    },
+    {
+      "id": "maia",
+      "name": "Maia",
+      "designation": "20 Tauri",
+      "isMajor": true,
+      "position2D": {"x": 0.955, "y": 0.839},
+      "distance": 444,
+      "magnitude": 3.87,
+      "spectralClass": "B7III",
+      "color": "#a8c0ff",
+      "size": 0.08,
+      "stellarType": "blue_giant",
+      "info": {
+        "basic": "Maia, the eldest-looking of the sisters in many tellings, lends her name to the nebulosity glowing around her.",
+        "scientific": {
+          "class": "B7III blue giant",
+          "feature": "Illuminates the Maia Nebula (NGC 1432); the star the disputed class of Maia variables was named for"
+        }
+      }
+    },
+    {
+      "id": "merope",
+      "name": "Merope",
+      "designation": "23 Tauri",
+      "isMajor": true,
+      "position2D": {"x": 0.280, "y": -1.655},
+      "distance": 444,
+      "magnitude": 4.14,
+      "spectralClass": "B6IVev",
+      "color": "#a3bcff",
+      "size": 0.07,
+      "stellarType": "blue_subgiant",
+      "info": {
+        "basic": "Merope is most often named as the Lost Pleiad, said to have hidden her face in shame for marrying a mortal while her sisters wed gods.",
+        "scientific": {
+          "class": "B6IV blue subgiant, variable",
+          "feature": "Lights the Merope Nebula (NGC 1435), a dust cloud the cluster happens to be drifting through rather than the remains of its own birth"
+        }
+      }
+    },
+    {
+      "id": "taygeta",
+      "name": "Taygeta",
+      "designation": "19 Tauri",
+      "isMajor": true,
+      "position2D": {"x": 1.791, "y": 1.432},
+      "distance": 444,
+      "magnitude": 4.30,
+      "spectralClass": "B6IV",
+      "color": "#a3bcff",
+      "size": 0.065,
+      "stellarType": "blue_subgiant",
+      "info": {
+        "basic": "Taygeta marks the northern corner of the little dipper shape, a sister whose name was given to a mountain range in Sparta.",
+        "scientific": {
+          "class": "B6IV blue subgiant",
+          "feature": "A triple system, its brightest component orbited by two fainter companions"
+        }
+      }
+    },
+    {
+      "id": "celaeno",
+      "name": "Celaeno",
+      "designation": "16 Tauri",
+      "isMajor": true,
+      "position2D": {"x": 2.342, "y": 0.376},
+      "distance": 444,
+      "magnitude": 5.45,
+      "spectralClass": "B7IV",
+      "color": "#a8c0ff",
+      "size": 0.045,
+      "stellarType": "blue_subgiant",
+      "info": {
+        "basic": "Celaeno sits right at the edge of naked-eye visibility, which is why she too is sometimes called the Lost Pleiad.",
+        "scientific": {
+          "class": "B7IV blue subgiant",
+          "feature": "Faint enough that seeing it unaided is a classic test of dark skies and sharp eyes"
+        }
+      }
+    },
+    {
+      "id": "asterope",
+      "name": "Asterope",
+      "designation": "21 Tauri (Sterope)",
+      "isMajor": false,
+      "position2D": {"x": 0.844, "y": 1.949},
+      "distance": 444,
+      "magnitude": 5.76,
+      "spectralClass": "B8V",
+      "color": "#b0c6ff",
+      "size": 0.04,
+      "stellarType": "blue_white_main_sequence",
+      "info": {
+        "basic": "Asterope is the faintest of the seven sisters, so dim that most people counting the Pleiades never see her at all.",
+        "scientific": {
+          "class": "B8V blue-white main-sequence star",
+          "feature": "Really a wide pair, 21 and 22 Tauri, known as Sterope I and Sterope II"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {"from": "alcyone", "to": "maia", "type": "bowl"},
+    {"from": "maia", "to": "taygeta", "type": "bowl"},
+    {"from": "taygeta", "to": "celaeno", "type": "bowl"},
+    {"from": "celaeno", "to": "electra", "type": "bowl"},
+    {"from": "electra", "to": "merope", "type": "bowl"},
+    {"from": "merope", "to": "alcyone", "type": "bowl"},
+    {"from": "alcyone", "to": "atlas", "type": "handle"}
+  ],
+  "deepSkyObjects": [
+    {
+      "id": "ngc1435",
+      "name": "Merope Nebula",
+      "designation": "NGC 1435, Tempel's Nebula",
+      "type": "reflection_nebula",
+      "position2D": {"x": 0.280, "y": -1.655},
+      "distance": 444,
+      "magnitude": 13.0,
+      "size": 0.8,
+      "description": "A wisp of interstellar dust lit blue by Merope. Long thought to be leftover material from the cluster's birth, it is now known to be an unrelated cloud the Pleiades are simply drifting through."
+    },
+    {
+      "id": "ngc1432",
+      "name": "Maia Nebula",
+      "designation": "NGC 1432",
+      "type": "reflection_nebula",
+      "position2D": {"x": 0.955, "y": 0.839},
+      "distance": 444,
+      "magnitude": 13.0,
+      "size": 0.7,
+      "description": "The reflection nebulosity surrounding Maia, part of the same dust cloud that veils the cluster and scatters its blue starlight."
+    }
+  ],
+  "journey": [
+    {
+      "id": "alcyone",
+      "title": "Alcyone",
+      "view": "2d",
+      "centerStarName": "Alcyone",
+      "targetStarNames": ["Alcyone"],
+      "story": "Alcyone is the brightest of the Pleiades and, in Greek myth, the eldest of the seven daughters of Atlas and Pleione. The cluster's Greek name may come from plein, to sail: its rising and setting bracketed the safe sailing season, and Hesiod's Works and Days told farmers to harvest when the Pleiades rose and to plough when they set. For a great many cultures this small knot of stars was the calendar itself.",
+      "sources": "Hesiod, Works and Days; R.H. Allen, Star Names (1899)"
+    },
+    {
+      "id": "parents",
+      "title": "Atlas and Pleione",
+      "view": "2d",
+      "detailScale": 2.5,
+      "centerStarName": "Atlas",
+      "targetStarNames": ["Atlas", "Pleione"],
+      "story": "At the eastern edge of the cluster stand the parents. Atlas is the Titan condemned to hold up the sky on his shoulders, and Pleione the sea-nymph who bore his seven daughters. The two sit so close together that separating them by eye is a genuine test of eyesight. Pleione is restless: she spins so fast that she periodically flings off a disc of her own gas, and her brightness shifts as it comes and goes.",
+      "sources": "R.H. Allen, Star Names (1899); Wikipedia"
+    },
+    {
+      "id": "lost_pleiad",
+      "title": "The Lost Pleiad",
+      "view": "2d",
+      "centerStarName": "Merope",
+      "targetStarNames": ["Merope"],
+      "story": "Almost every culture counts seven sisters, yet most people can see only six. The Greeks explained the missing one with two stories. Merope, they said, alone married a mortal - Sisyphus - and hides her face in shame. Or the lost sister is Electra, who veiled herself in grief when Troy, founded by her descendants, burned. The folklorist Stith Thompson noted that the cluster is nearly always imagined as seven, and that myths explaining why only six show up appear worldwide.",
+      "sources": "R.H. Allen, Star Names (1899); Stith Thompson, Motif-Index of Folk-Literature"
+    },
+    {
+      "id": "seven_sisters",
+      "title": "Seven Sisters Everywhere",
+      "view": "2d",
+      "detailScale": 3,
+      "centerStarName": "Maia",
+      "targetStarNames": ["Alcyone", "Asterope", "Celaeno", "Electra", "Maia", "Merope", "Taygeta"],
+      "story": "No other object carries so much shared human memory. In Aboriginal Australia the Kungkarangkalpa songline follows seven sisters fleeing a man named Nyiru, who is the stars of Orion - the same chase the Greeks told. The Kiowa say seven girls escaping bears were lifted skyward on a growing rock, leaving the claw marks of Devils Tower. In Japan the cluster is Subaru, the gathering, and lends its name and six-star badge to the carmaker. Maori call it Matariki, whose dawn rising opens the New Year. In India it is Krittika, the cutters, tied to Agni the fire god. The Aztecs called it Tianquiztli, the marketplace. It appears on the Nebra sky disc from about 1600 BCE, and in the Book of Job, where God asks whether Job can bind its chains.",
+      "sources": "Wikipedia (Pleiades in folklore and literature); Job 9:9 and 38:31; Nebra sky disc (c. 1600 BCE)"
+    },
+    {
+      "id": "true_cluster",
+      "title": "A Real Family",
+      "view": "2d",
+      "detailScale": 2.5,
+      "centerStarName": "Alcyone",
+      "targetStarNames": ["Alcyone", "Atlas", "Pleione", "Electra", "Maia", "Merope", "Taygeta", "Celaeno", "Asterope"],
+      "story": "Here is what makes the Pleiades different from every other figure in this gallery. Orion is an illusion of perspective - its stars lie anywhere from 26 to over 1,300 light-years away and have nothing to do with one another. The Pleiades are real kin. Every one of these stars formed from the same cloud about 100 million years ago, and they still travel together, some 444 light-years from us. That is why they are all hot and blue: the cluster is young enough that its massive stars have not yet burned out. Switch to the depth view and you will see almost no spread at all - because there genuinely is none.",
+      "sources": "Gaia DR3 (2021) cluster distance 136.2 pc; Wikipedia"
+    }
+  ]
+}

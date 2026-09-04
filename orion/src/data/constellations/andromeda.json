@@ -1,0 +1,620 @@
+{
+  "metadata": {
+    "name": "Andromeda",
+    "displayName": "Andromeda the Chained Princess",
+    "description": "Andromeda is a large northern constellation whose brightest stars form a long chain running east from the Great Square of Pegasus. It is best known for hosting the Andromeda Galaxy (M31), the nearest large spiral galaxy to the Milky Way and the most distant object visible to the unaided eye.",
+    "mythology": "In Greek myth Andromeda was the daughter of King Cepheus and Queen Cassiopeia. Boasting of her daughter's beauty, Cassiopeia offended the sea nymphs, and Andromeda was chained to a rock as a sacrifice to the sea monster Cetus. She was rescued by Perseus, who arrived bearing the head of Medusa.",
+    "season": "autumn",
+    "hemisphere": "northern",
+    "abbreviation": "And"
+  },
+  "portal": {
+    "width": 8,
+    "height": 7,
+    "borderColor": "#00ff00",
+    "doorHeight": 7,
+    "doorDuration": 4000,
+    "lineDrawDuration": 1000,
+    "lineDelay": 100,
+    "position": {
+      "x": 0,
+      "y": 0,
+      "z": 0.1
+    }
+  },
+  "display": {
+    "gridWidth": 8,
+    "gridHeight": 7,
+    "gridSize": 0.5,
+    "gridColor": "#00ff00",
+    "distanceScale": 0.0009,
+    "zDepthScale": 0.7,
+    "scale": {
+      "x": 0.5,
+      "y": 0.5,
+      "z": 0.5
+    },
+    "position": {
+      "x": 0,
+      "y": 0,
+      "z": -1.5
+    }
+  },
+  "gridBox": {
+    "width": 8,
+    "height": 7,
+    "depth": 7,
+    "cellSize": 0.5,
+    "color": "#00ff00",
+    "opacity": 0.6,
+    "wallZ": -1.6
+  },
+  "stars": [
+    {
+      "id": "alpheratz",
+      "name": "Alpheratz",
+      "designation": "α Andromedae",
+      "isMajor": true,
+      "position2D": {
+        "x": 1.199,
+        "y": -2.034
+      },
+      "distance": 97,
+      "magnitude": 2.07,
+      "spectralClass": "B8IVpMnHg",
+      "color": "#bbccff",
+      "size": 0.13,
+      "stellarType": "blue_white_subgiant",
+      "info": {
+        "basic": "Alpheratz marks the head of the chained princess and doubles as the northeastern corner of the Great Square of Pegasus, the only star shared between the two figures.",
+        "scientific": {
+          "class": "B8IV mercury-manganese subgiant",
+          "temperature": "About 13,800 K",
+          "mass": "Roughly 3.8 times the Sun's mass",
+          "luminosity": "About 240 times the Sun",
+          "feature": "The brightest known mercury-manganese star; a spectroscopic binary"
+        }
+      }
+    },
+    {
+      "id": "delta_and",
+      "name": "Delta Andromedae",
+      "designation": "δ Andromedae",
+      "isMajor": true,
+      "position2D": {
+        "x": -0.211,
+        "y": -1.693
+      },
+      "distance": 101,
+      "magnitude": 3.27,
+      "spectralClass": "K3III",
+      "color": "#ffb877",
+      "size": 0.085,
+      "stellarType": "orange_giant",
+      "info": {
+        "basic": "Delta Andromedae sits between Alpheratz and Mirach along the princess's body, a quiet orange giant relatively close to the Sun.",
+        "scientific": {
+          "class": "K3III orange giant",
+          "temperature": "About 4,800 K",
+          "luminosity": "Roughly 55 times the Sun",
+          "feature": "A binary system with a faint companion"
+        }
+      }
+    },
+    {
+      "id": "epsilon_and",
+      "name": "Epsilon Andromedae",
+      "designation": "ε Andromedae",
+      "isMajor": false,
+      "position2D": {
+        "x": -0.18,
+        "y": -2.02
+      },
+      "distance": 169,
+      "magnitude": 4.34,
+      "spectralClass": "G5III",
+      "color": "#ffeec0",
+      "size": 0.055,
+      "stellarType": "yellow_giant",
+      "info": {
+        "basic": "Epsilon Andromedae carries the chain south from Delta toward the border with Pisces.",
+        "scientific": {
+          "class": "G5III yellow giant",
+          "temperature": "About 4,900 K",
+          "feature": "A yellow giant marking the southern chain of Andromeda"
+        }
+      }
+    },
+    {
+      "id": "zeta_and",
+      "name": "Zeta Andromedae",
+      "designation": "ζ Andromedae",
+      "isMajor": false,
+      "position2D": {
+        "x": -0.618,
+        "y": -3.1
+      },
+      "distance": 181,
+      "magnitude": 4.08,
+      "spectralClass": "K1II",
+      "color": "#ffc088",
+      "size": 0.06,
+      "stellarType": "orange_bright_giant",
+      "info": {
+        "basic": "Zeta Andromedae ends the southern chain, a heavily spotted orange giant.",
+        "scientific": {
+          "class": "K1II orange bright giant",
+          "feature": "An RS Canum Venaticorum variable; interferometry has directly imaged huge starspots on its surface"
+        }
+      }
+    },
+    {
+      "id": "mirach",
+      "name": "Mirach",
+      "designation": "β Andromedae",
+      "isMajor": true,
+      "position2D": {
+        "x": -1.476,
+        "y": -0.639
+      },
+      "distance": 199,
+      "magnitude": 2.07,
+      "spectralClass": "M0III",
+      "color": "#ff7744",
+      "size": 0.13,
+      "stellarType": "red_giant",
+      "info": {
+        "basic": "Mirach is the ruddy heart of Andromeda and the sky's most useful signpost: star-hoppers follow it north to find the Andromeda Galaxy.",
+        "scientific": {
+          "class": "M0III red giant",
+          "temperature": "About 3,800 K",
+          "radius": "Roughly 100 times the Sun's radius",
+          "luminosity": "About 1,900 times the Sun",
+          "feature": "A semiregular variable; the galaxy NGC 404 lies close by on the sky and is nicknamed Mirach's Ghost"
+        }
+      }
+    },
+    {
+      "id": "almach",
+      "name": "Almach",
+      "designation": "γ Andromedae",
+      "isMajor": true,
+      "position2D": {
+        "x": -3.463,
+        "y": 1.137
+      },
+      "distance": 355,
+      "magnitude": 2.1,
+      "spectralClass": "K3IIb",
+      "color": "#ffb066",
+      "size": 0.12,
+      "stellarType": "orange_bright_giant",
+      "info": {
+        "basic": "Almach marks the princess's foot and is one of the finest double stars in the sky, showing a striking gold and blue-green contrast in a small telescope.",
+        "scientific": {
+          "class": "K3IIb orange bright giant",
+          "temperature": "About 4,250 K",
+          "luminosity": "Roughly 2,000 times the Sun",
+          "feature": "Actually a quadruple system: the golden primary is paired with a blue companion that is itself a triple star"
+        }
+      }
+    },
+    {
+      "id": "mu_and",
+      "name": "Mu Andromedae",
+      "designation": "μ Andromedae",
+      "isMajor": true,
+      "position2D": {
+        "x": -0.892,
+        "y": -0.085
+      },
+      "distance": 136,
+      "magnitude": 3.86,
+      "spectralClass": "A5V",
+      "color": "#ffffff",
+      "size": 0.07,
+      "stellarType": "white_main_sequence",
+      "info": {
+        "basic": "Mu Andromedae is the first step on the star-hop from Mirach toward the Andromeda Galaxy.",
+        "scientific": {
+          "class": "A5V white main-sequence star",
+          "temperature": "About 8,000 K",
+          "feature": "Together with Nu Andromedae it points the way to M31"
+        }
+      }
+    },
+    {
+      "id": "nu_and",
+      "name": "Nu Andromedae",
+      "designation": "ν Andromedae",
+      "isMajor": false,
+      "position2D": {
+        "x": -0.59,
+        "y": 0.432
+      },
+      "distance": 679,
+      "magnitude": 4.53,
+      "spectralClass": "B5V",
+      "color": "#a8bcff",
+      "size": 0.05,
+      "stellarType": "blue_white_main_sequence",
+      "info": {
+        "basic": "Nu Andromedae lies about a degree from the Andromeda Galaxy, making it the final marker for finding M31 by eye.",
+        "scientific": {
+          "class": "B5V blue-white main-sequence star",
+          "temperature": "About 15,000 K",
+          "feature": "A close line-of-sight neighbour of M31, though it lies within our own galaxy"
+        }
+      }
+    },
+    {
+      "id": "phi_and",
+      "name": "Phi Andromedae",
+      "designation": "φ Andromedae",
+      "isMajor": false,
+      "position2D": {
+        "x": -1.233,
+        "y": 1.767
+      },
+      "distance": 736,
+      "magnitude": 4.26,
+      "spectralClass": "B7III",
+      "color": "#aabbff",
+      "size": 0.06,
+      "stellarType": "blue_giant",
+      "info": {
+        "basic": "Phi Andromedae continues the northern arm of the constellation toward Cassiopeia.",
+        "scientific": {
+          "class": "B7III blue giant",
+          "feature": "A Be shell star with a circumstellar disc of ejected gas"
+        }
+      }
+    },
+    {
+      "id": "51_and",
+      "name": "51 Andromedae",
+      "designation": "51 And (Nembus)",
+      "isMajor": true,
+      "position2D": {
+        "x": -2.2,
+        "y": 2.223
+      },
+      "distance": 174,
+      "magnitude": 3.59,
+      "spectralClass": "K3III",
+      "color": "#ffb877",
+      "size": 0.075,
+      "stellarType": "orange_giant",
+      "info": {
+        "basic": "51 Andromedae, officially named Nembus, ends the northern arm. Ptolemy counted it as part of Perseus before Flamsteed moved it into Andromeda.",
+        "scientific": {
+          "class": "K3III orange giant",
+          "temperature": "About 4,400 K",
+          "feature": "Its Bayer letter was lost when the star changed constellations, leaving only a Flamsteed number"
+        }
+      }
+    },
+    {
+      "id": "pi_and",
+      "name": "Pi Andromedae",
+      "designation": "π Andromedae",
+      "isMajor": false,
+      "position2D": {
+        "x": -0.098,
+        "y": -1.098
+      },
+      "distance": 656,
+      "magnitude": 4.34,
+      "spectralClass": "B5V",
+      "color": "#a8bcff",
+      "size": 0.055,
+      "stellarType": "blue_white_main_sequence",
+      "info": {
+        "basic": "Pi Andromedae begins the long western chain that trails away from the princess's body.",
+        "scientific": {
+          "class": "B5V blue-white main-sequence star",
+          "feature": "A spectroscopic binary with a close companion"
+        }
+      }
+    },
+    {
+      "id": "iota_and",
+      "name": "Iota Andromedae",
+      "designation": "ι Andromedae",
+      "isMajor": false,
+      "position2D": {
+        "x": 2.135,
+        "y": 1.052
+      },
+      "distance": 502,
+      "magnitude": 4.29,
+      "spectralClass": "B8V",
+      "color": "#b3c4ff",
+      "size": 0.06,
+      "stellarType": "blue_white_main_sequence",
+      "info": {
+        "basic": "Iota Andromedae anchors the small northwestern group of stars that closes the constellation's chain.",
+        "scientific": {
+          "class": "B8V blue-white main-sequence star",
+          "temperature": "About 12,000 K"
+        }
+      }
+    },
+    {
+      "id": "kappa_and",
+      "name": "Kappa Andromedae",
+      "designation": "κ Andromedae",
+      "isMajor": false,
+      "position2D": {
+        "x": 2.014,
+        "y": 1.259
+      },
+      "distance": 170,
+      "magnitude": 4.15,
+      "spectralClass": "B9IVn",
+      "color": "#bbccff",
+      "size": 0.06,
+      "stellarType": "blue_white_subgiant",
+      "info": {
+        "basic": "Kappa Andromedae is a fast-spinning blue-white star that made headlines for its directly imaged companion.",
+        "scientific": {
+          "class": "B9IV blue-white subgiant",
+          "feature": "Hosts Kappa Andromedae b, a substellar companion captured in direct images in 2012"
+        }
+      }
+    },
+    {
+      "id": "lambda_and",
+      "name": "Lambda Andromedae",
+      "designation": "λ Andromedae",
+      "isMajor": true,
+      "position2D": {
+        "x": 2.05,
+        "y": 1.721
+      },
+      "distance": 84,
+      "magnitude": 3.81,
+      "spectralClass": "G8III-IV",
+      "color": "#fff0c8",
+      "size": 0.07,
+      "stellarType": "yellow_giant",
+      "info": {
+        "basic": "Lambda Andromedae is a nearby yellow giant whose brightness wavers as enormous starspots rotate across its face.",
+        "scientific": {
+          "class": "G8III-IV yellow giant",
+          "feature": "An RS Canum Venaticorum variable; its light varies as heavily spotted regions turn in and out of view"
+        }
+      }
+    },
+    {
+      "id": "omicron_and",
+      "name": "Omicron Andromedae",
+      "designation": "ο Andromedae",
+      "isMajor": true,
+      "position2D": {
+        "x": 3.6,
+        "y": 1.173
+      },
+      "distance": 692,
+      "magnitude": 3.62,
+      "spectralClass": "B6III",
+      "color": "#aabbff",
+      "size": 0.075,
+      "stellarType": "blue_giant",
+      "info": {
+        "basic": "Omicron Andromedae closes the western end of the chain, near the border with Lacerta.",
+        "scientific": {
+          "class": "B6III blue giant",
+          "feature": "A variable shell star in a multiple system, shedding gas into a surrounding disc"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from": "almach",
+      "to": "mirach",
+      "type": "body"
+    },
+    {
+      "from": "mirach",
+      "to": "delta_and",
+      "type": "body"
+    },
+    {
+      "from": "delta_and",
+      "to": "alpheratz",
+      "type": "body"
+    },
+    {
+      "from": "mirach",
+      "to": "mu_and",
+      "type": "arm"
+    },
+    {
+      "from": "mu_and",
+      "to": "nu_and",
+      "type": "arm"
+    },
+    {
+      "from": "nu_and",
+      "to": "phi_and",
+      "type": "arm"
+    },
+    {
+      "from": "phi_and",
+      "to": "51_and",
+      "type": "arm"
+    },
+    {
+      "from": "delta_and",
+      "to": "pi_and",
+      "type": "chain"
+    },
+    {
+      "from": "pi_and",
+      "to": "iota_and",
+      "type": "chain"
+    },
+    {
+      "from": "iota_and",
+      "to": "omicron_and",
+      "type": "chain"
+    },
+    {
+      "from": "iota_and",
+      "to": "kappa_and",
+      "type": "chain"
+    },
+    {
+      "from": "kappa_and",
+      "to": "lambda_and",
+      "type": "chain"
+    },
+    {
+      "from": "delta_and",
+      "to": "epsilon_and",
+      "type": "chain"
+    },
+    {
+      "from": "epsilon_and",
+      "to": "zeta_and",
+      "type": "chain"
+    }
+  ],
+  "deepSkyObjects": [
+    {
+      "id": "m31",
+      "name": "Andromeda Galaxy",
+      "designation": "M31, NGC 224",
+      "type": "spiral_galaxy",
+      "position2D": {
+        "x": -0.315,
+        "y": 0.462
+      },
+      "distance": 2537000,
+      "magnitude": 3.44,
+      "size": 2.0,
+      "description": "The nearest large spiral galaxy to the Milky Way and the most distant object visible to the unaided eye. It spans about six times the width of the full Moon on the sky and is approaching us at roughly 110 km/s."
+    },
+    {
+      "id": "m32",
+      "name": "M32",
+      "designation": "M32, NGC 221",
+      "type": "dwarf_elliptical_galaxy",
+      "position2D": {
+        "x": -0.315,
+        "y": 0.378
+      },
+      "distance": 2490000,
+      "magnitude": 8.08,
+      "size": 0.5,
+      "description": "A compact dwarf elliptical satellite of the Andromeda Galaxy, stripped down by its giant neighbour."
+    },
+    {
+      "id": "m110",
+      "name": "M110",
+      "designation": "M110, NGC 205",
+      "type": "dwarf_elliptical_galaxy",
+      "position2D": {
+        "x": -0.222,
+        "y": 0.545
+      },
+      "distance": 2690000,
+      "magnitude": 8.07,
+      "size": 0.6,
+      "description": "The second bright satellite galaxy of M31, unusual among dwarf ellipticals for still holding dust and young stars."
+    },
+    {
+      "id": "ngc7662",
+      "name": "Blue Snowball Nebula",
+      "designation": "NGC 7662",
+      "type": "planetary_nebula",
+      "position2D": {
+        "x": 2.636,
+        "y": 0.988
+      },
+      "distance": 5600,
+      "magnitude": 8.3,
+      "size": 0.3,
+      "description": "A bright planetary nebula that shows as a small blue-green disc, the cast-off shell of a dying Sun-like star."
+    },
+    {
+      "id": "ngc752",
+      "name": "NGC 752",
+      "designation": "NGC 752, Caldwell 28",
+      "type": "open_cluster",
+      "position2D": {
+        "x": -3.453,
+        "y": 0.107
+      },
+      "distance": 1300,
+      "magnitude": 5.7,
+      "size": 1.2,
+      "description": "A large, loose open cluster of about 60 stars near Almach, old enough that its brightest members have evolved into giants."
+    }
+  ],
+  "journey": [
+    {
+      "id": "alpheratz",
+      "title": "Alpheratz",
+      "view": "2d",
+      "centerStarName": "Alpheratz",
+      "targetStarNames": [
+        "Alpheratz"
+      ],
+      "story": "Alpheratz sits at the princess's head, but it began as part of a horse. Arab astronomers called it Al Surrat al Faras, 'the Navel of the Horse,' when it belonged to Pegasus, and Greek writers from Aratus onward treated it as a joint star shared by both figures - it still carries the old designation delta Pegasi. Only later did it become Al Ras al Mar'ah al Musalsalah, 'the Head of the Woman in Chains.' Chinese astronomers paired it with Gamma Pegasi as Bi, the Wall: the eastern wall of the imperial palace and the emperor's library. In fixed-star astrology it carries the nature of Jupiter and Venus - independence, riches, honour and a keen intellect.",
+      "sources": "R.H. Allen, Star Names (1899); V. Robson, Fixed Stars (1923); Ptolemy, Almagest"
+    },
+    {
+      "id": "mirach",
+      "title": "Mirach",
+      "view": "2d",
+      "centerStarName": "Mirach",
+      "targetStarNames": [
+        "Mirach"
+      ],
+      "story": "Mirach takes its name from the Arabic mi'zar, a girdle or waist-cloth, and medieval Latin charts called it Cingulum, the belt, and Ventrale, the belly. Arab astronomers also knew it as Al Janb al Musalsalah, 'the Side of the Chained Woman.' Earlier still it belonged to a different figure altogether - the great Fish - where it marked Al Batn al Hut, 'the Belly of the Fish,' the 26th lunar mansion. Robson gives it the nature of Venus: beauty, a brilliant mind, devotion, and good fortune in marriage. Today it serves a plainer purpose - it is the signpost every stargazer follows north to find the Andromeda Galaxy.",
+      "sources": "R.H. Allen, Star Names (1899); V. Robson, Fixed Stars (1923)"
+    },
+    {
+      "id": "almach",
+      "title": "Almach",
+      "view": "2d",
+      "centerStarName": "Almach",
+      "targetStarNames": [
+        "Almach"
+      ],
+      "story": "Almach marks the princess's foot, and its name has nothing to do with her. Al 'Anak al 'Ard means 'the Earth-kid' - a small predatory Arabian animal like a badger, known locally as Al Barid. The name was used by Al Tizini and by the fifteenth-century Tartar astronomer Ulug Beg, and Allen took its oddity as a sign of very early Arab star-lore. Thomas Hyde recorded the alternative Al Rijl al Musalsalah, 'the Woman's Foot.' Chinese astronomers gave it a grander title - Tien Ta Tseang, 'Heaven's Great General,' honourable and eminent. Robson assigns it the nature of Venus: honour, eminence and artistic ability. Through a telescope it splits into a celebrated gold and blue-green pair.",
+      "sources": "R.H. Allen, Star Names (1899); V. Robson, Fixed Stars (1923)"
+    },
+    {
+      "id": "chains",
+      "title": "The Chains",
+      "view": "2d",
+      "detailScale": 1.2,
+      "centerStarName": "Kappa Andromedae",
+      "targetStarNames": [
+        "Omicron Andromedae",
+        "Lambda Andromedae",
+        "Kappa Andromedae",
+        "Iota Andromedae"
+      ],
+      "story": "Ptolemy listed Andromeda among his original forty-eight constellations in the Almagest, and in his description Alpha marks her head while Omicron and Lambda are her chains. The story behind them is the oldest in this sky: Cassiopeia boasted that her daughter outshone the sea nymphs, Poseidon sent the monster Cetus, and an oracle told King Cepheus that only his daughter's sacrifice would save the kingdom. She was chained to a rock, and rescued by Perseus. The chained figure is not only Greek - Sanskrit texts describe Antarmada bound to a rock, a resemblance scholars have long remarked on. Other skies saw something else entirely: in the Marshall Islands these stars form the body of a porpoise, with Cassiopeia as its tail and Aries its head.",
+      "sources": "Ptolemy, Almagest (2nd c.); R.H. Allen, Star Names (1899); Wikipedia"
+    },
+    {
+      "id": "m31",
+      "title": "The Little Cloud",
+      "view": "2d",
+      "detailScale": 2.5,
+      "centerStarName": "Nu Andromedae",
+      "targetStarNames": [
+        "Mu Andromedae",
+        "Nu Andromedae"
+      ],
+      "story": "In about 964 CE the Persian astronomer Abd al-Rahman al-Sufi recorded a faint smudge here in his Book of Fixed Stars, calling it a small cloud. It is the earliest known written reference to a galaxy beyond our own, and Arab charts marked it simply as the Little Cloud, part of a figure they called al-Hut, the fish. Simon Marius described it through a telescope in 1612, and Messier catalogued it as M31 in 1764. For centuries nobody knew what it was. In 1917 Heber Curtis found novae within it and argued for 'island universes'; in 1925 Edwin Hubble identified Cepheid variable stars in it with the 100-inch Hooker telescope and settled the question. The Little Cloud was another galaxy, two and a half million light-years away. The universe got a great deal larger that year.",
+      "sources": "al-Sufi, Book of Fixed Stars (c. 964); Wikipedia"
+    }
+  ]
+}

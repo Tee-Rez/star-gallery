@@ -1,0 +1,572 @@
+{
+  "metadata": {
+    "name": "Orion",
+    "displayName": "Orion the Hunter",
+    "description": "Orion constellation is one of the brightest and best-known constellations in the night sky. It lies on the celestial equator and dominates the evening sky from November to February.",
+    "mythology": "In Greek mythology, it is associated with the hunter Orion, a legendary figure with exceptional skill and strength.",
+    "season": "winter",
+    "hemisphere": "both",
+    "abbreviation": "Ori"
+  },
+  "portal": {
+    "width": 6,
+    "height": 9,
+    "borderColor": "#00ff00",
+    "doorHeight": 7,
+    "doorDuration": 4000,
+    "lineDrawDuration": 1000,
+    "lineDelay": 100,
+    "position": {
+      "x": 0,
+      "y": 0,
+      "z": 0.1
+    }
+  },
+  "display": {
+    "gridWidth": 6,
+    "gridHeight": 9,
+    "gridSize": 0.5,
+    "gridColor": "#00ff00",
+    "distanceScale": 0.0009,
+    "zDepthScale": 0.7,
+    "scale": {
+      "x": 0.5,
+      "y": 0.5,
+      "z": 0.5
+    },
+    "position": {
+      "x": 0,
+      "y": 0,
+      "z": -1.5
+    }
+  },
+  "gridBox": {
+    "width": 6,
+    "height": 9,
+    "depth": 6,
+    "cellSize": 0.5,
+    "color": "#00ff00",
+    "opacity": 0.6,
+    "wallZ": -1.6
+  },
+  "stars": [
+    {
+      "id": "betelgeuse",
+      "name": "Betelgeuse",
+      "designation": "α Orionis",
+      "position2D": {
+        "x": -1.442,
+        "y": 0.979
+      },
+      "distance": 642.5,
+      "magnitude": 0.5,
+      "color": "#ff4400",
+      "size": 0.17,
+      "info": {
+        "basic": "Betelgeuse, the celestial ruby of Orion's shoulder, marks the Hunter's right side.",
+        "scientific": {
+          "age": "8-14 million years old",
+          "mass": "14-19 times the Sun's mass",
+          "radius": "640-764 times the Sun's radius - if placed at our Sun's position, would extend beyond Jupiter's orbit",
+          "luminosity": "65,000 times brighter than the Sun",
+          "temperature": "3,600-3,800 K",
+          "fate": "Destined to explode as a supernova within ~100,000 years"
+        }
+      }
+    },
+    {
+      "id": "rigel",
+      "name": "Rigel",
+      "designation": "β Orionis",
+      "position2D": {
+        "x": 0.883,
+        "y": -2.633
+      },
+      "distance": 860,
+      "magnitude": 0.13,
+      "color": "#4477ff",
+      "size": 0.15,
+      "info": {
+        "basic": "Rigel, the commanding blue sentinel at Orion's foot, outshines even Betelgeuse despite being designated Beta Orionis.",
+        "scientific": {
+          "age": "8 million years old - extremely young for such a bright star",
+          "mass": "21 times the Sun's mass",
+          "radius": "74.1 times the Sun's radius",
+          "luminosity": "120,000 times brighter than the Sun",
+          "temperature": "12,100 K",
+          "composition": "Part of a multiple star system with at least three stellar companions"
+        }
+      }
+    },
+    {
+      "id": "bellatrix",
+      "name": "Bellatrix",
+      "designation": "γ Orionis",
+      "position2D": {
+        "x": 0.268,
+        "y": 0.727
+      },
+      "distance": 243,
+      "magnitude": 1.64,
+      "color": "#bbbbff",
+      "size": 0.1,
+      "info": {
+        "basic": "Bellatrix, the 'Female Warrior' star, stands proud at Orion's left shoulder, one of the nearest bright stars in Orion.",
+        "scientific": {
+          "age": "25.2 million years old",
+          "mass": "7.7 times the Sun's mass",
+          "radius": "5.75 times the Sun's radius",
+          "luminosity": "9,211 times brighter than the Sun",
+          "temperature": "21,800 K",
+          "distance": "243 light-years - one of the closest major stars in Orion"
+        }
+      }
+    },
+    {
+      "id": "saiph",
+      "name": "Saiph",
+      "designation": "κ Orionis",
+      "position2D": {
+        "x": -1.035,
+        "y": -2.986
+      },
+      "distance": 721,
+      "magnitude": 2.09,
+      "color": "#ffffff",
+      "size": 0.09,
+      "info": {
+        "basic": "Saiph, the often-overlooked guardian at Orion's right foot, nearly matches Rigel in stellar properties but appears dimmer from Earth.",
+        "scientific": {
+          "age": "11.1 million years old",
+          "mass": "15.5-21.1 times the Sun's mass",
+          "radius": "13-14 times the Sun's radius",
+          "luminosity": "60,300 times brighter than the Sun",
+          "temperature": "25,700 K",
+          "fate": "Destined to end its life in a spectacular supernova"
+        }
+      }
+    },
+    {
+      "id": "alnitak",
+      "name": "Alnitak",
+      "designation": "ζ Orionis",
+      "position2D": {
+        "x": -0.625,
+        "y": -1.17
+      },
+      "distance": 817,
+      "magnitude": 1.77,
+      "color": "#99aaff",
+      "size": 0.1,
+      "info": {
+        "basic": "Alnitak, the easternmost jewel of Orion's Belt, anchors this famous cosmic alignment and illuminates spectacular nebulae in its vicinity.",
+        "scientific": {
+          "age": "6.4 million years old",
+          "mass": "Primary star - 33 times the Sun's mass",
+          "radius": "20 times the Sun's radius",
+          "luminosity": "250,000 times brighter than the Sun",
+          "temperature": "29,500 K",
+          "composition": "A triple star system with two confirmed supernova candidates"
+        }
+      }
+    },
+    {
+      "id": "alnilam",
+      "name": "Alnilam",
+      "designation": "ε Orionis",
+      "position2D": {
+        "x": -0.364,
+        "y": -0.999
+      },
+      "distance": 1342,
+      "magnitude": 1.69,
+      "color": "#ffffff",
+      "size": 0.1,
+      "info": {
+        "basic": "Alnilam, the brilliant centerpiece of Orion's Belt, shines as Orion's brightest belt star despite being the most distant of the three.",
+        "scientific": {
+          "age": "4.47 million years old - remarkably young",
+          "mass": "40 times the Sun's mass",
+          "radius": "30.62 times the Sun's radius",
+          "luminosity": "419,600 times brighter than the Sun - among the most luminous stars visible to the naked eye",
+          "temperature": "26,540 K",
+          "distance": "1,342 light-years - furthest of the three belt stars"
+        }
+      }
+    },
+    {
+      "id": "mintaka",
+      "name": "Mintaka",
+      "designation": "δ Orionis",
+      "position2D": {
+        "x": -0.123,
+        "y": -0.792
+      },
+      "distance": 916,
+      "magnitude": 2.23,
+      "color": "#aaaaff",
+      "size": 0.1,
+      "info": {
+        "basic": "Mintaka, the westernmost sentinel of Orion's Belt, precisely marks the celestial equator, making it a perfect navigational reference point.",
+        "scientific": {
+          "age": "Multiple components ranging from 4-7 million years",
+          "mass": "Primary star mass: 17.8 times the Sun's mass",
+          "radius": "13.1 times the Sun's radius",
+          "luminosity": "190,000 times the Sun's luminosity",
+          "composition": "A complex multiple star system and eclipsing binary",
+          "position": "Located directly on the celestial equator"
+        }
+      }
+    },
+    {
+      "id": "meissa",
+      "name": "Meissa",
+      "designation": "λ Orionis",
+      "position2D": {
+        "x": -0.299,
+        "y": 1.551
+      },
+      "distance": 1055,
+      "magnitude": 3.7,
+      "color": "#ffffff",
+      "size": 0.07,
+      "info": {
+        "basic": "Meissa, the radiant beacon marking Orion's head, illuminates a spectacular ring of cosmic gas and dust.",
+        "scientific": {
+          "age": "4.2 million years old",
+          "mass": "Primary star mass: 34 times the Sun's mass",
+          "radius": "13.4 times the Sun's radius",
+          "luminosity": "200,000 times the Sun's luminosity",
+          "temperature": "35,000 K",
+          "feature": "Center of the Lambda Orionis Cluster and the spectacular ring nebula Sh2-264"
+        }
+      }
+    },
+    {
+      "id": "pi3_orionis",
+      "name": "Pi3 Orionis",
+      "designation": "π³ Orionis (Tabit)",
+      "position2D": {
+        "x": 2.293,
+        "y": 0.891
+      },
+      "distance": 26,
+      "magnitude": 3.65,
+      "color": "#ffffff",
+      "size": 0.05,
+      "info": {
+        "basic": "Pi3 Orionis (Tabit), a nearby sun-like star, serves as an important stellar 'standard candle' for astronomical classifications.",
+        "scientific": {
+          "age": "1.04 billion years old - much older than most Orion stars",
+          "mass": "1.288 times the Sun's mass",
+          "radius": "1.317 times the Sun's radius",
+          "luminosity": "2.816 times the Sun's luminosity",
+          "temperature": "6,518 K",
+          "distance": "Just 26.32 light-years - one of the closest stars in Orion"
+        }
+      }
+    },
+    {
+      "id": "pi4_orionis",
+      "name": "Pi4 Orionis",
+      "designation": "π⁴ Orionis",
+      "position2D": {
+        "x": 2.216,
+        "y": 0.575
+      },
+      "distance": 1050,
+      "magnitude": 3.685,
+      "color": "#bbbbff",
+      "size": 0.07,
+      "info": {
+        "basic": "Pi4 Orionis, one of the stars forming Orion's shield, hides its true nature as a spectroscopic binary system.",
+        "scientific": {
+          "age": "15.4 million years",
+          "mass": "Primary star: 10.95 times the Sun's mass",
+          "radius": "9.1 times the Sun's radius",
+          "luminosity": "19,726 times the Sun's luminosity",
+          "temperature": "21,874 K",
+          "composition": "Spectroscopic binary system with orbital period of 9.5 days"
+        }
+      }
+    },
+    {
+      "id": "pi5_orionis",
+      "name": "Pi5 Orionis",
+      "designation": "π⁵ Orionis",
+      "position2D": {
+        "x": 2.045,
+        "y": -0.159
+      },
+      "distance": 1300,
+      "magnitude": 3.69,
+      "color": "#bbbbff",
+      "size": 0.06,
+      "info": {
+        "basic": "Pi5 Orionis, another sentinel of Orion's shield, constantly changes shape as its binary components orbit each other.",
+        "scientific": {
+          "age": "Multiple components with varying ages",
+          "mass": "Primary: 12 times the Sun's mass, Secondary: 5 times the Sun's mass",
+          "luminosity": "Primary: 11,262 times the Sun, Secondary: 525-741 times the Sun",
+          "composition": "Spectroscopic binary with 3.7-day orbital period",
+          "variability": "Ellipsoidal variable star - brightness varies by 0.05 magnitudes"
+        }
+      }
+    },
+    {
+      "id": "chi1_orionis",
+      "name": "Chi1 Orionis",
+      "designation": "χ¹ Orionis",
+      "position2D": {
+        "x": -1.378,
+        "y": 4.05
+      },
+      "distance": 28,
+      "magnitude": 4.38,
+      "color": "#fff4e8",
+      "size": 0.06,
+      "info": {
+        "basic": "Chi1 Orionis, a nearby solar-type star, provides insights into our Sun's possible future and past states.",
+        "scientific": {
+          "age": "300-400 million years old - much younger than our Sun",
+          "mass": "1.01 times the Sun's mass",
+          "radius": "0.983 times the Sun's radius",
+          "luminosity": "1.042 times the Sun's luminosity",
+          "temperature": "5,883 K",
+          "composition": "RS Canum Venaticorum variable in binary system"
+        }
+      }
+    },
+    {
+      "id": "chi2_orionis",
+      "name": "Chi2 Orionis",
+      "designation": "χ² Orionis",
+      "position2D": {
+        "x": -1.921,
+        "y": 4.04
+      },
+      "distance": 1300,
+      "magnitude": 4.63,
+      "color": "#bbbbff",
+      "size": 0.06,
+      "info": {
+        "basic": "Chi2 Orionis, a massive blue supergiant, pulsates rhythmically while wielding the cosmic club of Orion.",
+        "scientific": {
+          "age": "5 million years - extremely young",
+          "mass": "42.3 times the Sun's mass",
+          "luminosity": "446,000 times the Sun's luminosity",
+          "temperature": "19,000 K",
+          "variability": "Alpha Cygni variable with 2.8-day period"
+        }
+      }
+    },
+    {
+      "id": "c_orionis",
+      "name": "42 Orionis",
+      "designation": "c Orionis (42 Ori)",
+      "position2D": {
+        "x": -0.318,
+        "y": -1.839
+      },
+      "distance": 900,
+      "magnitude": 4.59,
+      "color": "#9db4ff",
+      "size": 0.06,
+      "info": {
+        "basic": "42 Orionis, also called c Orionis, is a hot blue-white star at the top of Orion's Sword, just below the Belt. Its light illuminates the reflection nebula NGC 1977, nicknamed the Running Man Nebula.",
+        "scientific": {
+          "class": "B1V main-sequence star",
+          "temperature": "About 25,000 K",
+          "mass": "Roughly 11 times the Sun's mass",
+          "feature": "Marks the hilt of Orion's Sword, between the Belt and the Orion Nebula"
+        }
+      }
+    },
+    {
+      "id": "theta1_orionis",
+      "name": "Theta1 Orionis",
+      "designation": "θ¹ Orionis (Trapezium)",
+      "position2D": {
+        "x": -0.311,
+        "y": -1.967
+      },
+      "distance": 1344,
+      "magnitude": 4,
+      "color": "#ffffff",
+      "size": 0.06,
+      "info": {
+        "basic": "Theta1 Orionis, the famous Trapezium Cluster, illuminates the heart of the Great Orion Nebula with its young, massive stars.",
+        "scientific": {
+          "age": "Only about 1 million years old",
+          "mass": "Primary star: 33 times the Sun's mass",
+          "composition": "Contains multiple massive O and B-type stars arranged in trapezoid pattern",
+          "luminosity": "Primary: 204,000 times the Sun's luminosity",
+          "feature": "Central star cluster of the Orion Nebula (M42)"
+        }
+      }
+    }
+  ],
+  "connections": [
+    {
+      "from": "alnitak",
+      "to": "alnilam",
+      "type": "belt"
+    },
+    {
+      "from": "alnilam",
+      "to": "mintaka",
+      "type": "belt"
+    },
+    {
+      "from": "betelgeuse",
+      "to": "alnitak",
+      "type": "body"
+    },
+    {
+      "from": "alnitak",
+      "to": "saiph",
+      "type": "body"
+    },
+    {
+      "from": "bellatrix",
+      "to": "mintaka",
+      "type": "body"
+    },
+    {
+      "from": "mintaka",
+      "to": "rigel",
+      "type": "body"
+    },
+    {
+      "from": "meissa",
+      "to": "betelgeuse",
+      "type": "body"
+    },
+    {
+      "from": "meissa",
+      "to": "bellatrix",
+      "type": "body"
+    },
+    {
+      "from": "bellatrix",
+      "to": "pi4_orionis",
+      "type": "bow"
+    },
+    {
+      "from": "pi3_orionis",
+      "to": "pi4_orionis",
+      "type": "bow"
+    },
+    {
+      "from": "pi4_orionis",
+      "to": "pi5_orionis",
+      "type": "bow"
+    },
+    {
+      "from": "betelgeuse",
+      "to": "chi2_orionis",
+      "type": "club"
+    },
+    {
+      "from": "chi2_orionis",
+      "to": "chi1_orionis",
+      "type": "club"
+    },
+    {
+      "from": "alnilam",
+      "to": "c_orionis",
+      "type": "sword"
+    },
+    {
+      "from": "c_orionis",
+      "to": "theta1_orionis",
+      "type": "sword"
+    }
+  ],
+  "deepSkyObjects": [
+    {
+      "id": "m42",
+      "name": "Orion Nebula",
+      "designation": "M42, NGC 1976",
+      "type": "emission_nebula",
+      "distance": 1344,
+      "magnitude": 4,
+      "size": 1.5,
+      "description": "The Great Orion Nebula, one of the brightest nebulae in the sky and the nearest region of massive star formation to the Sun.",
+      "position2D": {
+        "x": -0.312,
+        "y": -1.968
+      }
+    },
+    {
+      "id": "m43",
+      "name": "De Mairan's Nebula",
+      "designation": "M43, NGC 1982",
+      "type": "emission_nebula",
+      "distance": 1300,
+      "magnitude": 9,
+      "size": 0.5,
+      "description": "A smaller emission nebula separated from M42 by a dark lane of dust.",
+      "position2D": {
+        "x": -0.325,
+        "y": -1.939
+      }
+    }
+  ],
+  "journey": [
+    {
+      "id": "betelgeuse",
+      "title": "Betelgeuse",
+      "centerStarName": "Betelgeuse",
+      "targetStarNames": [
+        "Betelgeuse"
+      ],
+      "story": "Its name comes from the Arabic Yad al-Jawza', 'the Hand of Orion' — the familiar 'Betelgeuse' is a medieval mistranscription that turned the leading letter into a 'b'. Skywatchers everywhere remarked on its ember-red color: Ptolemy called it 'orange-tawny,' Chinese astronomers three centuries earlier recorded it as yellow, and the Inuit knew it as Ulluriajjuaq, 'the great star.' Aboriginal groups in South Australia preserved oral traditions of its changing brightness long before Western science confirmed it is a variable star. In fixed-star astrology it carries a martial, Mars-like nature, linked to honor and fortune.",
+      "sources": "R.H. Allen, Star Names (1899); V. Robson, Fixed Stars (1923); Wikipedia"
+    },
+    {
+      "id": "bellatrix",
+      "title": "Bellatrix",
+      "centerStarName": "Bellatrix",
+      "targetStarNames": [
+        "Bellatrix"
+      ],
+      "story": "Its Arabic title Al Najid, 'the Conqueror,' was rendered in the medieval Alfonsine Tables as 'the Female Warrior' — the Amazon Star, a name Bellatrix preserves in Latin. In the fixed-star astrology of Vivian Robson it promises great civil or military honor, but warns of sudden dishonor should fortune turn.",
+      "sources": "R.H. Allen, Star Names (1899); V. Robson, Fixed Stars (1923)"
+    },
+    {
+      "id": "belt",
+      "title": "Orion's Belt",
+      "view": "2d",
+      "detailScale": 1.2,
+      "centerStarName": "Alnilam",
+      "targetStarNames": [
+        "Alnitak",
+        "Alnilam",
+        "Mintaka"
+      ],
+      "story": "The three belt stars carry Arabic names — Al Nitak (the girdle), Al Nitham (the string of pearls), and Al Mintaqah (the belt). Across the world they have been read as a set: the Three Kings, the Three Marys, Jacob's Rod, the Golden Yard-arm. To the Maya they were the Three Hearthstones of Creation — the triangular hearth at the heart of every home, written across the sky, with the glowing Orion Nebula below as the smoke and fire of creation itself.",
+      "sources": "R.H. Allen, Star Names (1899); Maya astronomy (Mexicolore); V. Robson, Fixed Stars (1923)"
+    },
+    {
+      "id": "saiph",
+      "title": "Saiph",
+      "centerStarName": "Saiph",
+      "targetStarNames": [
+        "Saiph"
+      ],
+      "story": "Saiph takes its name from the Arabic Saif al-Jabbar, 'the Sword of the Giant.' Quieter in lore than its neighbors, it holds a place in Maya cosmology as one of the Three Hearthstones of Creation, forming — with Rigel and the belt — the cosmic hearth around the nebula's fire.",
+      "sources": "R.H. Allen, Star Names (1899); Maya astronomy (Mexicolore)"
+    },
+    {
+      "id": "rigel",
+      "title": "Rigel",
+      "centerStarName": "Rigel",
+      "targetStarNames": [
+        "Rigel"
+      ],
+      "story": "Rigel is the 'left foot of Orion,' from the Arabic Rijl Jawza'. Norse tradition remembered it as a toe of Aurvandil the Bold: the god Thor, carrying him across the icy rivers, broke off a frostbitten toe and flung it into the sky, where it became a star. Roman farmers, by contrast, blamed Rigel for winter storms. In astrology it is a star of Jupiter and Saturn — honor, riches, and lasting fortune.",
+      "sources": "R.H. Allen, Star Names (1899); V. Robson, Fixed Stars (1923)"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "imagePath": "image-targets/Tiki coaster_target.jpeg",
+  "name": "Tiki coaster",
+  "type": "PLANAR",
+  "properties": {
+    "top": 0,
+    "left": 138,
+    "width": 806,
+    "height": 1074,
+    "isRotated": false,
+    "originalWidth": 1080,
+    "originalHeight": 1074
+  },
+  "userMetadataIsJson": true,
+  "loadAutomatically": false,
+  "created": 1729643303152,
+  "updated": 1741551982352
+}

@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Orion Quest WebXR</title>
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <style>
+    #launch { position: fixed; inset: 0; z-index: 9; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; gap: 18px; color: #e8eeff;
+      font-family: Arial, sans-serif; background: rgba(3,6,15,.55); text-align: center; }
+    #launch h1 { font-size: 26px; margin: 0; font-weight: 500; color: #bcd6ff; }
+    #launch p { margin: 0; font-size: 15px; max-width: 470px; line-height: 1.5; }
+    #xr-status { font-size: 13px; color: #9fb6d8; }
+    .xbtn { font-size: 20px; padding: 16px 34px; border-radius: 14px; border: 2px solid #4cc3ff;
+      background: #10233f; color: #eaf3ff; cursor: pointer; min-width: 200px; }
+    .xbtn.ar { background: #0c3a2a; border-color: #35d09a; }
+    .row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
+  </style>
+  <script>
+    // Face the camera (A-Frame core has no look-at).
+    AFRAME.registerComponent('billboard', {
+      tick: function () {
+        var cam = this.el.sceneEl && this.el.sceneEl.camera;
+        if (!cam) return;
+        var p = new THREE.Vector3(); cam.getWorldPosition(p);
+        this.el.object3D.lookAt(p);
+      }
+    });
+
+    // Joystick Y-rotation + two-trigger pinch zoom of the whole #system.
+    AFRAME.registerComponent('xr-controls', {
+      schema: { rotSpeed: { default: 0.6 }, minScale: { default: 0.14 }, maxScale: { default: 1.4 } },
+      init: function () {
+        this.system = document.getElementById('system');
+        this.left = document.getElementById('left-hand');
+        this.right = document.getElementById('right-hand');
+        this.stickX = 0;
+        this.trig = { left: false, right: false };
+        this.zooming = false; this.startDist = 0; this.startScale = 0.35;
+        var self = this;
+        [['left', this.left], ['right', this.right]].forEach(function (pair) {
+          var hand = pair[0], el = pair[1];
+          el.addEventListener('thumbstickmoved', function (e) { self.stickX = e.detail.x; });
+          el.addEventListener('triggerdown', function () { self.trig[hand] = true; self.beginZoom(); });
+          el.addEventListener('triggerup', function () { self.trig[hand] = false; self.zooming = false; });
+        });
+      },
+      handDist: function () {
+        var a = new THREE.Vector3(), b = new THREE.Vector3();
+        this.left.object3D.getWorldPosition(a); this.right.object3D.getWorldPosition(b);
+        return a.distanceTo(b);
+      },
+      beginZoom: function () {
+        if (this.trig.left && this.trig.right) {
+          this.zooming = true;
+          this.startDist = this.handDist();
+          this.startScale = this.system.object3D.scale.x;
+        }
+      },
+      tick: function (t, dt) {
+        if (!dt) return;
+        if (Math.abs(this.stickX) > 0.12) {
+          this.system.object3D.rotation.y += this.stickX * this.data.rotSpeed * (dt / 1000);
+        }
+        if (this.zooming && this.startDist > 0.01) {
+          var s = this.startScale * (this.handDist() / this.startDist);
+          s = Math.min(Math.max(s, this.data.minScale), this.data.maxScale);
+          this.system.object3D.scale.set(s, s, s);
+        }
+      }
+    });
+  </script>
+</head>
+<body>
+  <div id="launch">
+    <h1>Orion — Quest WebXR</h1>
+    <p>Enter AR (passthrough) or VR. Point a controller at a star and pull the trigger to select. Thumbstick rotates; hold both triggers and move your hands together/apart to zoom.</p>
+    <div class="row">
+      <button id="btn-ar" class="xbtn ar">Enter AR (passthrough)</button>
+      <button id="btn-vr" class="xbtn">Enter VR</button>
+    </div>
+    <div id="xr-status">Checking headset support…</div>
+  </div>
+
+  <a-scene background="color: #05070f" renderer="colorManagement: true; antialias: true"
+           vr-mode-ui="enabled: false" xr-controls
+           webxr="optionalFeatures: local-floor, bounded-floor, hand-tracking, layers">
+    <a-sky id="skybox" color="#05070f"></a-sky>
+    <a-entity light="type: ambient; intensity: 0.9"></a-entity>
+    <a-entity light="type: directional; intensity: 0.4" position="1 2 1"></a-entity>
+
+    <a-entity id="rig" position="0 0 0">
+      <a-camera position="0 1.6 0"></a-camera>
+      <a-entity id="left-hand" laser-controls="hand: left"
+                raycaster="objects: .clickable; far: 14; lineColor: #4cc3ff" line="color: #4cc3ff; opacity: 0.85"></a-entity>
+      <a-entity id="right-hand" laser-controls="hand: right"
+                raycaster="objects: .clickable; far: 14; lineColor: #4cc3ff" line="color: #4cc3ff; opacity: 0.85"></a-entity>
+    </a-entity>
+
+    <!-- Everything that rotates (thumbstick) and zooms (two triggers) lives under #system. -->
+    <a-entity id="system" position="0 1.4 -3" scale="0.35 0.35 0.35">
+      <a-entity id="depthbox"></a-entity>       <!-- wireframe depth box -->
+      <a-entity id="frames"></a-entity>          <!-- outer frame: title, counter, Lore + 2D/3D buttons -->
+      <a-entity id="constellation"></a-entity>   <!-- stars + lines + labels -->
+
+      <!-- Free-select info panel (placed outside the frame by JS). -->
+      <a-entity id="panel" billboard visible="false">
+        <a-plane width="1.7" height="1.0" color="#0a1226" opacity="0.92" material="shader: flat; side: double"></a-plane>
+        <a-text id="panel-title" value="" color="#7fbfff" width="2.7" align="left" anchor="left" position="-0.78 0.38 0.01"></a-text>
+        <a-text id="panel-body" value="" color="#e8eeff" width="1.95" align="left" anchor="left" baseline="top" wrap-count="36" position="-0.78 0.2 0.01"></a-text>
+      </a-entity>
+
+      <!-- Lore journey panel + Next button (placed outside the frame by JS). -->
+      <a-entity id="journey-ui" billboard visible="false">
+        <a-plane width="1.7" height="1.25" color="#0a1226" opacity="0.94" material="shader: flat; side: double"></a-plane>
+        <a-text id="j-title" value="" color="#7fbfff" width="2.7" align="left" anchor="left" position="-0.78 0.5 0.01"></a-text>
+        <a-text id="j-body" value="" color="#e8eeff" width="1.95" align="left" anchor="left" baseline="top" wrap-count="40" position="-0.78 0.34 0.01"></a-text>
+        <a-text id="j-sources" value="" color="#8fa6c8" width="1.7" align="left" anchor="left" baseline="top" wrap-count="56" position="-0.78 -0.4 0.01"></a-text>
+        <a-plane id="j-next" class="clickable" width="0.64" height="0.22" color="#10233f" material="shader: flat; side: double" position="0.5 -0.76 0.03">
+          <a-text id="j-next-label" value="Next Star" align="center" color="#eaf3ff" width="1.9" position="0 0 0.01"></a-text>
+        </a-plane>
+      </a-entity>
+    </a-entity>
+  </a-scene>
+
+  <script>
+    var journeyActive = false, journeyIndex = 0, is3D = false;
+
+    var STARS = [
+      {name:'Betelgeuse', x:-1.498, y:0.951,  d:642.5, c:'#ff5a3c', s:0.17, info:'Alpha Orionis. Red supergiant, the Hunter’s shoulder.'},
+      {name:'Rigel',      x:0.849,  y:-2.698, d:860,   c:'#8fb4ff', s:0.15, info:'Beta Orionis. Blue supergiant, the “left foot.”'},
+      {name:'Bellatrix',  x:0.228,  y:0.696,  d:243,   c:'#bcd0ff', s:0.10, info:'Gamma Orionis. The “Amazon Star.”'},
+      {name:'Saiph',      x:-1.089, y:-3.055, d:721,   c:'#dfe8ff', s:0.09, info:'Kappa Orionis. “Sword of the Giant.”'},
+      {name:'Alnitak',    x:-0.674, y:-1.219, d:817,   c:'#a9c0ff', s:0.10, info:'Zeta Orionis. Eastern belt star.'},
+      {name:'Alnilam',    x:-0.41,  y:-1.047, d:1342,  c:'#e6eeff', s:0.10, info:'Epsilon Orionis. Central belt star.'},
+      {name:'Mintaka',    x:-0.167, y:-0.838, d:916,   c:'#bcd0ff', s:0.10, info:'Delta Orionis. Western belt star.'},
+      {name:'Meissa',     x:-0.344, y:1.528,  d:1055,  c:'#eef3ff', s:0.07, info:'Lambda Orionis. The Hunter’s head.'},
+      {name:'Pi3 Orionis',x:2.272,  y:0.861,  d:26,    c:'#fff2e0', s:0.06, info:'Tabit. Orion’s shield; only ~26 ly away.'},
+      {name:'Pi4 Orionis',x:2.194,  y:0.542,  d:1050,  c:'#cdd9ff', s:0.07, info:'A shield star of Orion’s bow.'},
+      {name:'Pi5 Orionis',x:2.022,  y:-0.199, d:1300,  c:'#cdd9ff', s:0.06, info:'A shield star of Orion’s bow.'},
+      {name:'Chi1 Orionis',x:-1.433,y:4.05,   d:28,    c:'#fff4e8', s:0.06, info:'A club star, ~28 ly away.'},
+      {name:'Chi2 Orionis',x:-1.981,y:4.041,  d:1300,  c:'#cdd9ff', s:0.06, info:'A distant club star.'},
+      {name:'42 Orionis', x:-0.365, y:-1.896, d:900,   c:'#9db4ff', s:0.06, info:'c Orionis. Hilt of the Sword; lights the Running Man Nebula.'},
+      {name:'Theta1 Orionis',x:-0.358,y:-2.025,d:1344, c:'#ffffff', s:0.07, info:'The Trapezium in the Orion Nebula (M42).'}
+    ];
+    var LINES = [
+      ['Alnitak','Alnilam'],['Alnilam','Mintaka'],['Betelgeuse','Alnitak'],['Alnitak','Saiph'],
+      ['Bellatrix','Mintaka'],['Mintaka','Rigel'],['Meissa','Betelgeuse'],['Meissa','Bellatrix'],
+      ['Bellatrix','Pi4 Orionis'],['Pi3 Orionis','Pi4 Orionis'],['Pi4 Orionis','Pi5 Orionis'],
+      ['Betelgeuse','Chi1 Orionis'],['Chi2 Orionis','Chi1 Orionis'],
+      ['Alnilam','42 Orionis'],['42 Orionis','Theta1 Orionis']
+    ];
+    var JOURNEY_NAMES = {Betelgeuse:1,Bellatrix:1,Alnitak:1,Alnilam:1,Mintaka:1,Saiph:1,Rigel:1};
+
+    // Center the constellation on the origin so thumbstick Y-rotation spins it in place,
+    // and compute a centered depth (z) per star for the 2D/3D toggle.
+    var cx = 0, cy = 0; STARS.forEach(function (s){ cx += s.x; cy += s.y; }); cx /= STARS.length; cy /= STARS.length;
+    var maxD = Math.max.apply(null, STARS.map(function (s){ return s.d; }));
+    var depthExtent = 3.0;
+    var rawZ = STARS.map(function (s){ return -(s.d / maxD) * depthExtent; });
+    var midZ = (Math.min.apply(null, rawZ) + Math.max.apply(null, rawZ)) / 2;
+    STARS.forEach(function (s, i){ s.px = s.x - cx; s.py = s.y - cy; s.pz = rawZ[i] - midZ; });
+
+    var container = document.getElementById('constellation');
+    var elByName = {}, lineEls = [];
+
+    STARS.forEach(function (st) {
+      var e = document.createElement('a-sphere');
+      var r = Math.max(st.s * 1.6, 0.09);
+      e.setAttribute('radius', r);
+      e.dataset.baseR = r;
+      e.setAttribute('position', st.px + ' ' + st.py + ' 0');
+      e.setAttribute('material', 'shader: flat; color: ' + st.c);
+      e.classList.add('clickable');
+      e.dataset.name = st.name; e.dataset.info = st.info;
+      e.addEventListener('mouseenter', function () { if (!journeyActive) e.setAttribute('scale', '1.35 1.35 1.35'); });
+      e.addEventListener('mouseleave', function () { if (!journeyActive) e.setAttribute('scale', '1 1 1'); });
+      e.addEventListener('click', function () { selectStar(st); });
+      container.appendChild(e); elByName[st.name] = e;
+
+      if (st.s >= 0.1 || JOURNEY_NAMES[st.name]) {          // label bright + all journey stars (incl. Saiph)
+        var t = document.createElement('a-text');
+        t.setAttribute('value', st.name);
+        t.setAttribute('color', '#dfe8ff'); t.setAttribute('width', '3'); t.setAttribute('align', 'center');
+        t.setAttribute('position', st.px + ' ' + (st.py + r + 0.2) + ' 0');
+        t.setAttribute('billboard', '');
+        t.dataset.name = st.name;
+        container.appendChild(t);
+      }
+    });
+
+    STARS.forEach(function (s){ elByName[s.name] && (elByName[s.name].dataset.i = 1); });
+    LINES.forEach(function (pair) {
+      var a = elByName[pair[0]], b = elByName[pair[1]];
+      if (!a || !b) return;
+      var na = STARS.find(function(s){return s.name===pair[0];}), nb = STARS.find(function(s){return s.name===pair[1];});
+      var line = document.createElement('a-entity');
+      line.setAttribute('line', 'start: ' + na.px + ' ' + na.py + ' 0; end: ' + nb.px + ' ' + nb.py + ' 0; color: #2b4a80; opacity: 0.7');
+      container.appendChild(line);
+      lineEls.push({el: line, a: na, b: nb});
+    });
+
+    // ---- Frame bounds + outer frame (title, counter, Lore + 2D/3D buttons) + depth box ----
+    var xs = STARS.map(function(s){return s.px;}), ys = STARS.map(function(s){return s.py;});
+    var hw = (Math.max.apply(null,xs) - Math.min.apply(null,xs)) / 2 + 0.6;
+    var hh = (Math.max.apply(null,ys) - Math.min.apply(null,ys)) / 2 + 0.6;
+    var ohw = hw + 0.8, ohh = hh + 0.8;
+
+    function rect(parent, halfW, halfH, z, color, op) {
+      var pts = [[-halfW,halfH],[halfW,halfH],[halfW,-halfH],[-halfW,-halfH]];
+      var edges = [[0,1],[1,2],[2,3],[3,0]];
+      edges.forEach(function (ed) {
+        var p = pts[ed[0]], q = pts[ed[1]];
+        var l = document.createElement('a-entity');
+        l.setAttribute('line', 'start: ' + p[0] + ' ' + p[1] + ' ' + z + '; end: ' + q[0] + ' ' + q[1] + ' ' + z + '; color: ' + color + '; opacity: ' + op);
+        parent.appendChild(l);
+      });
+    }
+
+    var frames = document.getElementById('frames');
+    rect(frames, hw, hh, 0, '#00e676', 0.9);      // inner (portal) frame
+    rect(frames, ohw, ohh, 0, '#00e676', 0.55);   // outer frame
+
+    function frameText(id, val, x, y, w, col, align) {
+      var t = document.createElement('a-text');
+      if (id) t.setAttribute('id', id);
+      t.setAttribute('value', val); t.setAttribute('color', col); t.setAttribute('width', w);
+      t.setAttribute('align', align); t.setAttribute('anchor', align);
+      t.setAttribute('position', x + ' ' + y + ' 0.02');
+      frames.appendChild(t); return t;
+    }
+    var bandY = (hh + ohh) / 2;
+    frameText(null, 'Orion', -ohw + 0.15, bandY, 8, '#00e676', 'left');
+    frameText('star-counter', '# of Stars: ' + STARS.length, ohw - 0.15, bandY, 5, '#00e676', 'right');
+
+    function frameButton(id, label, x, w) {
+      var btn = document.createElement('a-plane');
+      btn.setAttribute('id', id); btn.classList.add('clickable');
+      btn.setAttribute('width', w); btn.setAttribute('height', 0.55);
+      btn.setAttribute('material', 'shader: flat; side: double; color: #06231a; opacity: 0.9');
+      btn.setAttribute('position', x + ' ' + (-bandY) + ' 0.02');
+      var t = document.createElement('a-text');
+      t.setAttribute('value', label); t.setAttribute('align', 'center'); t.setAttribute('color', '#c8ffe6'); t.setAttribute('width', 4.5);
+      t.setAttribute('position', '0 0 0.01'); t.dataset.role = 'label';
+      btn.appendChild(t);
+      frames.appendChild(btn); return btn;
+    }
+    var loreBtn = frameButton('lore-btn', 'Lore', -1.1, 1.7);
+    var viewBtn = frameButton('view-btn', '3D View', 1.1, 1.7);
+
+    // Green grid box (like the phone app's grid walls): a grid front face (lines through x and y)
+    // facing the camera, with the box extending back in z for depth. Same in VR/AR.
+    function buildGridBox(parent, halfW, halfH, depth, gridSize, color) {
+      var fz = depth / 2, bz = -depth / 2;
+      function L(x1, y1, z1, x2, y2, z2, op) {
+        var e = document.createElement('a-entity');
+        e.setAttribute('line', 'start: ' + x1 + ' ' + y1 + ' ' + z1 + '; end: ' + x2 + ' ' + y2 + ' ' + z2 + '; color: ' + color + '; opacity: ' + op);
+        parent.appendChild(e);
+      }
+      var nx = Math.round((2 * halfW) / gridSize), ny = Math.round((2 * halfH) / gridSize), i;
+      // Front-face grid (facing the camera): vertical + horizontal lines.
+      for (i = 0; i <= nx; i++) { var x = -halfW + i * gridSize; L(x, -halfH, fz, x, halfH, fz, 0.3); }
+      for (i = 0; i <= ny; i++) { var y = -halfH + i * gridSize; L(-halfW, y, fz, halfW, y, fz, 0.3); }
+      // Depth edges (front corners -> back) + back outline, so it reads as a box with depth.
+      var corners = [[-halfW, -halfH], [halfW, -halfH], [halfW, halfH], [-halfW, halfH]];
+      corners.forEach(function (c) { L(c[0], c[1], fz, c[0], c[1], bz, 0.5); });
+      for (i = 0; i < corners.length; i++) {
+        var a = corners[i], b = corners[(i + 1) % corners.length];
+        L(a[0], a[1], bz, b[0], b[1], bz, 0.4);
+      }
+    }
+    buildGridBox(document.getElementById('depthbox'), hw, hh, depthExtent + 0.4, 0.5, '#00e676');
+
+    // ---- Panels placed just OUTSIDE the frame so stars never cross them ----
+    var panel = document.getElementById('panel');
+    panel.object3D.position.set(ohw + 1.15, 0.4, 0.2);
+    var jUI = document.getElementById('journey-ui');
+
+    function selectStar(st) {
+      if (journeyActive) return;
+      document.getElementById('panel-title').setAttribute('value', st.name);
+      document.getElementById('panel-body').setAttribute('value', st.info);
+      panel.setAttribute('visible', true);
+    }
+
+    // ---- 2D / 3D toggle ----
+    function setView(threeD) {
+      is3D = threeD;
+      STARS.forEach(function (s) {
+        var el = elByName[s.name];
+        el.setAttribute('position', s.px + ' ' + s.py + ' ' + (threeD ? s.pz : 0));
+      });
+      lineEls.forEach(function (L) {
+        var az = threeD ? L.a.pz : 0, bz = threeD ? L.b.pz : 0;
+        L.el.setAttribute('line', 'start: ' + L.a.px + ' ' + L.a.py + ' ' + az + '; end: ' + L.b.px + ' ' + L.b.py + ' ' + bz + '; color: #2b4a80; opacity: 0.7');
+      });
+      viewBtn.querySelector('[data-role="label"]').setAttribute('value', threeD ? '2D View' : '3D View');
+    }
+    viewBtn.addEventListener('click', function () { setView(!is3D); });
+
+    // ---- Lore journey (highlight-in-place, 3D Next button) ----
+    var JOURNEY = [
+      {title:'Betelgeuse', center:'Betelgeuse', targets:['Betelgeuse'],
+       story:"Arabic Yad al-Jawza, 'the Hand of Orion' — 'Betelgeuse' is a medieval mistranscription. Its ember-red color was noted worldwide: Ptolemy 'orange-tawny,' Chinese astronomers 'yellow,' the Inuit 'Ulluriajjuaq' (great star). In astrology it carries a martial, Mars-like nature.",
+       sources:'Allen (1899); Robson (1923); Wikipedia'},
+      {title:'Bellatrix', center:'Bellatrix', targets:['Bellatrix'],
+       story:"Arabic Al Najid, 'the Conqueror,' became 'the Female Warrior' — the Amazon Star. Astrology (Robson): great honor, but a warning of sudden downfall.",
+       sources:'Allen (1899); Robson (1923)'},
+      {title:"Orion's Belt", center:'Alnilam', targets:['Alnitak','Alnilam','Mintaka'],
+       story:"Arabic Al Nitak (girdle), Al Nitham (string of pearls), Al Mintaqah (belt). Read worldwide as a set — the Three Kings, the Three Marys, Jacob's Rod. To the Maya, the Three Hearthstones of Creation, with the Orion Nebula below as the fire.",
+       sources:'Allen (1899); Maya astronomy (Mexicolore)'},
+      {title:'Saiph', center:'Saiph', targets:['Saiph'],
+       story:"Arabic Saif al-Jabbar, 'the Sword of the Giant.' In Maya cosmology, one of the Three Hearthstones of Creation, forming — with Rigel and the belt — the cosmic hearth around the nebula's fire.",
+       sources:'Allen (1899); Maya astronomy (Mexicolore)'},
+      {title:'Rigel', center:'Rigel', targets:['Rigel'],
+       story:"Arabic Rijl Jawza, 'the left foot.' Norse tradition: a toe of Aurvandil, flung into the sky by Thor. Roman farmers blamed it for winter storms. Astrology: a star of Jupiter and Saturn — honor and lasting fortune.",
+       sources:'Allen (1899); Robson (1923)'}
+    ];
+    var highlighted = [];
+    document.getElementById('lore-btn').addEventListener('click', startJourney);
+    document.getElementById('j-next').addEventListener('click', function () {
+      if (journeyIndex >= JOURNEY.length - 1) endJourney(); else goToStop(journeyIndex + 1);
+    });
+
+    function startJourney() {
+      journeyActive = true;
+      if (is3D) setView(false);           // journey shown in flat 2D
+      panel.setAttribute('visible', false);
+      loreBtn.setAttribute('visible', false);
+      goToStop(0);
+    }
+    function goToStop(i) {
+      clearHighlight(); journeyIndex = i;
+      var stop = JOURNEY[i];
+      stop.targets.forEach(highlight);
+      var c = elByName[stop.center];
+      var wp = new THREE.Vector3(); c.object3D.getWorldPosition(wp);
+      // Panel outside the frame, at the focused star's height (readable, never over the stars).
+      jUI.object3D.position.set(ohw + 1.15, Math.max(Math.min(c.getAttribute('position').y, ohh - 0.3), -ohh + 0.6), 0.2);
+      document.getElementById('j-title').setAttribute('value', stop.title);
+      document.getElementById('j-body').setAttribute('value', stop.story);
+      document.getElementById('j-sources').setAttribute('value', 'Sources: ' + stop.sources);
+      document.getElementById('j-next-label').setAttribute('value', i === JOURNEY.length - 1 ? 'End Journey' : 'Next Star');
+      jUI.setAttribute('visible', true);
+    }
+    function endJourney() {
+      clearHighlight(); jUI.setAttribute('visible', false);
+      loreBtn.setAttribute('visible', true); journeyActive = false;
+    }
+    function highlight(name) {
+      var el = elByName[name]; if (!el) return;
+      el.setAttribute('scale', '3 3 3'); highlighted.push(el);
+    }
+    function clearHighlight() {
+      highlighted.forEach(function (el) { el.setAttribute('scale', '1 1 1'); }); highlighted = [];
+    }
+
+    // ---- Opening reveal: grow #system in from a point (portal opening). ----
+    var scene = document.querySelector('a-scene');
+    function playOpening() {
+      var sys = document.getElementById('system');
+      sys.setAttribute('scale', '0.02 0.02 0.02');
+      sys.setAttribute('animation__open', 'property: scale; to: 0.35 0.35 0.35; dur: 1600; easing: easeOutBack; startEvents: doopen');
+      sys.emit('doopen');
+    }
+    if (scene.hasLoaded) playOpening(); else scene.addEventListener('loaded', playOpening);
+
+    // Passthrough: hide the space backdrop in AR; hide launch overlay in-session.
+    scene.addEventListener('enter-vr', function () {
+      document.getElementById('skybox').setAttribute('visible', !scene.is('ar-mode'));
+      document.getElementById('launch').style.display = 'none';
+    });
+    scene.addEventListener('exit-vr', function () {
+      document.getElementById('skybox').setAttribute('visible', true);
+      document.getElementById('launch').style.display = 'flex';
+    });
+
+    // Explicit AR/VR entry + headset support readout.
+    var statusEl = document.getElementById('xr-status');
+    document.getElementById('btn-ar').addEventListener('click', function () { try { scene.enterVR(true); } catch (e) { statusEl.textContent = 'AR error: ' + e.message; } });
+    document.getElementById('btn-vr').addEventListener('click', function () { try { scene.enterVR(); } catch (e) { statusEl.textContent = 'VR error: ' + e.message; } });
+    (async function () {
+      if (!navigator.xr) { statusEl.textContent = 'navigator.xr not available.'; return; }
+      var ar = false, vr = false;
+      try { ar = await navigator.xr.isSessionSupported('immersive-ar'); } catch (e) {}
+      try { vr = await navigator.xr.isSessionSupported('immersive-vr'); } catch (e) {}
+      statusEl.textContent = 'This headset reports — immersive-ar: ' + ar + '   |   immersive-vr: ' + vr;
+    })();
+  </script>
+</body>
+</html>

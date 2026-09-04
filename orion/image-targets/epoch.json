@@ -1,0 +1,18 @@
+{
+  "imagePath": "image-targets/epoch_target.jpeg",
+  "name": "epoch",
+  "type": "PLANAR",
+  "properties": {
+    "top": 522,
+    "left": 353,
+    "width": 750,
+    "height": 1000,
+    "isRotated": false,
+    "originalWidth": 1500,
+    "originalHeight": 2000
+  },
+  "userMetadataIsJson": true,
+  "loadAutomatically": false,
+  "created": 1734560025016,
+  "updated": 1742520487222
+}

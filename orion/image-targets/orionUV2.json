@@ -1,0 +1,18 @@
+{
+  "imagePath": "image-targets/orionUV2_target.jpeg",
+  "name": "orionUV2",
+  "type": "PLANAR",
+  "properties": {
+    "top": 113,
+    "left": 0,
+    "width": 1332,
+    "height": 1776,
+    "isRotated": false,
+    "originalWidth": 1332,
+    "originalHeight": 2000
+  },
+  "userMetadataIsJson": true,
+  "loadAutomatically": true,
+  "created": 1744692794905,
+  "updated": 1744692794905
+}

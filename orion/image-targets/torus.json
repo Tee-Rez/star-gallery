@@ -1,0 +1,18 @@
+{
+  "imagePath": "image-targets/torus_target.jpeg",
+  "name": "torus",
+  "type": "PLANAR",
+  "properties": {
+    "top": 406,
+    "left": 308,
+    "width": 812,
+    "height": 1082,
+    "isRotated": false,
+    "originalWidth": 1500,
+    "originalHeight": 2000
+  },
+  "userMetadataIsJson": true,
+  "loadAutomatically": false,
+  "created": 1734034461415,
+  "updated": 1734056222074
+}
