@@ -115,6 +115,23 @@ test('a supergiant is vastly larger than a dwarf of the same type', () => {
     'supergiant R=' + sup.radiusSolar + ' vs dwarf R=' + dwarf.radiusSolar)
 })
 
+// Radius is squared in nu_max, so getting its ordering wrong is the loudest possible error.
+// A red supergiant must dwarf a blue one: Betelgeuse is ~750 solar radii, Alnitak ~20.
+test('a cool supergiant is far larger than a hot one', () => {
+  const betelgeuse = P.physicsFor({spectralClass: 'M1-M2 Ia-ab'})
+  const alnitak = P.physicsFor({spectralClass: 'O9.5 Ib'})
+  assert.ok(betelgeuse.radiusSolar > alnitak.radiusSolar * 10,
+    'M supergiant R=' + betelgeuse.radiusSolar + ' vs O supergiant R=' + alnitak.radiusSolar)
+})
+
+test('the largest star also has the lowest nu_max', () => {
+  const b = P.physicsFor({spectralClass: 'M1-M2 Ia-ab'})
+  const a = P.physicsFor({spectralClass: 'O9.5 Ib'})
+  const nuB = T.nuMaxMicroHz(b.massSolar, b.radiusSolar, b.tempKelvin)
+  const nuA = T.nuMaxMicroHz(a.massSolar, a.radiusSolar, a.tempKelvin)
+  assert.ok(nuB < nuA, 'the bigger star must sound lower: ' + nuB + ' vs ' + nuA)
+})
+
 test('a missing spectralClass never produces NaN', () => {
   const r = P.physicsFor({})
   assert.ok(Number.isFinite(r.massSolar) && Number.isFinite(r.radiusSolar) && Number.isFinite(r.tempKelvin))

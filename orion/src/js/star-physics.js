@@ -20,15 +20,42 @@ const MAIN_SEQUENCE = [
 ]
 const COOLEST = {tempK: 2600, massSolar: 0.15, radiusSolar: 0.20}  // past M9
 
-// Luminosity class scales the main-sequence figures. Giants and supergiants are hugely larger
-// for a given temperature, which is exactly what makes them sound low.
-const LUMINOSITY = {
-  I: {mass: 6.0, radius: 60},
-  II: {mass: 3.5, radius: 25},
-  III: {mass: 2.0, radius: 12},
-  IV: {mass: 1.3, radius: 2.5},
-  V: {mass: 1.0, radius: 1.0},
-  VI: {mass: 0.8, radius: 0.8},
+// Mass scales gently with luminosity class. It sits linearly in the numerator of nu_max, so
+// a rough figure here is tolerable.
+const LUMINOSITY_MASS = {I: 6.0, II: 3.5, III: 2.0, IV: 1.3, V: 1.0, VI: 0.8}
+
+// Radius, on the other hand, is SQUARED in nu_max and cannot be a simple multiple of the
+// main-sequence value. Scaling that way makes hot supergiants enormous and cool ones small,
+// which is backwards: at comparable luminosity a cooler star must be far larger to radiate the
+// same energy, so red supergiants are the giants of the sky. Modelling it multiplicatively put
+// Betelgeuse at 34 solar radii and Alnitak at 458, when the truth is roughly 750 and 20 - it
+// would have sounded the largest star in Orion as a mid-sized one.
+//
+// So radius is a table in solar radii, indexed by spectral letter and luminosity class, and
+// interpolated across subclass. Approximate, but it keeps the ordering the ear actually reads.
+const RADIUS_TABLE = {
+  //        V     IV    III    II     I
+  O: {V: 8.0, IV: 10, III: 12, II: 15, I: 20, VI: 6.0},
+  B: {V: 4.0, IV: 5, III: 8, II: 15, I: 40, VI: 3.0},
+  A: {V: 1.8, IV: 3, III: 5, II: 20, I: 60, VI: 1.4},
+  F: {V: 1.3, IV: 2.5, III: 6, II: 30, I: 100, VI: 1.0},
+  G: {V: 1.0, IV: 2.5, III: 10, II: 40, I: 150, VI: 0.8},
+  K: {V: 0.8, IV: 3, III: 20, II: 60, I: 300, VI: 0.6},
+  M: {V: 0.4, IV: 3, III: 50, II: 100, I: 700, VI: 0.3},
+}
+const LETTER_ORDER = ['O', 'B', 'A', 'F', 'G', 'K', 'M']
+
+// Interpolate the radius towards the next letter, the same way temperature is interpolated.
+function radiusFor(letter, subclass, luminosity) {
+  const row = RADIUS_TABLE[letter]
+  if (!row) return 1
+  const lum = row[luminosity] !== undefined ? luminosity : 'V'
+  const i = LETTER_ORDER.indexOf(letter)
+  const next = RADIUS_TABLE[LETTER_ORDER[i + 1]]
+  const a = row[lum]
+  const b = next ? next[lum] : a
+  const t = Math.min(1, Math.max(0, subclass / 10))
+  return a + (b - a) * t
 }
 
 const SOLAR = {massSolar: 1, radiusSolar: 1, tempKelvin: 5777}
@@ -93,10 +120,10 @@ function physicsFor(star) {
   if (!parsed) return Object.assign({}, SOLAR, {source: 'spectral'})
 
   const ms = mainSequenceFor(parsed.letter, parsed.subclass)
-  const lum = LUMINOSITY[parsed.luminosity] || LUMINOSITY.V
+  const massFactor = LUMINOSITY_MASS[parsed.luminosity] || LUMINOSITY_MASS.V
   return {
-    massSolar: ms.massSolar * lum.mass,
-    radiusSolar: ms.radiusSolar * lum.radius,
+    massSolar: ms.massSolar * massFactor,
+    radiusSolar: radiusFor(parsed.letter, parsed.subclass, parsed.luminosity),
     tempKelvin: ms.tempK,
     source: 'spectral',
   }
