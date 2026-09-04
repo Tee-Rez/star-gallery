@@ -16,12 +16,18 @@ AFRAME.registerComponent('lore-journey', loreJourneyComponent)
 import {galleryBackButtonComponent} from './js/gallery-back-button'
 AFRAME.registerComponent('gallery-back-button', galleryBackButtonComponent)
 
+import {starAudioComponent} from './js/star-audio'
+AFRAME.registerComponent('star-audio', starAudioComponent)
+
 // The back control is attached here rather than in the scene markup so it exists for every
 // constellation, and from the first frame rather than only once a portal has been placed.
 window.addEventListener('DOMContentLoaded', () => {
   const scene = document.querySelector('a-scene')
   if (scene && !scene.hasAttribute('gallery-back-button')) {
     scene.setAttribute('gallery-back-button', '')
+  }
+  if (scene && !scene.hasAttribute('star-audio')) {
+    scene.setAttribute('star-audio', '')
   }
 })
 
