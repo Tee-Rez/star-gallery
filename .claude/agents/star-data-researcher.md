@@ -50,6 +50,11 @@ Include faint stars when the figure needs them. Exclude bright ones the figure d
    is ambiguous.
 3. **constellation-guide.com** - good cross-check on which stars matter and their names.
 
+Include a `physics` block — `{"massSolar": 2.5, "radiusSolar": 15, "tempKelvin": 4400}` — when
+a source gives mass, radius and temperature as numbers. It feeds the star's Starsong tone.
+It is optional: without it the tone is derived from the spectral class instead, so never guess
+these values to fill the field.
+
 Cross-check anything that looks off. Distances in particular vary between sources; pick one,
 record which, and stay consistent within a constellation.
 

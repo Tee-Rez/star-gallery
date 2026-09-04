@@ -80,6 +80,12 @@ and bottom span `width × depth`.
 - `color` from spectral class, `size` from magnitude — see `constellation-builder`.
 - **No `esoteric` field.** It was removed after the original text proved fabricated; lore lives
   in `journey` with sources.
+- `physics` *(optional)* — `{"massSolar": 3.8, "radiusSolar": 2.7, "tempKelvin": 13800}`.
+  Feeds the star's Starsong tone, which needs numbers rather than the prose in
+  `info.scientific`. When absent the values are derived from `spectralClass`, giving a tone
+  characteristic of the star's TYPE rather than that individual star; the Starsong tab says
+  which it used. Never guess these figures to fill the field - the spectral fallback is the
+  honest default.
 
 ## connections
 

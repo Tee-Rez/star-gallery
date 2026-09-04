@@ -5,7 +5,7 @@
 // The Unity build hand-rolls a sample loop with its own sine table because Unity makes you own
 // the audio thread. The browser already owns it, so this is an OscillatorNode graph instead -
 // and `detune` is natively in cents, so the rotation-splitting parameter transfers literally.
-import {heat} from './star-tone'
+import {heat} from './star-tone.js'
 
 class StarVoice {
   constructor(ctx, destination) {

@@ -141,6 +141,15 @@ const constellationLoaderComponent = {
         this.applyConstellationSettings()
         console.log('Settings applied successfully')
 
+        // Pitches are relative to THIS constellation's nu_max span, so the range is recomputed
+        // on every load; any tone still sounding belongs to the previous figure.
+        const sceneEl = this.el.sceneEl
+        const audio = sceneEl && sceneEl.components['star-audio']
+        if (audio) {
+          audio.stopAll()
+          audio.computeRange(this.constellationData.stars)
+        }
+
         return true
       } else {
         throw new Error(`No embedded data found for constellation: ${this.data.constellationFile}`)

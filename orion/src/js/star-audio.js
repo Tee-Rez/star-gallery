@@ -4,9 +4,9 @@
 //
 // Nothing here plays on its own. Audio happens because the Starsong tab asked for it, or
 // because a journey stop arrived.
-import {StarVoice} from './star-voice'
-import {physicsFor} from './star-physics'
-import {nuMaxMicroHz, toPitchHz, quantize} from './star-tone'
+import {StarVoice} from './star-voice.js'
+import {physicsFor} from './star-physics.js'
+import {nuMaxMicroHz, toPitchHz, quantize} from './star-tone.js'
 
 const starAudioComponent = {
   schema: {

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Starsong bench</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body { margin:0; background:#05070f; color:#e8eeff;
+    font-family:-apple-system,system-ui,Segoe UI,Roboto,Arial,sans-serif; padding:24px; }
+  h1 { font-size:22px; font-weight:600; margin:0 0 4px; }
+  .sub { color:#8fa6c8; font-size:13px; margin:0 0 18px; line-height:1.5; }
+  .bar { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+  button, select { font:inherit; font-size:14px; padding:8px 14px; border-radius:8px;
+    border:1px solid #4287f5; background:#10233f; color:#eaf3ff; cursor:pointer; }
+  button.alt { background:#0c3a2a; border-color:#35d09a; }
+  button:disabled { opacity:.4; cursor:default; }
+  table { border-collapse:collapse; width:100%; max-width:1000px; }
+  th,td { text-align:left; padding:7px 10px; border-bottom:1px solid #1e3358; font-size:13px;
+    white-space:nowrap; }
+  th { color:#8fa6c8; font-weight:500; font-size:12px; }
+  td.num { text-align:right; font-variant-numeric:tabular-nums; }
+  tr:hover { background:rgba(66,135,245,.08); }
+  .play { padding:4px 12px; font-size:12px; }
+  .swatch { display:inline-block; width:11px; height:11px; border-radius:50%;
+    margin-right:7px; vertical-align:-1px; }
+  .note { color:#7f93b5; font-size:12px; margin-top:16px; max-width:760px; line-height:1.6; }
+  #status { color:#ffcc66; font-size:13px; margin-left:auto; }
+</style>
+</head>
+<body>
+<h1>Starsong bench</h1>
+<p class="sub">
+  Auditions the real modules the app ships &mdash; <code>star-tone.js</code>,
+  <code>star-physics.js</code> and <code>star-voice.js</code> &mdash; so what you hear here is
+  what the AR build will play. Sorted low to high: the largest stars sound lowest.
+</p>
+
+<div class="bar">
+  <select id="which">
+    <option value="orion">Orion</option>
+    <option value="andromeda">Andromeda</option>
+  </select>
+  <button id="chord">Play all as a chord</button>
+  <button id="belt" class="alt">Play the group stop</button>
+  <button id="stop">Stop</button>
+  <label style="font-size:13px;color:#8fa6c8;">
+    volume <input id="vol" type="range" min="0" max="100" value="60" style="vertical-align:middle;">
+  </label>
+  <span id="status"></span>
+</div>
+
+<table>
+  <thead><tr>
+    <th>Star</th><th>Class</th><th class="num">R&#9737;</th><th class="num">T (K)</th>
+    <th class="num">&nu;max (&mu;Hz)</th><th class="num">Musical</th><th class="num">True</th>
+    <th>Listen</th>
+  </tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<p class="note">
+  <b>Musical</b> is what ships: pitches compressed across this constellation's own range and
+  snapped to a pentatonic scale, so any combination stays consonant. <b>True</b> is Aerts's
+  method &mdash; the real oscillation frequency multiplied by 10&#8309; with no snapping.
+  Physics here is estimated from each star's spectral class, so tones are characteristic of the
+  star's type rather than measured from that individual star.
+</p>
+
+<script type="module">
+import {physicsFor} from '../src/js/star-physics.js'
+import {nuMaxMicroHz, toPitchHz, quantize} from '../src/js/star-tone.js'
+import {StarVoice} from '../src/js/star-voice.js'
+
+// Settings ported verbatim from the Unity build's StarToneSettings.
+const CFG = {baseHz: 110, octaves: 2, maxPartials: 4, beatCents: 6,
+  voiceGain: 0.18, attack: 1.2, release: 2.0}
+
+// Group stops the journey plays as a chord.
+const GROUPS = {
+  orion: {label: "Orion's Belt", ids: ['alnitak', 'alnilam', 'mintaka']},
+  andromeda: {label: 'The Chains', ids: ['omicron_and', 'lambda_and', 'kappa_and', 'iota_and']},
+}
+
+let ctx = null
+let master = null
+const voices = []
+const playing = new Map()
+let data = null
+
+function audio() {
+  if (!ctx) {
+    ctx = new (window.AudioContext || window.webkitAudioContext)()
+    master = ctx.createGain()
+    master.gain.value = document.getElementById('vol').value / 100
+    master.connect(ctx.destination)
+  }
+  if (ctx.state === 'suspended') ctx.resume()
+  return ctx
+}
+
+function acquire() {
+  const free = voices.find(v => v.isFree)
+  if (free) return free
+  const v = new StarVoice(ctx, master)
+  voices.push(v)
+  return v
+}
+
+function play(star, mode, gainScale) {
+  audio()
+  stopStar(star.id)
+  const p = physicsFor(star)
+  const nu = nuMaxMicroHz(p.massSolar, p.radiusSolar, p.tempKelvin)
+  const hz = mode === 'true'
+    ? toPitchHz(nu, data.range.min, data.range.max, 'fold', CFG.baseHz, CFG.octaves)
+    : quantize(toPitchHz(nu, data.range.min, data.range.max, 'compress', CFG.baseHz, CFG.octaves),
+      CFG.baseHz, 'pentatonic')
+
+  const v = acquire()
+  v.starId = star.id
+  v.configure({pitchHz: hz, tempKelvin: p.tempKelvin,
+    maxPartials: CFG.maxPartials, beatCents: CFG.beatCents})
+  // Centre it: the bench is about timbre and pitch, not position.
+  v.setPosition(0, 0, 0)
+  playing.set(star.id, v)
+  v.fadeIn(CFG.voiceGain * (gainScale === undefined ? 1 : gainScale), CFG.attack)
+
+  // Swell, hold, fade - the same envelope the journey uses.
+  setTimeout(() => { if (playing.get(star.id) === v) stopStar(star.id) },
+    (CFG.attack + 2.5) * 1000)
+  status(star.name + '  ' + hz.toFixed(1) + ' Hz')
+}
+
+function stopStar(id) {
+  const v = playing.get(id)
+  if (!v) return
+  playing.delete(id)
+  v.fadeOut(CFG.release)
+  setTimeout(() => { if (!playing.has(v.starId)) v.stop() }, CFG.release * 1000 + 100)
+}
+
+function stopAll() { Array.from(playing.keys()).forEach(stopStar); status('') }
+function status(t) { document.getElementById('status').textContent = t }
+
+async function load(id) {
+  stopAll()
+  const res = await fetch('../src/data/constellations/' + id + '.json')
+  const c = await res.json()
+
+  const stars = c.stars.map((s) => {
+    const p = physicsFor(s)
+    const nu = nuMaxMicroHz(p.massSolar, p.radiusSolar, p.tempKelvin)
+    return {star: s, p, nu}
+  })
+  let min = Infinity; let max = -Infinity
+  stars.forEach(r => { if (r.nu > 0) { min = Math.min(min, r.nu); max = Math.max(max, r.nu) } })
+  data = {id, stars, range: {min, max}}
+
+  stars.forEach((r) => {
+    r.musical = quantize(toPitchHz(r.nu, min, max, 'compress', CFG.baseHz, CFG.octaves),
+      CFG.baseHz, 'pentatonic')
+    r.trueHz = toPitchHz(r.nu, min, max, 'fold', CFG.baseHz, CFG.octaves)
+  })
+  stars.sort((a, b) => a.musical - b.musical || a.nu - b.nu)
+
+  const tbody = document.getElementById('rows')
+  tbody.innerHTML = ''
+  stars.forEach((r) => {
+    const tr = document.createElement('tr')
+    tr.innerHTML =
+      '<td><span class="swatch" style="background:' + (r.star.color || '#fff') + '"></span>' +
+        r.star.name + '</td>' +
+      '<td>' + (r.star.spectralClass || '&mdash;') + '</td>' +
+      '<td class="num">' + r.p.radiusSolar.toFixed(1) + '</td>' +
+      '<td class="num">' + Math.round(r.p.tempKelvin) + '</td>' +
+      '<td class="num">' + r.nu.toFixed(2) + '</td>' +
+      '<td class="num">' + r.musical.toFixed(1) + '</td>' +
+      '<td class="num">' + r.trueHz.toFixed(1) + '</td>'
+    const td = document.createElement('td')
+    const b1 = document.createElement('button')
+    b1.className = 'play'; b1.textContent = 'Play'
+    b1.onclick = () => play(r.star, 'musical')
+    const b2 = document.createElement('button')
+    b2.className = 'play alt'; b2.textContent = 'True'
+    b2.style.marginLeft = '6px'
+    b2.onclick = () => play(r.star, 'true')
+    td.append(b1, b2)
+    tr.append(td)
+    tbody.append(tr)
+  })
+
+  const g = GROUPS[id]
+  document.getElementById('belt').textContent = 'Play ' + g.label
+}
+
+document.getElementById('which').onchange = e => load(e.target.value)
+document.getElementById('stop').onclick = stopAll
+document.getElementById('vol').oninput = (e) => {
+  if (master) master.gain.value = e.target.value / 100
+}
+document.getElementById('chord').onclick = () => {
+  audio(); stopAll()
+  data.stars.forEach(r => play(r.star, 'musical', 0.45))
+  status('all ' + data.stars.length + ' stars')
+}
+document.getElementById('belt').onclick = () => {
+  audio(); stopAll()
+  const g = GROUPS[data.id]
+  data.stars.filter(r => g.ids.includes(r.star.id)).forEach(r => play(r.star, 'musical', 0.7))
+  status(g.label)
+}
+
+load('orion')
+</script>
+</body>
+</html>

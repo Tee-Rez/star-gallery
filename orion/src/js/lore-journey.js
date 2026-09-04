@@ -150,6 +150,27 @@ const loreJourneyComponent = {
     this.transitionTo(0)
   },
 
+  // ---- Audio ----
+  audio() {
+    const scene = this.el.sceneEl || document.querySelector('a-scene')
+    return scene && scene.components['star-audio']
+  },
+
+  // Each stop announces itself: the targets swell in, hold, then fade to silence so the story
+  // reads in quiet. Group stops (the Belt, the Chains) therefore arrive as a chord, which is
+  // what quantizing the pitches to a scale exists to make possible.
+  soundStop(stop) {
+    const a = this.audio()
+    if (!a) return
+    const loaderEl = document.querySelector('[constellation-loader]')
+    const loader = loaderEl && loaderEl.components['constellation-loader']
+    const all = (loader && loader.constellationData && loader.constellationData.stars) || []
+    const targets = stop.targetStarNames
+      .map(n => all.find(s => s.name === n))
+      .filter(Boolean)
+    if (targets.length) a.playChord(targets, {hold: 2.5})
+  },
+
   // ---- Staging + detailed stars ----
   goToStop(i) {
     const stop = this.stops[i]
@@ -161,6 +182,7 @@ const loreJourneyComponent = {
     stop.targetStarNames.forEach((name) => this.spawnDetailed(name, factor))
     this.frameStar(this.getStarEntity(stop.centerStarName))
     this.showLore(stop)
+    this.soundStop(stop)
     this.hud.textContent = (i === this.stops.length - 1) ? 'End the Journey' : 'Next Star'
   },
 
@@ -256,6 +278,7 @@ const loreJourneyComponent = {
         const factor = stop.detailScale || 4
         stop.targetStarNames.forEach((n) => this.spawnDetailed(n, factor))
         this.showLore(stop)
+        this.soundStop(stop)
         this.hud.textContent = (i === this.stops.length - 1) ? 'End the Journey' : 'Next Star'
       }
     }
@@ -266,6 +289,8 @@ const loreJourneyComponent = {
     this.animating = true
     this.hideLore()
     this.clearDetailed()
+    const a = this.audio()
+    if (a) a.stopAll()
     this.focal = null
     // Reuse the existing recenter to restore the front view.
     const reset = document.querySelector('[reset-view-button]')

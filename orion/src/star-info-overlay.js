@@ -188,6 +188,86 @@ const starInfoOverlayComponent = {
     }
   },
 
+  // The panel is handed strings, but the tone needs the star's own record - its spectral class
+  // and any physics block. Looking it up by name here avoids threading the object through every
+  // caller just for this one pane.
+  starRecord(name) {
+    const el = document.querySelector('[constellation-loader]')
+    const loader = el && el.components['constellation-loader']
+    const stars = (loader && loader.constellationData && loader.constellationData.stars) || []
+    return stars.find(s => s.name === name) || null
+  },
+
+  starAudio() {
+    const scene = this.el.sceneEl || document.querySelector('a-scene')
+    return scene && scene.components['star-audio']
+  },
+
+  buildStarsongPane(name) {
+    const audio = this.starAudio()
+    const star = this.starRecord(name)
+
+    if (!audio || !audio.isAvailable()) {
+      return '<p style="opacity:.7;font-size:12px;">Audio is not available in this browser.</p>'
+    }
+    if (!star) {
+      return '<p style="opacity:.7;font-size:12px;">No tone data for this star.</p>'
+    }
+
+    const d = audio.describe(star)
+    const btn = 'width:100%;padding:10px;border:1px solid ' + this.data.borderColor +
+      ';border-radius:8px;color:#eaf3ff;font-size:14px;cursor:pointer;'
+
+    return `
+      <p style="margin:0 0 10px 0;font-size:12px;line-height:1.5;">
+        This tone comes from the star itself. Its size sets the pitch, and its surface
+        temperature of about <b>${Math.round(d.physics.tempKelvin)} K</b> sets how bright the
+        overtones are.
+      </p>
+      <div style="font-size:12px;margin-bottom:12px;line-height:1.6;">
+        <div>Pitch: <b>${d.pitchHz.toFixed(1)} Hz</b></div>
+        <div>True frequency: <b>${d.truePitchHz.toFixed(1)} Hz</b></div>
+        <div style="opacity:.65;margin-top:6px;">
+          ${d.physics.source === 'data'
+            ? 'From measured values for this star.'
+            : 'Estimated from its spectral class, so the tone is characteristic of the type rather than this individual star.'}
+        </div>
+      </div>
+      <button data-starsong="musical" style="${btn}background:rgba(66,135,245,.25);margin-bottom:8px;">
+        Play</button>
+      <button data-starsong="true" style="${btn}background:rgba(0,0,0,.3);">
+        True sound</button>`
+  },
+
+  // Rebound on every render, because the panel rewrites its body for each star.
+  wireTabs(name) {
+    this.content.querySelectorAll('[data-tab]').forEach((btn) => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation()
+        const want = btn.dataset.tab
+        this.content.querySelectorAll('[data-pane]').forEach((pane) => {
+          pane.style.display = pane.dataset.pane === want ? '' : 'none'
+        })
+        this.content.querySelectorAll('[data-tab]').forEach((b) => {
+          b.style.background = b.dataset.tab === want ? 'rgba(66,135,245,.25)' : 'rgba(0,0,0,.3)'
+        })
+      })
+    })
+
+    this.content.querySelectorAll('[data-starsong]').forEach((btn) => {
+      btn.addEventListener('click', (ev) => {
+        ev.stopPropagation()
+        const audio = this.starAudio()
+        const star = this.starRecord(name)
+        if (!audio || !star) return
+        audio.unlock()
+        audio.playStar(star, btn.dataset.starsong === 'true'
+          ? {mapping: 'fold', scale: 'true', hold: 2.5}
+          : {mapping: 'compress', scale: 'pentatonic', hold: 2.5})
+      })
+    })
+  },
+
   showInfo(name, info, starColor, starSize, starType, designation) {
     this.currentStarName = name
 
@@ -197,7 +277,20 @@ const starInfoOverlayComponent = {
       </h2>
       ${designation ? `<div style="margin: 2px 0 0 0; font-size: 12px; opacity: 0.75;">${designation}</div>` : ''}
     `
-    this.content.innerHTML = this.formatStarInfo(info)
+    // Tabs mirror the Unity build's Info / Sound split. Starsong is opt-in: tapping a star
+    // opens the panel but stays silent, and the tone only sounds when its button is pressed.
+    this.content.innerHTML = `
+      <div style="display:flex;gap:6px;margin:0 0 10px 0;">
+        <button data-tab="info" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
+          border:1px solid ${this.data.borderColor};border-radius:6px;
+          background:rgba(66,135,245,.25);color:#eaf3ff;">Info</button>
+        <button data-tab="starsong" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
+          border:1px solid ${this.data.borderColor};border-radius:6px;
+          background:rgba(0,0,0,.3);color:#eaf3ff;">Starsong</button>
+      </div>
+      <div data-pane="info">${this.formatStarInfo(info)}</div>
+      <div data-pane="starsong" style="display:none;">${this.buildStarsongPane(name)}</div>`
+    this.wireTabs(name)
 
     this.overlay.style.opacity = '1'
     this.overlay.style.visibility = 'visible'
