@@ -236,7 +236,17 @@ const starInfoOverlayComponent = {
       <button data-starsong="musical" style="${btn}background:rgba(66,135,245,.25);margin-bottom:8px;">
         Play</button>
       <button data-starsong="true" style="${btn}background:rgba(0,0,0,.3);">
-        True sound</button>`
+        True sound</button>
+      <div style="margin-top:14px;padding-top:12px;
+        border-top:1px solid rgba(255,255,255,0.2);">
+        <div style="display:flex;justify-content:space-between;font-size:12px;
+          margin-bottom:6px;opacity:.85;">
+          <span>Volume</span><span data-volume-readout>${Math.round(audio.getVolume() * 100)}%</span>
+        </div>
+        <input data-volume type="range" min="0" max="100" step="1"
+          value="${Math.round(audio.getVolume() * 100)}"
+          style="width:100%;accent-color:${this.data.borderColor};">
+      </div>`
   },
 
   // Rebound on every render, because the panel rewrites its body for each star.
@@ -253,6 +263,25 @@ const starInfoOverlayComponent = {
         })
       })
     })
+
+    // One shared level, so a change here shows up on every other star's slider. The panel
+    // rebuilds per star and reads getVolume(), so nothing extra is needed to keep them in step.
+    const slider = this.content.querySelector('[data-volume]')
+    if (slider) {
+      const readout = this.content.querySelector('[data-volume-readout]')
+      const apply = (ev) => {
+        ev.stopPropagation()
+        const audio = this.starAudio()
+        if (!audio) return
+        const v = audio.setVolume(slider.value / 100)
+        if (readout) readout.textContent = Math.round(v * 100) + '%'
+      }
+      slider.addEventListener('input', apply)
+      // Dragging inside the panel must not reach the scene and place or select anything.
+      slider.addEventListener('click', ev => ev.stopPropagation())
+      slider.addEventListener('touchstart', ev => ev.stopPropagation())
+      slider.addEventListener('mousedown', ev => ev.stopPropagation())
+    }
 
     this.content.querySelectorAll('[data-starsong]').forEach((btn) => {
       btn.addEventListener('click', (ev) => {

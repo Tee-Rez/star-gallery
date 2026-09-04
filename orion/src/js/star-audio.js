@@ -8,6 +8,11 @@ import {StarVoice} from './star-voice.js'
 import {physicsFor} from './star-physics.js'
 import {nuMaxMicroHz, toPitchHz, quantize} from './star-tone.js'
 
+// The slider runs 0..1 and is multiplied by this into the master gain, so the midpoint
+// reproduces the level the tones had before the control existed and 100% is twice that.
+const VOLUME_HEADROOM = 2
+const VOLUME_KEY = 'starsong.volume'
+
 const starAudioComponent = {
   schema: {
     baseHz: {type: 'number', default: 110},
@@ -19,14 +24,22 @@ const starAudioComponent = {
     release: {type: 'number', default: 2.0},
     // Phones are already running SLAM, camera and bloom, so they get a smaller budget.
     maxVoices: {type: 'int', default: 0},  // 0 = choose from the device
+    // Listener volume, 0..1, scaled by VOLUME_HEADROOM into the master gain. 0.5 reproduces
+    // the original fixed level, so the slider opens with headroom in both directions.
+    volume: {type: 'number', default: 0.5},
   },
 
   init() {
     this.ctx = null
     this.master = null
+    this.limiter = null
     this.voices = []
     this.playing = new Map()   // starId -> voice
     this.range = null          // {min, max} nu_max across the loaded constellation
+
+    // One shared level for every star: the Starsong slider reads and writes this, so changing
+    // it on one star is reflected on every other star's slider. Remembered per browser.
+    this.volume = this.loadVolume()
 
     const coarse = typeof window.matchMedia === 'function' &&
       window.matchMedia('(pointer: coarse)').matches
@@ -43,15 +56,48 @@ const starAudioComponent = {
     return typeof (window.AudioContext || window.webkitAudioContext) === 'function'
   },
 
+  // ---- Listener volume ----
+  // Persisted per browser. Wrapped because storage throws in private modes and some embedded
+  // webviews, and a missing preference must never stop audio from working.
+  loadVolume() {
+    try {
+      const v = parseFloat(window.localStorage.getItem(VOLUME_KEY))
+      if (Number.isFinite(v)) return Math.min(1, Math.max(0, v))
+    } catch (e) { /* storage unavailable */ }
+    return this.data.volume
+  },
+
+  getVolume() { return this.volume },
+
+  setVolume(v) {
+    this.volume = Math.min(1, Math.max(0, Number(v) || 0))
+    if (this.master) this.master.gain.value = this.volume * VOLUME_HEADROOM
+    try { window.localStorage.setItem(VOLUME_KEY, String(this.volume)) } catch (e) { /* ignore */ }
+    return this.volume
+  },
+
   // Safe to call repeatedly; creates the context on first use and resumes it if suspended.
   unlock() {
     if (!this.isAvailable()) return false
     if (!this.ctx) {
       const Ctor = window.AudioContext || window.webkitAudioContext
       this.ctx = new Ctor()
+
       this.master = this.ctx.createGain()
-      this.master.gain.value = 1
-      this.master.connect(this.ctx.destination)
+      this.master.gain.value = this.volume * VOLUME_HEADROOM
+
+      // A chord stacks a dozen voices, and their peaks can sum past full scale even at modest
+      // per-voice gain. This is a limiter rather than a compressor in spirit: it only engages
+      // near the ceiling, so single tones pass through untouched.
+      this.limiter = this.ctx.createDynamicsCompressor()
+      this.limiter.threshold.value = -6
+      this.limiter.knee.value = 0
+      this.limiter.ratio.value = 20
+      this.limiter.attack.value = 0.003
+      this.limiter.release.value = 0.25
+
+      this.master.connect(this.limiter)
+      this.limiter.connect(this.ctx.destination)
     }
     if (this.ctx.state === 'suspended') this.ctx.resume()
     return this.ctx.state !== 'suspended'
