@@ -55,4 +55,69 @@ test('heat rises with temperature and stays in 0..1', () => {
   assert.ok(T.heat(100) >= 0 && T.heat(99999) <= 1)
 })
 
+const P = require('../src/js/star-physics.js')
+
+test('parses a spectral class into letter, subclass and luminosity', () => {
+  const p = P.parseSpectralClass('B8IVpMnHg')
+  assert.strictEqual(p.letter, 'B')
+  assert.strictEqual(p.subclass, 8)
+  assert.strictEqual(p.luminosity, 'IV')
+})
+
+test('parses a giant', () => {
+  const p = P.parseSpectralClass('M0III')
+  assert.strictEqual(p.letter, 'M')
+  assert.strictEqual(p.luminosity, 'III')
+})
+
+test('a stars own physics block wins over the spectral fallback', () => {
+  const r = P.physicsFor({spectralClass: 'M0III', physics: {massSolar: 2, radiusSolar: 5, tempKelvin: 4000}})
+  assert.strictEqual(r.massSolar, 2)
+  assert.strictEqual(r.source, 'data')
+})
+
+test('spectral fallback is used when no physics block exists', () => {
+  const r = P.physicsFor({spectralClass: 'G2V'})
+  assert.strictEqual(r.source, 'spectral')
+  assert.ok(Math.abs(r.tempKelvin - 5777) < 400, 'got ' + r.tempKelvin)
+})
+
+test('a giant is larger and cooler than a main-sequence star of the same letter', () => {
+  const giant = P.physicsFor({spectralClass: 'K3III'})
+  const dwarf = P.physicsFor({spectralClass: 'K3V'})
+  assert.ok(giant.radiusSolar > dwarf.radiusSolar)
+})
+
+test('unparseable class still yields usable solar values', () => {
+  const r = P.physicsFor({spectralClass: 'not-a-class'})
+  assert.ok(r.massSolar > 0 && r.radiusSolar > 0 && r.tempKelvin > 0)
+})
+
+// Catalogue strings are messy, and misreading a supergiant as a dwarf is the worst failure
+// available: it makes the largest star sound like the smallest.
+test('reads the luminosity class out of a range notation', () => {
+  const p = P.parseSpectralClass('M1-M2 Ia-ab')   // Betelgeuse, a red supergiant
+  assert.strictEqual(p.letter, 'M')
+  assert.strictEqual(p.luminosity, 'I', 'a supergiant must not be read as luminosity V')
+})
+
+test('handles spaced and fractional classes', () => {
+  assert.strictEqual(P.parseSpectralClass('O9.5 Ib').luminosity, 'I')
+  assert.strictEqual(P.parseSpectralClass('O9.5 Ib').subclass, 9.5)
+  assert.strictEqual(P.parseSpectralClass('B8 Ia').luminosity, 'I')
+  assert.strictEqual(P.parseSpectralClass('G8III-IV').luminosity, 'III')
+})
+
+test('a supergiant is vastly larger than a dwarf of the same type', () => {
+  const sup = P.physicsFor({spectralClass: 'M1-M2 Ia-ab'})
+  const dwarf = P.physicsFor({spectralClass: 'M1V'})
+  assert.ok(sup.radiusSolar > dwarf.radiusSolar * 50,
+    'supergiant R=' + sup.radiusSolar + ' vs dwarf R=' + dwarf.radiusSolar)
+})
+
+test('a missing spectralClass never produces NaN', () => {
+  const r = P.physicsFor({})
+  assert.ok(Number.isFinite(r.massSolar) && Number.isFinite(r.radiusSolar) && Number.isFinite(r.tempKelvin))
+})
+
 console.log('\n' + passed + ' passed')
