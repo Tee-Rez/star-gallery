@@ -20,7 +20,7 @@ after a star set changes, or re-checking lore against sources.
 
 | # | Stage | Agent | Model | Why that model |
 |---|---|---|---|---|
-| 1 | Star set + astrometry | `star-data-researcher` | sonnet | High-volume extraction from catalogue tables into a fixed shape. Needs care, not deep reasoning. |
+| 1 | Star set + astrometry + physics | `star-data-researcher` | sonnet | High-volume extraction from catalogue tables and infoboxes into a fixed shape. Needs care, not deep reasoning. |
 | 2 | Figure lines + projection | `figure-cartographer` | sonnet | Decoding coordinates and driving a deterministic script; the maths lives in the tool, not the model. |
 | 3 | Sourced lore | `lore-researcher` | **opus** | The judgment call that carries the most risk - separating documented history from plausible-sounding invention. Worth the tokens. |
 | 4 | Data + integration | `constellation-builder` | sonnet | Schema transcription and precise file surgery. Mechanical but unforgiving. |
@@ -33,8 +33,9 @@ else is sequential.
 ## Handoff contracts
 
 **1 → 2** `tools/input/<id>-stars.json` — every star with `id`, `name`, `designation`, `raH`
-(hours), `dec` (degrees), `dist`, `mag`, `spectralClass`, `source`; optional `deepSky` entries
-with the same coordinate fields.
+(hours), `dec` (degrees), `dist`, `mag`, `spectralClass`, `source`; a `physics` block
+(`massSolar`, `radiusSolar`, `tempKelvin`) on every star whose article publishes those figures;
+optional `deepSky` entries with the same coordinate fields.
 
 **2 → 4** The chosen portal `width`/`height`, the projection `scale`, a `position2D` per star
 and per deep-sky object, and the connection pairs with a `type` on each.
@@ -45,7 +46,7 @@ and per deep-sky object, and the connection pairs with a `type` on each.
 **4 → 5** The data file path, the constellation `id`, and confirmation the embedded loader copy
 matches the JSON.
 
-## The five failures this pipeline exists to prevent
+## The six failures this pipeline exists to prevent
 
 1. **A star that is not in the figure.** Orion carried "Eta Orionis" in its sword; the real eta
    Orionis is west of the belt. Reconcile the star set against sourced figure lines, and
@@ -60,6 +61,27 @@ matches the JSON.
    in the data.
 5. **Measuring geometry in world space.** `#root` moves when the constellation is placed, so
    world coordinates taken moments apart are not comparable. Measure in `#root`-local space.
+6. **Star tones left to the spectral-class estimate.** Each star sings a pitch derived from
+   `nu_max ∝ M / (R² √T)`. Without measured mass, radius and temperature the app estimates all
+   three from the spectral class - and measured against the real figures for Andromeda that
+   estimate was out by up to **4.6x**, agreed on the size ordering for only **6 of 14** stars,
+   and handed three Orion stars an *identical* tone because they share a class. Radius is
+   squared, so its error dominates. Collect the real numbers in stage 1.
+
+## Star tones
+
+The Starsong tab plays each star, so the physics is part of the data, not an afterthought.
+
+- **Where the numbers come from.** The "List of stars in <Constellation>" page does *not*
+  carry mass, radius or temperature. Each star's own Wikipedia article does, in the infobox.
+  That is one fetch per star, at stage 1, by `star-data-researcher`.
+- **What honest absence looks like.** Some stars genuinely have no published mass or radius.
+  Phi Andromedae publishes temperature and luminosity but only a *combined system* mass, so it
+  ships with no `physics` block and the app labels its tone as estimated. Inventing a mass from
+  the spectral type would be the fallback wearing a measurement's clothes.
+- **How it is checked.** `constellation-verifier` section 1b reports measured coverage, flags
+  any zero or shared `nu_max`, and prints the stars ordered by pitch - which must run from the
+  largest and coolest up to the smallest and hottest.
 
 ## Genericity notes
 
@@ -105,10 +127,10 @@ star-gallery/data/catalog.json      gallery listing
 Both shipped constellations pass every check in `constellation-verifier`, so either can be
 read as a worked example of the schema:
 
-| | Stars | Connections | Deep-sky | Stops | Portal |
-|---|---|---|---|---|---|
-| Orion | 15 | 15 | 2 | 5 | 6 x 9 |
-| Andromeda | 15 | 14 | 5 | 5 | 8 x 7 |
+| | Stars | Connections | Deep-sky | Stops | Portal | Measured physics |
+|---|---|---|---|---|---|---|
+| Orion | 15 | 15 | 2 | 5 | 6 x 9 | 15 / 15 |
+| Andromeda | 15 | 14 | 5 | 5 | 8 x 7 | 14 / 15 |
 
 Three inconsistencies were closed when this pipeline was written, all of them the kind the
 stages above now prevent:

@@ -16,7 +16,7 @@ Run these in order. Each one's output is the next one's input.
 
 | # | Stage | Agent |
 |---|---|---|
-| 1 | Star set + astrometry | `star-data-researcher` |
+| 1 | Star set + astrometry + stellar physics | `star-data-researcher` |
 | 2 | Figure lines + 2D projection | `figure-cartographer` |
 | 3 | Sourced lore journey | `lore-researcher` |
 | 4 | Data file + app integration | `constellation-builder` |
@@ -32,7 +32,10 @@ failure rather than patching it and moving on.
 
 **After stage 1** - every star has J2000 RA/Dec, magnitude, distance, spectral class, and a
 source. The set is the FIGURE's stars, not every star in the constellation boundary. If the
-user supplied a reference image, the count matches what they can see in it.
+user supplied a reference image, the count matches what they can see in it. Most stars carry a
+`physics` block (`massSolar`, `radiusSolar`, `tempKelvin`) - that is the star's Starsong tone.
+Ask for the missing ones by name: the acceptable answer is "that article publishes no mass or
+radius", never a value inferred from the spectral type.
 
 **After stage 2** - the star count going in equals the count coming out; the projection was
 run over the final set in one pass; `insidePortal` is true; the figure lines come from a real
@@ -45,8 +48,9 @@ most; see the fabrication note below.
 **After stage 4** - the JSON validates, connection endpoints all resolve, and the embedded
 copy in `constellation-loader.js` matches the JSON file.
 
-**After stage 5** - the build compiles, the constellation loads via `?c=<id>`, and the grid
-walls meet the portal frame on all four sides.
+**After stage 5** - the build compiles, the constellation loads via `?c=<id>`, the grid walls
+meet the portal frame on all four sides, and section 1b reports no zero or shared `nu_max` with
+the stars ordered largest-and-coolest to smallest-and-hottest.
 
 ## Things that have actually gone wrong here
 
@@ -60,6 +64,10 @@ Carry these forward; each cost real rework.
   all, stage 2 re-runs completely.
 - **The lore was fabricated.** The original per-star "esoteric" text was invented New-Age
   filler. Sourced-or-absent is not negotiable.
+- **Every star sang the same note.** Before measured physics was collected, mass, radius and
+  temperature were estimated from the spectral class - so three Orion stars sharing a class got
+  an identical tone, and the estimate was out by up to 4.6x against Andromeda's real figures.
+  The numbers live in each star's own Wikipedia infobox, not the "List of stars in..." page.
 - **Orion's dimensions were hardcoded in shared code.** Several bugs (hider wall travel, grid
   wall sizing, position scaling) came from constants that were secretly Orion's 6x9 portal.
   When the verifier reports a geometry mismatch, suspect a hardcoded Orion value before you

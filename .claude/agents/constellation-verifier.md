@@ -31,6 +31,34 @@ print('inside portal:',all(abs(v)<=hw for v in xs) and all(abs(v)<=hh for v in y
 All must pass: no dangling connections, no unknown journey references, every stop sourced,
 no `esoteric` fields, all stars inside the portal.
 
+## 1b. Star tones
+
+Each star's tone comes from its physics. Report coverage and the two failure signatures:
+
+```bash
+cd orion && node -e "
+const P=require('./src/js/star-physics.js'), T=require('./src/js/star-tone.js');
+const d=require('./src/data/constellations/<id>.json');
+const rows=d.stars.map(s=>{const p=P.physicsFor(s);
+  return {n:s.name, src:p.source, R:p.radiusSolar,
+          nu:+T.nuMaxMicroHz(p.massSolar,p.radiusSolar,p.tempKelvin).toFixed(2)};})
+  .sort((a,b)=>a.nu-b.nu);
+const dup={}; rows.forEach(r=>(dup[r.nu]=dup[r.nu]||[]).push(r.n));
+console.log('measured:', rows.filter(r=>r.src==='data').length+'/'+rows.length);
+console.log('estimated:', rows.filter(r=>r.src!=='data').map(r=>r.n).join(', ')||'none');
+console.log('all nu positive:', rows.every(r=>r.nu>0));
+console.log('shared tones:', Object.values(dup).filter(v=>v.length>1).map(v=>v.join(' = ')).join(' | ')||'none');
+rows.forEach(r=>console.log('  ', r.nu, r.src, 'R='+r.R, r.n));"
+```
+
+- **Every nu_max must be positive.** A zero means unusable physics reached the tone maths.
+- **Stars sharing a nu_max** means they fell back to the spectral estimate and share a class.
+  Report which; it is a data gap, not a code fault.
+- **The order must run largest/coolest to smallest/hottest.** A red giant sitting among the
+  dwarfs means a radius is wrong.
+- Stars listed as `estimated` are acceptable when the source genuinely lacks mass or radius -
+  the app labels them honestly - but name them so the gap is visible.
+
 ## 2. Build
 
 ```bash

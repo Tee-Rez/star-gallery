@@ -80,12 +80,25 @@ and bottom span `width × depth`.
 - `color` from spectral class, `size` from magnitude — see `constellation-builder`.
 - **No `esoteric` field.** It was removed after the original text proved fabricated; lore lives
   in `journey` with sources.
-- `physics` *(optional)* — `{"massSolar": 3.8, "radiusSolar": 2.7, "tempKelvin": 13800}`.
-  Feeds the star's Starsong tone, which needs numbers rather than the prose in
-  `info.scientific`. When absent the values are derived from `spectralClass`, giving a tone
-  characteristic of the star's TYPE rather than that individual star; the Starsong tab says
-  which it used. Never guess these figures to fill the field - the spectral fallback is the
-  honest default.
+- `physics` *(strongly recommended)* —
+  `{"massSolar": 3.63, "radiusSolar": 2.94, "tempKelvin": 11950, "note": "Primary"}`.
+
+  Feeds the star's Starsong tone through `nu_max ∝ M / (R² √T)`, which needs numbers rather
+  than the prose in `info.scientific`. Take them from the **individual star's Wikipedia
+  infobox** - the "List of stars in..." page does not carry them. Quoted ranges become the
+  central value; multiple systems use the named primary, recorded in the optional `note`
+  (`"Component Aa"`, `"14-19 M, 640-764 R; midpoints"`).
+
+  Formally optional. When absent, mass, radius and temperature are all estimated from
+  `spectralClass`, and the Starsong tab honestly labels the tone as derived from the star's
+  TYPE rather than measured. But the estimate is poor: checked against Andromeda's real
+  figures it was out by as much as 4.6x, matched the true size ordering for only 6 of 14
+  stars, and gave three Orion stars an identical tone for sharing a class. Radius is squared
+  in the relation, so its error dominates.
+
+  **Never guess to fill the field.** A star whose article publishes temperature but not mass -
+  Phi Andromedae is the standing case - ships with no `physics` block at all. Half-measured is
+  the fallback wearing a measurement's clothes.
 
 ## connections
 

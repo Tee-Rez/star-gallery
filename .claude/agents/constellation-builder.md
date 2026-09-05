@@ -41,6 +41,13 @@ Derive presentation fields from the researched astrophysics rather than picking 
 **`stellarType`** is a readable descriptor (`red_giant`, `blue_white_main_sequence`,
 `orange_bright_giant`, ...).
 
+**`physics`** - copy the researcher's `{massSolar, radiusSolar, tempKelvin}` block through
+**verbatim**, including its `note`. It is the star's Starsong tone, and it is measured data:
+do not round it, do not reorder it into prose, and do not synthesise a block for a star the
+researcher left without one. A missing block is a deliberate statement that the figures are
+not published, and the app labels that tone as estimated. Place `physics` after `stellarType`
+and before `info` so the numeric fields read together.
+
 Every star needs `info.basic` and `info.scientific`. Keep them factual and sourced. **Never
 add an `esoteric` field** - it does not exist in this schema any more, and the lore lives in
 the journey.

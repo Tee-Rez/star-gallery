@@ -931,6 +931,12 @@ const constellationLoaderComponent = {
             "color": "#bbccff",
             "size": 0.13,
             "stellarType": "blue_white_subgiant",
+            "physics": {
+              "massSolar": 3.63,
+              "radiusSolar": 2.94,
+              "tempKelvin": 11950,
+              "note": "Primary"
+            },
             "info": {
               "basic": "Alpheratz marks the head of the chained princess and doubles as the northeastern corner of the Great Square of Pegasus, the only star shared between the two figures.",
               "scientific": {
@@ -957,6 +963,12 @@ const constellationLoaderComponent = {
             "color": "#ffb877",
             "size": 0.085,
             "stellarType": "orange_giant",
+            "physics": {
+              "massSolar": 1.3,
+              "radiusSolar": 14.45,
+              "tempKelvin": 4315,
+              "note": "Component Aa"
+            },
             "info": {
               "basic": "Delta Andromedae sits between Alpheratz and Mirach along the princess's body, a quiet orange giant relatively close to the Sun.",
               "scientific": {
@@ -982,6 +994,11 @@ const constellationLoaderComponent = {
             "color": "#ffeec0",
             "size": 0.055,
             "stellarType": "yellow_giant",
+            "physics": {
+              "massSolar": 1.01,
+              "radiusSolar": 9.04,
+              "tempKelvin": 5082
+            },
             "info": {
               "basic": "Epsilon Andromedae carries the chain south from Delta toward the border with Pisces.",
               "scientific": {
@@ -1006,6 +1023,12 @@ const constellationLoaderComponent = {
             "color": "#ffc088",
             "size": 0.06,
             "stellarType": "orange_bright_giant",
+            "physics": {
+              "massSolar": 2.6,
+              "radiusSolar": 15.9,
+              "tempKelvin": 4665,
+              "note": "Component Aa"
+            },
             "info": {
               "basic": "Zeta Andromedae ends the southern chain, a heavily spotted orange giant.",
               "scientific": {
@@ -1029,6 +1052,12 @@ const constellationLoaderComponent = {
             "color": "#ff7744",
             "size": 0.13,
             "stellarType": "red_giant",
+            "physics": {
+              "massSolar": 2.49,
+              "radiusSolar": 86.4,
+              "tempKelvin": 3762,
+              "note": "Primary"
+            },
             "info": {
               "basic": "Mirach is the ruddy heart of Andromeda and the sky's most useful signpost: star-hoppers follow it north to find the Andromeda Galaxy.",
               "scientific": {
@@ -1055,6 +1084,12 @@ const constellationLoaderComponent = {
             "color": "#ffb066",
             "size": 0.12,
             "stellarType": "orange_bright_giant",
+            "physics": {
+              "massSolar": 14.5,
+              "radiusSolar": 98.5,
+              "tempKelvin": 4248,
+              "note": "Gamma-1 Andromedae A"
+            },
             "info": {
               "basic": "Almach marks the princess's foot and is one of the finest double stars in the sky, showing a striking gold and blue-green contrast in a small telescope.",
               "scientific": {
@@ -1080,6 +1115,11 @@ const constellationLoaderComponent = {
             "color": "#ffffff",
             "size": 0.07,
             "stellarType": "white_main_sequence",
+            "physics": {
+              "massSolar": 2.21,
+              "radiusSolar": 3.03,
+              "tempKelvin": 8320
+            },
             "info": {
               "basic": "Mu Andromedae is the first step on the star-hop from Mirach toward the Andromeda Galaxy.",
               "scientific": {
@@ -1104,6 +1144,12 @@ const constellationLoaderComponent = {
             "color": "#a8bcff",
             "size": 0.05,
             "stellarType": "blue_white_main_sequence",
+            "physics": {
+              "massSolar": 5.9,
+              "radiusSolar": 3.4,
+              "tempKelvin": 14851,
+              "note": "Component A"
+            },
             "info": {
               "basic": "Nu Andromedae lies about a degree from the Andromeda Galaxy, making it the final marker for finding M31 by eye.",
               "scientific": {
@@ -1151,6 +1197,11 @@ const constellationLoaderComponent = {
             "color": "#ffb877",
             "size": 0.075,
             "stellarType": "orange_giant",
+            "physics": {
+              "massSolar": 1.75,
+              "radiusSolar": 20.91,
+              "tempKelvin": 4316
+            },
             "info": {
               "basic": "51 Andromedae, officially named Nembus, ends the northern arm. Ptolemy counted it as part of Perseus before Flamsteed moved it into Andromeda.",
               "scientific": {
@@ -1175,6 +1226,12 @@ const constellationLoaderComponent = {
             "color": "#a8bcff",
             "size": 0.055,
             "stellarType": "blue_white_main_sequence",
+            "physics": {
+              "massSolar": 5.8,
+              "radiusSolar": 4.7,
+              "tempKelvin": 15000,
+              "note": "Component A"
+            },
             "info": {
               "basic": "Pi Andromedae begins the long western chain that trails away from the princess's body.",
               "scientific": {
@@ -1198,6 +1255,11 @@ const constellationLoaderComponent = {
             "color": "#b3c4ff",
             "size": 0.06,
             "stellarType": "blue_white_main_sequence",
+            "physics": {
+              "massSolar": 3.1,
+              "radiusSolar": 4.6,
+              "tempKelvin": 12620
+            },
             "info": {
               "basic": "Iota Andromedae anchors the small northwestern group of stars that closes the constellation's chain.",
               "scientific": {
@@ -1221,6 +1283,12 @@ const constellationLoaderComponent = {
             "color": "#bbccff",
             "size": 0.06,
             "stellarType": "blue_white_subgiant",
+            "physics": {
+              "massSolar": 2.768,
+              "radiusSolar": 2.303,
+              "tempKelvin": 10342,
+              "note": "Equatorial values"
+            },
             "info": {
               "basic": "Kappa Andromedae is a fast-spinning blue-white star that made headlines for its directly imaged companion.",
               "scientific": {
@@ -1244,6 +1312,11 @@ const constellationLoaderComponent = {
             "color": "#fff0c8",
             "size": 0.07,
             "stellarType": "yellow_giant",
+            "physics": {
+              "massSolar": 1.47,
+              "radiusSolar": 7.787,
+              "tempKelvin": 4633
+            },
             "info": {
               "basic": "Lambda Andromedae is a nearby yellow giant whose brightness wavers as enormous starspots rotate across its face.",
               "scientific": {
@@ -1267,6 +1340,12 @@ const constellationLoaderComponent = {
             "color": "#aabbff",
             "size": 0.075,
             "stellarType": "blue_giant",
+            "physics": {
+              "massSolar": 6.5,
+              "radiusSolar": 11.5,
+              "tempKelvin": 14540,
+              "note": "Component Aa"
+            },
             "info": {
               "basic": "Omicron Andromedae closes the western end of the chain, near the border with Lacerta.",
               "scientific": {
@@ -1360,7 +1439,7 @@ const constellationLoaderComponent = {
             },
             "distance": 2537000,
             "magnitude": 3.44,
-            "size": 2.0,
+            "size": 2,
             "description": "The nearest large spiral galaxy to the Milky Way and the most distant object visible to the unaided eye. It spans about six times the width of the full Moon on the sky and is approaching us at roughly 110 km/s."
           },
           {
