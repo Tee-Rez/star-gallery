@@ -231,6 +231,12 @@ const constellationLoaderComponent = {
             "color": "#ff4400",
             "size": 0.17,
             "stellarType": "red_supergiant",
+            "physics": {
+              "massSolar": 16.5,
+              "radiusSolar": 700,
+              "tempKelvin": 3700,
+              "note": "Ranges 14-19 M, 640-764 R, 3600-3800 K; midpoints"
+            },
             "info": {
               "basic": "Betelgeuse, the celestial ruby of Orion's shoulder, marks the Hunter's right side.",
               "scientific": {
@@ -258,6 +264,11 @@ const constellationLoaderComponent = {
             "color": "#4477ff",
             "size": 0.15,
             "stellarType": "blue_supergiant",
+            "physics": {
+              "massSolar": 21,
+              "radiusSolar": 74.1,
+              "tempKelvin": 12100
+            },
             "info": {
               "basic": "Rigel, the commanding blue sentinel at Orion's foot, outshines even Betelgeuse despite being designated Beta Orionis.",
               "scientific": {
@@ -285,6 +296,11 @@ const constellationLoaderComponent = {
             "color": "#bbbbff",
             "size": 0.1,
             "stellarType": "blue_giant",
+            "physics": {
+              "massSolar": 7.7,
+              "radiusSolar": 5.75,
+              "tempKelvin": 21800
+            },
             "info": {
               "basic": "Bellatrix, the 'Female Warrior' star, stands proud at Orion's left shoulder, one of the nearest bright stars in Orion.",
               "scientific": {
@@ -312,6 +328,12 @@ const constellationLoaderComponent = {
             "color": "#ffffff",
             "size": 0.09,
             "stellarType": "blue_supergiant",
+            "physics": {
+              "massSolar": 18.3,
+              "radiusSolar": 13.5,
+              "tempKelvin": 25700,
+              "note": "Ranges 15.5-21.1 M, 13-14 R; midpoints"
+            },
             "info": {
               "basic": "Saiph, the often-overlooked guardian at Orion's right foot, nearly matches Rigel in stellar properties but appears dimmer from Earth.",
               "scientific": {
@@ -339,6 +361,12 @@ const constellationLoaderComponent = {
             "color": "#99aaff",
             "size": 0.1,
             "stellarType": "blue_supergiant",
+            "physics": {
+              "massSolar": 33,
+              "radiusSolar": 20,
+              "tempKelvin": 29500,
+              "note": "Primary"
+            },
             "info": {
               "basic": "Alnitak, the easternmost jewel of Orion's Belt, anchors this famous cosmic alignment and illuminates spectacular nebulae in its vicinity.",
               "scientific": {
@@ -366,6 +394,11 @@ const constellationLoaderComponent = {
             "color": "#ffffff",
             "size": 0.1,
             "stellarType": "blue_supergiant",
+            "physics": {
+              "massSolar": 40,
+              "radiusSolar": 30.62,
+              "tempKelvin": 26540
+            },
             "info": {
               "basic": "Alnilam, the brilliant centerpiece of Orion's Belt, shines as Orion's brightest belt star despite being the most distant of the three.",
               "scientific": {
@@ -393,6 +426,12 @@ const constellationLoaderComponent = {
             "color": "#aaaaff",
             "size": 0.1,
             "stellarType": "blue_bright_giant",
+            "physics": {
+              "massSolar": 17.8,
+              "radiusSolar": 13.1,
+              "tempKelvin": 31400,
+              "note": "Aa1, the eclipsing primary"
+            },
             "info": {
               "basic": "Mintaka, the westernmost sentinel of Orion's Belt, precisely marks the celestial equator, making it a perfect navigational reference point.",
               "scientific": {
@@ -420,6 +459,12 @@ const constellationLoaderComponent = {
             "color": "#ffffff",
             "size": 0.07,
             "stellarType": "blue_giant",
+            "physics": {
+              "massSolar": 34,
+              "radiusSolar": 13.4,
+              "tempKelvin": 35000,
+              "note": "Primary"
+            },
             "info": {
               "basic": "Meissa, the radiant beacon marking Orion's head, illuminates a spectacular ring of cosmic gas and dust.",
               "scientific": {
@@ -447,6 +492,11 @@ const constellationLoaderComponent = {
             "color": "#ffffff",
             "size": 0.05,
             "stellarType": "yellow_white_main_sequence",
+            "physics": {
+              "massSolar": 1.288,
+              "radiusSolar": 1.317,
+              "tempKelvin": 6518
+            },
             "info": {
               "basic": "Pi3 Orionis (Tabit), a nearby sun-like star, serves as an important stellar 'standard candle' for astronomical classifications.",
               "scientific": {
@@ -474,6 +524,12 @@ const constellationLoaderComponent = {
             "color": "#bbbbff",
             "size": 0.07,
             "stellarType": "blue_giant",
+            "physics": {
+              "massSolar": 10.95,
+              "radiusSolar": 9.1,
+              "tempKelvin": 21874,
+              "note": "Primary"
+            },
             "info": {
               "basic": "Pi4 Orionis, one of the stars forming Orion's shield, hides its true nature as a spectroscopic binary system.",
               "scientific": {
@@ -501,6 +557,11 @@ const constellationLoaderComponent = {
             "color": "#bbbbff",
             "size": 0.06,
             "stellarType": "blue_giant",
+            "physics": {
+              "massSolar": 12,
+              "radiusSolar": 12,
+              "tempKelvin": 14496
+            },
             "info": {
               "basic": "Pi5 Orionis, another sentinel of Orion's shield, constantly changes shape as its binary components orbit each other.",
               "scientific": {
@@ -527,6 +588,11 @@ const constellationLoaderComponent = {
             "color": "#fff4e8",
             "size": 0.06,
             "stellarType": "yellow_main_sequence",
+            "physics": {
+              "massSolar": 1.01,
+              "radiusSolar": 0.983,
+              "tempKelvin": 5883
+            },
             "info": {
               "basic": "Chi1 Orionis, a nearby solar-type star, provides insights into our Sun's possible future and past states.",
               "scientific": {
@@ -554,6 +620,11 @@ const constellationLoaderComponent = {
             "color": "#bbbbff",
             "size": 0.06,
             "stellarType": "blue_supergiant",
+            "physics": {
+              "massSolar": 42.3,
+              "radiusSolar": 61.9,
+              "tempKelvin": 19000
+            },
             "info": {
               "basic": "Chi2 Orionis, a massive blue supergiant, pulsates rhythmically while wielding the cosmic club of Orion.",
               "scientific": {
@@ -580,6 +651,12 @@ const constellationLoaderComponent = {
             "color": "#9db4ff",
             "size": 0.06,
             "stellarType": "blue_white_main_sequence",
+            "physics": {
+              "massSolar": 12,
+              "radiusSolar": 7,
+              "tempKelvin": 25400,
+              "note": "Component Aa; Wikipedia, not in the Unity table"
+            },
             "info": {
               "basic": "42 Orionis, also called c Orionis, is a hot blue-white star at the top of Orion's Sword, just below the Belt. Its light illuminates the reflection nebula NGC 1977, nicknamed the Running Man Nebula.",
               "scientific": {
@@ -605,6 +682,12 @@ const constellationLoaderComponent = {
             "color": "#ffffff",
             "size": 0.06,
             "stellarType": "blue_main_sequence",
+            "physics": {
+              "massSolar": 33.5,
+              "radiusSolar": 8.91,
+              "tempKelvin": 39000,
+              "note": "Component C1"
+            },
             "info": {
               "basic": "Theta1 Orionis, the famous Trapezium Cluster, illuminates the heart of the Great Orion Nebula with its young, massive stars.",
               "scientific": {
