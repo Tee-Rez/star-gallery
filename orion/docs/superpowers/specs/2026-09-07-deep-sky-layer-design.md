@@ -167,10 +167,17 @@ fixed and the frame from jumping.
 ### Positioning
 
 Markers are positioned exactly as stars are, from `position2D` in 2D mode and from `distance`
-in 3D mode, so they participate in `updatePositions` and move with the view toggle. M42 at 1344
-ly and M31 at 2.54 Mly sit far outside the stellar range, so **deep-sky depth is clamped to the
-star set's depth extent** — otherwise M31 alone would set the scale and flatten Andromeda to a
-plane.
+in 3D mode, so they participate in `updatePositions` and move with the view toggle.
+
+**In 3D mode a deep-sky object's depth is clamped to the constellation's own box, and the box
+is never extended to reach it.** The bounds are the existing `gridBox.depth * zDepthScale`
+extent that the stars already use. An object further away than any star parks at the far face
+of that box and stops there; M31 at 2.54 Mly and M42 at 1344 ly both simply sit at the back.
+
+This is deliberately expressive rather than truthful. Honest scaling would let M31 alone — three
+orders of magnitude beyond Andromeda's 44–700 ly stars — set the depth scale and flatten the
+whole figure to a plane. Clamping keeps the constellation readable and keeps every object inside
+the portal's shaft, which is also what stops a marker drifting behind the grid walls.
 
 ## Rendering
 
@@ -336,9 +343,11 @@ transparent points, which costs less fill rate than it sounds.
 correct-by-construction only. Accepted deliberately: it is the existing rendering pointed at
 different data. Taurus is the real test.
 
-**Depth clamping is a judgement.** M31 at 2.54 Mly is three orders of magnitude beyond
-Andromeda's stars. Clamping keeps the figure readable but makes the marker's depth expressive
-rather than truthful — worth saying plainly in the object's info text.
+**Depth is expressive, not truthful.** A clamped object sits at the back of the box regardless
+of whether it is 1,300 or 2,540,000 light-years away, so depth carries no distance information
+for deep-sky objects and two objects at wildly different distances can look equally far. This is
+the accepted trade for a readable figure; the object's `info.scientific` should state the real
+distance so the number is never lost, only the geometry.
 
 **Header crowding.** A third line has to fit Unity's 4000×800 canvas band without colliding
 with the button column. Measure against the existing two lines before assuming it fits.
