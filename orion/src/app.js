@@ -19,6 +19,9 @@ AFRAME.registerComponent('gallery-back-button', galleryBackButtonComponent)
 import {starAudioComponent} from './js/star-audio'
 AFRAME.registerComponent('star-audio', starAudioComponent)
 
+import {deepSkyFieldComponent} from './js/deep-sky-field-component'
+AFRAME.registerComponent('deep-sky-field', deepSkyFieldComponent)
+
 // The back control is attached here rather than in the scene markup so it exists for every
 // constellation, and from the first frame rather than only once a portal has been placed.
 window.addEventListener('DOMContentLoaded', () => {
