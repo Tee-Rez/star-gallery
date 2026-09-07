@@ -1875,7 +1875,7 @@ const deepSkyLayerComponent = {
       this.active = obj
       this.stack.push(objectId)
       l.swapFigure({stars: obj.stars, connections: obj.connections || []})
-      this.retitle(obj.name, obj.stars.length)
+      this.retitle(obj.name)
       this.el.sceneEl.emit('deepSkyEntered', {id: objectId})
       return true
     }
@@ -1885,7 +1885,7 @@ const deepSkyLayerComponent = {
     this.stack.push(objectId)
     this.hideConstellation()
     this.spawnField(obj)
-    this.retitle(obj.name, 0)
+    this.retitle(obj.name)
     this.el.sceneEl.emit('deepSkyEntered', {id: objectId})
     return true
   },
@@ -1952,12 +1952,13 @@ const deepSkyLayerComponent = {
     this.el.sceneEl.addEventListener('starInfoClosed', this.onPanelClosed)
   },
 
-  retitle(label, starCount) {
+  // Only the label. The explored counts belong to refreshExploredCounts, which reads the
+  // CURRENT star set - already swapped to the cluster's by the time it runs - so it stays
+  // correct for both a constellation and a cluster without special-casing either.
+  retitle(label) {
     const header = document.querySelector('#portal-header')
     if (!header) return
-    const attrs = {label}
-    if (starCount) attrs.starCount = starCount
-    header.setAttribute('portal-header', attrs)
+    header.setAttribute('portal-header', {label})
   },
 
   // ---- leaving ----
@@ -1988,8 +1989,8 @@ const deepSkyLayerComponent = {
     this.exitMode()
 
     if (l && l.constellationData) {
-      this.retitle(l.constellationData.metadata ? l.constellationData.metadata.name :
-        this.constellationId(), (l.constellationData.stars || []).length)
+      this.retitle(l.constellationData.metadata ? l.constellationData.metadata.name
+        : this.constellationId())
     }
     this.el.sceneEl.emit('deepSkyExited', {id})
     return true
@@ -2243,9 +2244,9 @@ Add this method next to `createPortalHeader`:
 In `setupInteractions`, inside the existing star click handler, alongside `this.pulseStarOnSelect(...)`, add:
 
 ```js
-          const record = this.getStarDataById(starEntity.dataset.name) ||
-            (this.constellationData.stars || [])
-              .find(s => s.name === starEntity.dataset.name)
+          // Entities carry the star's NAME in dataset.name, not its id, so look up by name.
+          const record = (this.constellationData.stars || [])
+            .find(s => s.name === starEntity.dataset.name)
           if (record && defaultStore.mark(this.data.constellationFile, record.id)) {
             this.refreshExploredCounts()
           }
@@ -2262,14 +2263,20 @@ In `initConstellation`, after `this.createDeepSkyMarkers()`, add:
 And in `init()`, after the URL parsing block, add:
 
 ```js
-    this.onDeepSkyVisited = () => this.refreshExploredCounts()
-    this.el.sceneEl.addEventListener('deepSkyVisited', this.onDeepSkyVisited)
+    // Entering or leaving a cluster swaps the star set, so the ratio has to be recomputed
+    // against whichever figure is on screen - refreshExploredCounts reads the current one.
+    this.onExploredChanged = () => this.refreshExploredCounts()
+    this.el.sceneEl.addEventListener('deepSkyVisited', this.onExploredChanged)
+    this.el.sceneEl.addEventListener('deepSkyEntered', this.onExploredChanged)
+    this.el.sceneEl.addEventListener('deepSkyExited', this.onExploredChanged)
 ```
 
 with the matching teardown in `remove()`:
 
 ```js
-    this.el.sceneEl.removeEventListener('deepSkyVisited', this.onDeepSkyVisited)
+    this.el.sceneEl.removeEventListener('deepSkyVisited', this.onExploredChanged)
+    this.el.sceneEl.removeEventListener('deepSkyEntered', this.onExploredChanged)
+    this.el.sceneEl.removeEventListener('deepSkyExited', this.onExploredChanged)
 ```
 
 - [ ] **Step 7: Build and verify**
