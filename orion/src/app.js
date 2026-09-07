@@ -22,6 +22,9 @@ AFRAME.registerComponent('star-audio', starAudioComponent)
 import {deepSkyFieldComponent} from './js/deep-sky-field-component'
 AFRAME.registerComponent('deep-sky-field', deepSkyFieldComponent)
 
+import {deepSkyMarkerComponent} from './js/deep-sky-marker'
+AFRAME.registerComponent('deep-sky-marker', deepSkyMarkerComponent)
+
 // The back control is attached here rather than in the scene markup so it exists for every
 // constellation, and from the first frame rather than only once a portal has been placed.
 window.addEventListener('DOMContentLoaded', () => {
