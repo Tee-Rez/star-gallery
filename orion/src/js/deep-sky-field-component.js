@@ -72,10 +72,22 @@ const deepSkyFieldComponent = {
     }
 
     // Fall back per key, so a data block missing one number still renders.
-    const defaults = FIELD_DEFAULTS[this.data.layer] || {}
-    const p = Object.assign({}, defaults, this.data)
-    const stops = parseColors(this.data.colors)
-    const out = gen(this.data.count, p, stops)
+    // getDOMAttribute returns only explicitly-set keys, unlike this.data which is pre-filled
+    // with schema defaults. Coerce string values from HTML markup to proper numeric types.
+    const raw = this.el.getDOMAttribute(this.attrName) || {}
+    const p = Object.assign({}, FIELD_DEFAULTS[this.data.layer] || {}, raw)
+    p.layer = this.data.layer
+    // Coerce numeric keys from HTML strings; keep colors as string. Use this.data as fallback.
+    const numericKeys = ['count', 'spread', 'sizeRatio', 'opacity', 'spin',
+                         'turbulence', 'contrast', 'cores', 'coreGain', 'dust',
+                         'fill', 'embedded', 'arms', 'wind', 'scatter', 'bulge']
+    for (const k of numericKeys) {
+      if (typeof p[k] === 'string') p[k] = parseFloat(p[k])
+      if (!(k in raw)) p[k] = this.data[k]
+    }
+    if (!('colors' in raw)) p.colors = this.data.colors
+    const stops = parseColors(p.colors)
+    const out = gen(p.count, p, stops)
     if (!out.used) {
       console.warn('[deep-sky-field] generator produced no points for', this.data.layer)
       return

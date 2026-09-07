@@ -18,13 +18,16 @@ const deepSkyMarkerComponent = {
 
   init() {
     this.ring = null
+    this.hitEl = null
     this.build()
   },
 
   update(oldData) {
     if (!oldData || !Object.keys(oldData).length) return
     // Visits only change opacity, so avoid rebuilding the geometry for them.
-    if (Object.keys(oldData).length === 1 && 'visited' in oldData) {
+    // A-Frame sends complete previous data, so check if only visited value changed.
+    const others = Object.keys(this.data).some(k => k !== 'visited' && oldData[k] !== this.data[k])
+    if (!others) {
       this.applyVisited()
       return
     }
@@ -75,6 +78,7 @@ const deepSkyMarkerComponent = {
         depthWrite: false,
       })
       this.el.appendChild(hit)
+      this.hitEl = hit
     }
     hit.setAttribute('radius', Math.max(this.data.radius, 0.35))
   },
@@ -101,6 +105,10 @@ const deepSkyMarkerComponent = {
 
   remove() {
     this.dispose()
+    if (this.hitEl && this.hitEl.parentNode) {
+      this.hitEl.parentNode.removeChild(this.hitEl)
+    }
+    this.hitEl = null
   },
 }
 
