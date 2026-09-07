@@ -783,28 +783,50 @@ const constellationLoaderComponent = {
             "name": "Orion Nebula",
             "designation": "M42, NGC 1976",
             "type": "emission_nebula",
+            "layer": "nebula",
+            "position2D": {
+              "x": -0.312,
+              "y": -1.968
+            },
             "distance": 1344,
             "magnitude": 4,
             "size": 1.5,
             "description": "The Great Orion Nebula, one of the brightest nebulae in the sky and the nearest region of massive star formation to the Sun.",
-            "position2D": {
-              "x": -0.312,
-              "y": -1.968
-            }
+            "field": {
+              "count": 5000,
+              "spread": 3.4,
+              "sizeRatio": 0.13,
+              "opacity": 0.24,
+              "spin": 0.05,
+              "turbulence": 3.6,
+              "contrast": 3.2,
+              "cores": 4,
+              "coreGain": 0.9,
+              "dust": 0.8,
+              "fill": 1.9,
+              "embedded": 4,
+              "colors": "#eaf2ff,#ffe0c4,#ff4d6a,#8e1e46"
+            },
+            "info": {
+              "basic": "The Great Orion Nebula, the middle \"star\" of Orion's sword and the nearest region of massive star formation to the Sun. It is bright enough to see with the unaided eye as a fuzzy patch, and the only nebula most people ever see that way.",
+              "scientific": "An emission nebula about 1,344 light-years away and some 24 light-years across, lit by the Trapezium - a knot of hot young stars whose ultraviolet light ionises the surrounding hydrogen and makes it glow. Depth here is expressive, not measured: the object is placed at the back of the constellation box rather than at its true distance."
+            },
+            "sources": "Wikipedia, Orion Nebula; Messier catalogue"
           },
           {
             "id": "m43",
             "name": "De Mairan's Nebula",
             "designation": "M43, NGC 1982",
             "type": "emission_nebula",
-            "distance": 1300,
-            "magnitude": 9,
-            "size": 0.5,
-            "description": "A smaller emission nebula separated from M42 by a dark lane of dust.",
+            "layer": "none",
             "position2D": {
               "x": -0.325,
               "y": -1.939
-            }
+            },
+            "distance": 1300,
+            "magnitude": 9,
+            "size": 0.5,
+            "description": "A smaller emission nebula separated from M42 by a dark lane of dust."
           }
         ],
         "journey": [
@@ -1433,6 +1455,7 @@ const constellationLoaderComponent = {
             "name": "Andromeda Galaxy",
             "designation": "M31, NGC 224",
             "type": "spiral_galaxy",
+            "layer": "galaxy",
             "position2D": {
               "x": -0.315,
               "y": 0.462
@@ -1440,13 +1463,31 @@ const constellationLoaderComponent = {
             "distance": 2537000,
             "magnitude": 3.44,
             "size": 2,
-            "description": "The nearest large spiral galaxy to the Milky Way and the most distant object visible to the unaided eye. It spans about six times the width of the full Moon on the sky and is approaching us at roughly 110 km/s."
+            "description": "The nearest large spiral galaxy to the Milky Way and the most distant object visible to the unaided eye. It spans about six times the width of the full Moon on the sky and is approaching us at roughly 110 km/s.",
+            "field": {
+              "count": 8000,
+              "spread": 4,
+              "sizeRatio": 0.02,
+              "opacity": 0.85,
+              "spin": 0.1,
+              "arms": 2,
+              "wind": 4.4,
+              "scatter": 0.55,
+              "bulge": 0.22,
+              "colors": "#fff3d2,#ffdca0,#cfd8ff,#8fa8e0"
+            },
+            "info": {
+              "basic": "The Andromeda Galaxy - the faint smudge the Persian astronomer al-Sufi wrote down in about 964 CE as a \"little cloud\". It is the most distant thing the unaided eye can see, and it spans about six times the width of the full Moon on the sky.",
+              "scientific": "A barred spiral galaxy roughly 2,537,000 light-years away, approaching the Milky Way at about 110 km/s. Edwin Hubble identified Cepheid variables in it in 1925 and settled the question of whether such objects lay inside our own galaxy - they did not. Depth here is expressive, not measured: at its true distance it would flatten the whole constellation, so it sits at the back of the box instead."
+            },
+            "sources": "al-Sufi, Book of Fixed Stars (c. 964); Wikipedia, Andromeda Galaxy"
           },
           {
             "id": "m32",
             "name": "M32",
             "designation": "M32, NGC 221",
             "type": "dwarf_elliptical_galaxy",
+            "layer": "none",
             "position2D": {
               "x": -0.315,
               "y": 0.378
@@ -1461,6 +1502,7 @@ const constellationLoaderComponent = {
             "name": "M110",
             "designation": "M110, NGC 205",
             "type": "dwarf_elliptical_galaxy",
+            "layer": "none",
             "position2D": {
               "x": -0.222,
               "y": 0.545
@@ -1475,6 +1517,7 @@ const constellationLoaderComponent = {
             "name": "Blue Snowball Nebula",
             "designation": "NGC 7662",
             "type": "planetary_nebula",
+            "layer": "none",
             "position2D": {
               "x": 2.636,
               "y": 0.988
@@ -1489,6 +1532,7 @@ const constellationLoaderComponent = {
             "name": "NGC 752",
             "designation": "NGC 752, Caldwell 28",
             "type": "open_cluster",
+            "layer": "none",
             "position2D": {
               "x": -3.453,
               "y": 0.107

@@ -567,6 +567,7 @@
       "name": "Andromeda Galaxy",
       "designation": "M31, NGC 224",
       "type": "spiral_galaxy",
+      "layer": "galaxy",
       "position2D": {
         "x": -0.315,
         "y": 0.462
@@ -574,13 +575,31 @@
       "distance": 2537000,
       "magnitude": 3.44,
       "size": 2,
-      "description": "The nearest large spiral galaxy to the Milky Way and the most distant object visible to the unaided eye. It spans about six times the width of the full Moon on the sky and is approaching us at roughly 110 km/s."
+      "description": "The nearest large spiral galaxy to the Milky Way and the most distant object visible to the unaided eye. It spans about six times the width of the full Moon on the sky and is approaching us at roughly 110 km/s.",
+      "field": {
+        "count": 8000,
+        "spread": 4,
+        "sizeRatio": 0.02,
+        "opacity": 0.85,
+        "spin": 0.1,
+        "arms": 2,
+        "wind": 4.4,
+        "scatter": 0.55,
+        "bulge": 0.22,
+        "colors": "#fff3d2,#ffdca0,#cfd8ff,#8fa8e0"
+      },
+      "info": {
+        "basic": "The Andromeda Galaxy - the faint smudge the Persian astronomer al-Sufi wrote down in about 964 CE as a \"little cloud\". It is the most distant thing the unaided eye can see, and it spans about six times the width of the full Moon on the sky.",
+        "scientific": "A barred spiral galaxy roughly 2,537,000 light-years away, approaching the Milky Way at about 110 km/s. Edwin Hubble identified Cepheid variables in it in 1925 and settled the question of whether such objects lay inside our own galaxy - they did not. Depth here is expressive, not measured: at its true distance it would flatten the whole constellation, so it sits at the back of the box instead."
+      },
+      "sources": "al-Sufi, Book of Fixed Stars (c. 964); Wikipedia, Andromeda Galaxy"
     },
     {
       "id": "m32",
       "name": "M32",
       "designation": "M32, NGC 221",
       "type": "dwarf_elliptical_galaxy",
+      "layer": "none",
       "position2D": {
         "x": -0.315,
         "y": 0.378
@@ -595,6 +614,7 @@
       "name": "M110",
       "designation": "M110, NGC 205",
       "type": "dwarf_elliptical_galaxy",
+      "layer": "none",
       "position2D": {
         "x": -0.222,
         "y": 0.545
@@ -609,6 +629,7 @@
       "name": "Blue Snowball Nebula",
       "designation": "NGC 7662",
       "type": "planetary_nebula",
+      "layer": "none",
       "position2D": {
         "x": 2.636,
         "y": 0.988
@@ -623,6 +644,7 @@
       "name": "NGC 752",
       "designation": "NGC 752, Caldwell 28",
       "type": "open_cluster",
+      "layer": "none",
       "position2D": {
         "x": -3.453,
         "y": 0.107
