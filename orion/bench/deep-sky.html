@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deep-sky field bench (THROWAWAY)</title>
+<!-- 8frame is loaded only as a THREE provider, so the bench uses the exact THREE
+     revision the app ships. The a-scene lifecycle is deliberately not used: 8th Wall's
+     A-Frame fork does not finish loading without its XR pipeline. -->
+<script src="../external/scripts/8frame-1.3.0.min.js"></script>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:#05070f; color:#e8eeff;
+    font-family:-apple-system,system-ui,Segoe UI,Roboto,Arial,sans-serif; overflow:hidden; }
+  #view { position:fixed; inset:0; width:100%; height:100%; display:block; touch-action:none; }
+
+  #panel { position:fixed; top:0; left:0; width:300px; height:100%; overflow-y:auto;
+    background:rgba(6,10,20,.93); border-right:1px solid #1e3358; padding:15px 15px 40px;
+    backdrop-filter:blur(6px); z-index:10; }
+  h1 { font-size:16px; font-weight:600; margin:0 0 3px; }
+  .sub { color:#8fa6c8; font-size:11.5px; margin:0 0 12px; line-height:1.5; }
+  .warn { color:#ffcc66; font-size:11px; border:1px solid #6b5520; background:#2a2210;
+    border-radius:6px; padding:7px 9px; margin:0 0 12px; line-height:1.45; }
+  h2 { font-size:10.5px; font-weight:600; color:#8fa6c8; text-transform:uppercase;
+    letter-spacing:.07em; margin:16px 0 7px; }
+  .presets { display:flex; flex-wrap:wrap; gap:6px; }
+  button { font:inherit; font-size:12px; padding:6px 11px; border-radius:7px;
+    border:1px solid #2d4d7d; background:#10233f; color:#dce9ff; cursor:pointer; }
+  button:hover { border-color:#4287f5; }
+  button.on { background:#1d4b8f; border-color:#6fa8ff; color:#fff; }
+  label { font-size:11.5px; color:#a9bcd8; margin:10px 0 2px;
+    display:flex; justify-content:space-between; }
+  label b { color:#eaf3ff; font-weight:600; font-variant-numeric:tabular-nums; }
+  input[type=range] { width:100%; accent-color:#4287f5; margin:0; }
+  .row { display:flex; gap:8px; align-items:center; margin-top:9px; }
+  .row input[type=color] { width:34px; height:26px; padding:0; border:1px solid #2d4d7d;
+    border-radius:5px; background:none; cursor:pointer; }
+  .row span { font-size:11.5px; color:#a9bcd8; flex:1; }
+  .row button.x { padding:2px 8px; font-size:12px; border-color:#5d2a2a; background:#2a1414;
+    color:#ffb0b0; }
+  #hud { position:fixed; top:12px; right:14px; z-index:10; font-size:12px;
+    background:rgba(6,10,20,.85); border:1px solid #1e3358; border-radius:7px;
+    padding:6px 11px; font-variant-numeric:tabular-nums; }
+  #hud b { color:#8fe3a0; }
+  #hud.bad b#fpsv { color:#ff8080; }
+  .note { color:#7f93b5; font-size:11px; line-height:1.55; margin-top:14px;
+    border-top:1px solid #1e3358; padding-top:11px; }
+  #err { position:fixed; left:320px; top:14px; z-index:20; color:#ff9a9a; font-size:12px;
+    background:#2a1010; border:1px solid #6b2020; border-radius:7px; padding:8px 11px;
+    display:none; max-width:420px; }
+</style>
+</head>
+<body>
+
+<canvas id="view"></canvas>
+<div id="hud">fps <b id="fpsv">--</b> &nbsp; pts <b id="ptsv">--</b></div>
+<div id="err"></div>
+
+<div id="panel">
+  <h1>Deep-sky field bench</h1>
+  <p class="sub">Procedural nebula / galaxy looks, to pick one before the design is committed.
+    Drag to orbit, scroll to zoom.</p>
+  <p class="warn"><b>Throwaway.</b> Not wired into the app, not in the build. Delete once the
+    look is chosen.</p>
+
+  <h2>In scope</h2>
+  <div class="presets" id="presets"></div>
+
+  <h2>Shape</h2>
+  <div class="presets" id="kinds"></div>
+
+  <h2>Parameters</h2>
+  <div id="params"></div>
+
+  <h2>Colour ramp <span style="text-transform:none;letter-spacing:0;color:#6f83a5">
+    &mdash; centre to edge</span></h2>
+  <div id="colors"></div>
+  <div style="display:flex; gap:6px; margin-top:9px">
+    <button id="addColor">+ colour</button>
+    <button id="resetColors">reset</button>
+  </div>
+
+  <p class="note">Mobile budget is roughly 3&ndash;6k points with additive blending; the fps
+    here is desktop, so halve it as a rough phone estimate. Sprites are drawn on a canvas at
+    runtime, so this needs no new image assets.</p>
+</div>
+
+<script>
+/* ------------------------------------------------------------------ *
+ * THROWAWAY BENCH. The generators are written the way they would be in
+ * the real component - pure functions returning typed arrays - so the
+ * chosen one lifts out cleanly. The harness around them does not.
+ * ------------------------------------------------------------------ */
+const THREE = AFRAME.THREE
+
+function fail(msg) {
+  const e = document.getElementById('err')
+  e.style.display = 'block'
+  e.textContent = msg
+}
+
+// ---- a soft radial sprite drawn once on a canvas (no image asset needed) ----
+function makeSprite() {
+  const s = 64
+  const c = document.createElement('canvas')
+  c.width = c.height = s
+  const ctx = c.getContext('2d')
+  const g = ctx.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2)
+  g.addColorStop(0.00, 'rgba(255,255,255,1)')
+  g.addColorStop(0.25, 'rgba(255,255,255,0.52)')
+  g.addColorStop(0.55, 'rgba(255,255,255,0.13)')
+  g.addColorStop(1.00, 'rgba(255,255,255,0)')
+  ctx.fillStyle = g
+  ctx.fillRect(0, 0, s, s)
+  const t = new THREE.CanvasTexture(c)
+  t.needsUpdate = true
+  return t
+}
+
+function gauss() {                      // normal-ish, mean 0, sd 1
+  let u = 0, v = 0
+  while (u === 0) u = Math.random()
+  while (v === 0) v = Math.random()
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v)
+}
+
+function onSphere() {                   // uniform direction
+  const z = Math.random() * 2 - 1
+  const a = Math.random() * Math.PI * 2
+  const r = Math.sqrt(1 - z * z)
+  return [r * Math.cos(a), r * Math.sin(a), z]
+}
+
+/* ---------------------------- generators --------------------------- *
+ * Each returns {pos, col, used}. Sizes are baked into colour intensity
+ * plus one material size, which is what a real PointsMaterial supports
+ * cheaply on mobile.
+ * ------------------------------------------------------------------ */
+
+// ---- 3D value noise + fBm. This is what turns a smooth blob into a cloud with
+// filaments, voids and dense cores, which is how real molecular gas actually looks. ----
+function vhash(x, y, z) {
+  const s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453123
+  return s - Math.floor(s)
+}
+
+function vnoise(x, y, z) {
+  const xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z)
+  const xf = x - xi, yf = y - yi, zf = z - zi
+  const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), w = zf * zf * (3 - 2 * zf)
+  const c = (i, j, k) => vhash(xi + i, yi + j, zi + k)
+  const c000 = c(0, 0, 0), c100 = c(1, 0, 0), c010 = c(0, 1, 0), c110 = c(1, 1, 0)
+  const c001 = c(0, 0, 1), c101 = c(1, 0, 1), c011 = c(0, 1, 1), c111 = c(1, 1, 1)
+  const x00 = c000 + (c100 - c000) * u, x10 = c010 + (c110 - c010) * u
+  const x01 = c001 + (c101 - c001) * u, x11 = c011 + (c111 - c011) * u
+  const y0 = x00 + (x10 - x00) * v, y1 = x01 + (x11 - x01) * v
+  return y0 + (y1 - y0) * w
+}
+
+// Stacked octaves - broad shapes plus fine detail.
+function fbm(x, y, z, oct) {
+  let f = 0, amp = 0.5, norm = 0
+  for (let i = 0; i < oct; i++) {
+    f += amp * vnoise(x, y, z)
+    norm += amp
+    x *= 2.03; y *= 2.01; z *= 1.99
+    amp *= 0.5
+  }
+  return f / norm
+}
+
+// Ridged noise makes stringy filaments rather than round blobs - the shape dust takes.
+function ridged(x, y, z, oct) {
+  let f = 0, amp = 0.5, norm = 0
+  for (let i = 0; i < oct; i++) {
+    f += amp * (1 - Math.abs(vnoise(x, y, z) * 2 - 1))
+    norm += amp
+    x *= 2.03; y *= 2.01; z *= 1.99
+    amp *= 0.5
+  }
+  return f / norm
+}
+
+// Gas and dust drawn from a turbulent density field. Points are rejection-sampled against
+// that density, so where the field is dense they pile up into bright knots and where it is
+// thin they thin out to nothing - the clumping is emergent, not placed by hand.
+//
+//   envelope      overall ellipsoid, fading at the edge
+//   x core gain   a few seeds the cloud gathers around
+//   x fBm^contrast  turbulence; contrast decides clumps-vs-voids
+//   x (1 - dust)  ridged filaments that absorb, cutting dark lanes through it
+//
+// Brightness and colour follow the same density, so dense regions read hot and ionised
+// while the thin outskirts stay deep H-alpha red.
+function nebula(n, p, stops) {
+  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3)
+  const sx = p.spread, sy = p.spread * 0.72, sz = p.spread * 0.80
+
+  const cores = []
+  for (let ci = 0; ci < p.cores; ci++) {
+    cores.push({
+      x: gauss() * sx * 0.34, y: gauss() * sy * 0.34, z: gauss() * sz * 0.34,
+      r: (0.16 + Math.random() * 0.22) * p.spread,
+    })
+  }
+
+  const c = new THREE.Color()
+  const k = p.turbulence / p.spread
+  const seed = Math.random() * 100
+
+  let i = 0, guard = 0
+  const maxGuard = n * 80
+  while (i < n && guard < maxGuard) {
+    guard++
+    const x = (Math.random() * 2 - 1) * sx
+    const y = (Math.random() * 2 - 1) * sy
+    const z = (Math.random() * 2 - 1) * sz
+    const e = (x * x) / (sx * sx) + (y * y) / (sy * sy) + (z * z) / (sz * sz)
+    if (e > 1) continue
+
+    let d = 1 - e                                          // envelope
+    let boost = 0
+    for (let ci = 0; ci < cores.length; ci++) {
+      const q = cores[ci]
+      const dx = x - q.x, dy = y - q.y, dz = z - q.z
+      boost += Math.exp(-(dx * dx + dy * dy + dz * dz) / (q.r * q.r))
+    }
+    d *= 1 + boost * p.coreGain                            // gather around the cores
+    d *= Math.pow(fbm(x * k + seed, y * k + 4.7, z * k + 19.1, 4), p.contrast)
+    const du = ridged(x * k * 0.65 + 51.2, y * k * 0.65 + 8.4, z * k * 0.65 + 33.9, 3)
+    d *= 1 - p.dust * Math.pow(du, 2.0)                    // dust absorbs
+
+    const dens = d * p.fill
+    if (Math.random() > dens) continue                     // sample against the density
+
+    pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z
+    const q = Math.min(1, dens)
+    c.copy(ramp(stops, 1 - q))          // densest gas takes the first stop
+    const f = 0.5 + q * 1.15
+    col[i * 3] = c.r * f; col[i * 3 + 1] = c.g * f; col[i * 3 + 2] = c.b * f
+    i++
+  }
+
+  // Young stars form in the densest gas, so seat them on the cores rather than at random.
+  for (let sIdx = 0; sIdx < p.embedded && i < n; sIdx++) {
+    const q = cores[sIdx % Math.max(1, cores.length)]
+    if (!q) break
+    pos[i * 3] = q.x + gauss() * q.r * 0.22
+    pos[i * 3 + 1] = q.y + gauss() * q.r * 0.22
+    pos[i * 3 + 2] = q.z + gauss() * q.r * 0.22
+    col[i * 3] = 2.6; col[i * 3 + 1] = 2.6; col[i * 3 + 2] = 2.9
+    i++
+  }
+  return {pos, col, used: i}
+}
+
+// Logarithmic spiral arms + dense central bulge, thin flaring disc.
+function spiral(n, p, stops) {
+  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3)
+  const c = new THREE.Color()
+  const nBulge = Math.floor(n * p.bulge)
+  const R = p.spread
+  for (let i = 0; i < n; i++) {
+    let x, y, z, t
+    if (i < nBulge) {
+      const d = onSphere(), r = Math.pow(Math.random(), 2.1) * R * 0.30
+      x = d[0] * r; y = d[1] * r * 0.66; z = d[2] * r
+      t = 0
+    } else {
+      const armIdx = (Math.random() * p.arms) | 0
+      const f = Math.pow(Math.random(), 0.55)
+      const r = 0.12 * R + f * R * 0.88
+      const theta = (armIdx / p.arms) * Math.PI * 2 +
+                    Math.log(r / (0.12 * R) + 1) * p.wind
+      const scat = (0.035 + f * 0.10) * R * p.scatter
+      x = Math.cos(theta) * r + gauss() * scat
+      z = Math.sin(theta) * r + gauss() * scat
+      y = gauss() * R * 0.030 * (1 + f)
+      t = Math.min(1, f + 0.15)
+    }
+    pos[i * 3] = x; pos[i * 3 + 1] = y; pos[i * 3 + 2] = z
+    c.copy(ramp(stops, t))
+    const f2 = 0.65 + Math.random() * 0.6
+    col[i * 3] = c.r * f2; col[i * 3 + 1] = c.g * f2; col[i * 3 + 2] = c.b * f2
+  }
+  return {pos, col, used: n}
+}
+
+// Smooth ellipsoid, steep central concentration, essentially no structure.
+function elliptical(n, p, stops) {
+  const pos = new Float32Array(n * 3), col = new Float32Array(n * 3)
+  const c = new THREE.Color()
+  for (let i = 0; i < n; i++) {
+    const d = onSphere()
+    const r = Math.pow(Math.random(), 2.6) * p.spread
+    pos[i * 3] = d[0] * r
+    pos[i * 3 + 1] = d[1] * r * p.flatten
+    pos[i * 3 + 2] = d[2] * r
+    const t = Math.min(1, r / p.spread)
+    c.copy(ramp(stops, t))
+    const f = (0.7 + Math.random() * 0.5) * (1.3 - t * 0.6)
+    col[i * 3] = c.r * f; col[i * 3 + 1] = c.g * f; col[i * 3 + 2] = c.b * f
+  }
+  return {pos, col, used: n}
+}
+
+// Sample a multi-stop colour ramp. Stops run CENTRE (index 0) to EDGE (last), so adding a
+// stop on the end extends the outskirts and inserting one near the front reshapes the core.
+function ramp(stops, t) {
+  const n = stops.length
+  if (n === 0) return new THREE.Color('#ffffff')
+  if (n === 1) return stops[0]
+  const x = Math.max(0, Math.min(1, t)) * (n - 1)
+  const i = Math.min(n - 2, Math.floor(x))
+  return RAMP_TMP.copy(stops[i]).lerp(stops[i + 1], x - i)
+}
+const RAMP_TMP = new THREE.Color()
+
+const GENERATORS = {nebula, spiral, elliptical}
+
+/* ------------------------- presets (in scope) ---------------------- */
+const PRESETS = {
+  // Gas wants FEW, LARGE, FAINT sprites that pile up into cloud.
+  'M42 Orion Nebula': {kind: 'nebula', count: 9000, spin: 0.05,
+    colors: ['#eaf2ff', '#ffe0c4', '#ff4d6a', '#8e1e46'],
+    dist: 2.3, tilt: 0.25,
+    p: {spread: 3.4, sizeRatio: 0.13, opacity: 0.24, turbulence: 3.6, contrast: 3.2,
+        cores: 4, coreGain: 0.9, dust: 0.8, fill: 1.9, embedded: 4}},
+  // A galaxy is made of STARS, so the opposite: many small crisp points, viewed face-on.
+  'M31 Andromeda': {kind: 'spiral', count: 16000, spin: 0.10,
+    colors: ['#fff3d2', '#ffdca0', '#cfd8ff', '#8fa8e0'],
+    dist: 2.7, tilt: 1.30,
+    p: {spread: 4.0, sizeRatio: 0.020, opacity: 0.85, arms: 2, wind: 4.4, scatter: 0.55,
+        bulge: 0.22}},
+}
+// kept only as a shape reference while choosing a look; not in feature scope
+const EXTRA = {
+  elliptical: {kind: 'elliptical', count: 6000, spin: 0.03,
+    colors: ['#fff6e0', '#ffd9a0', '#e0a060'],
+    dist: 2.8, tilt: 0.4,
+    p: {spread: 2.0, sizeRatio: 0.035, opacity: 0.7, flatten: 0.74}},
+}
+
+// sizeRatio is a fraction of spread, so apparent density holds at any scale; opacity is what
+// turns distinct points into gas.
+const CONTROLS = {
+  nebula: [['spread', 1, 6, 0.1], ['sizeRatio', 0.02, 0.30, 0.005], ['opacity', 0.05, 1, 0.01],
+    ['turbulence', 0.5, 8, 0.1], ['contrast', 0.5, 6, 0.1], ['cores', 0, 10, 1],
+    ['coreGain', 0, 5, 0.1], ['dust', 0, 1, 0.05], ['fill', 0.5, 8, 0.1],
+    ['embedded', 0, 12, 1]],
+  spiral: [['spread', 1, 7, 0.1], ['sizeRatio', 0.01, 0.20, 0.005], ['opacity', 0.05, 1, 0.01],
+    ['arms', 1, 6, 1], ['wind', 0.5, 9, 0.1], ['scatter', 0.2, 2.5, 0.05],
+    ['bulge', 0, 0.6, 0.02]],
+  elliptical: [['spread', 1, 6, 0.1], ['sizeRatio', 0.02, 0.30, 0.005],
+    ['opacity', 0.05, 1, 0.01], ['flatten', 0.3, 1, 0.02]],
+}
+
+/* ----------------------------- harness ----------------------------- */
+const canvas = document.getElementById('view')
+let renderer, scene, camera, points = null
+let state = JSON.parse(JSON.stringify(PRESETS['M42 Orion Nebula']))
+const orbit = {a: 0.6, b: 0.18, d: 10, drag: false, px: 0, py: 0}
+
+function initGL() {
+  renderer = new THREE.WebGLRenderer({canvas, antialias: true, alpha: false})
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2))
+  scene = new THREE.Scene()
+  scene.background = new THREE.Color('#04060d')
+  camera = new THREE.PerspectiveCamera(55, 1, 0.1, 200)
+  resize()
+  addEventListener('resize', resize)
+}
+
+// The window can report zero size during load, which leaves the drawing buffer at 0x0 and
+// silently renders nothing. Drive it off the canvas's own laid-out size and re-check each
+// frame so it self-heals whatever the pane does.
+function resize() {
+  const w = canvas.clientWidth || innerWidth || 800
+  const h = canvas.clientHeight || innerHeight || 600
+  if (w === resize.w && h === resize.h) return
+  resize.w = w; resize.h = h
+  renderer.setSize(w, h, false)
+  camera.aspect = w / h
+  camera.updateProjectionMatrix()
+}
+
+const tex = () => (tex._t || (tex._t = makeSprite()))
+
+function rebuild() {
+  if (points) {
+    scene.remove(points)
+    points.geometry.dispose()
+    points.material.dispose()
+    points = null
+  }
+  const stops = state.colors.map(h => new THREE.Color(h))
+  const out = GENERATORS[state.kind](state.count, state.p, stops)
+  const g = new THREE.BufferGeometry()
+  g.setAttribute('position', new THREE.BufferAttribute(out.pos.subarray(0, out.used * 3), 3))
+  g.setAttribute('color', new THREE.BufferAttribute(out.col.subarray(0, out.used * 3), 3))
+  const m = new THREE.PointsMaterial({
+    size: state.p.spread * state.p.sizeRatio,
+    opacity: state.p.opacity,
+    map: tex(),
+    vertexColors: true,
+    transparent: true,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    sizeAttenuation: true,
+  })
+  points = new THREE.Points(g, m)
+  scene.add(points)
+  document.getElementById('ptsv').textContent = out.used.toLocaleString()
+}
+
+let frames = 0, last = performance.now(), prev = performance.now()
+function frame() {
+  resize()
+  const now = performance.now()
+  const dt = (now - prev) / 1000
+  prev = now
+
+  if (!orbit.drag) orbit.a += dt * 0.06
+  if (points) points.rotation.y += dt * state.spin
+  camera.position.set(
+    Math.cos(orbit.a) * Math.cos(orbit.b) * orbit.d,
+    Math.sin(orbit.b) * orbit.d,
+    Math.sin(orbit.a) * Math.cos(orbit.b) * orbit.d
+  )
+  camera.lookAt(0, 0, 0)
+  renderer.render(scene, camera)
+
+  frames++
+  if (now - last > 500) {
+    const fps = Math.round(frames * 1000 / (now - last))
+    document.getElementById('fpsv').textContent = fps
+    document.getElementById('hud').classList.toggle('bad', fps < 30)
+    frames = 0; last = now
+  }
+  requestAnimationFrame(frame)
+}
+
+// ---- pointer orbit ----
+const pt = e => (e.touches ? e.touches[0] : e)
+canvas.addEventListener('pointerdown', (e) => {
+  orbit.drag = true; orbit.px = e.clientX; orbit.py = e.clientY
+  canvas.setPointerCapture(e.pointerId)
+})
+canvas.addEventListener('pointermove', (e) => {
+  if (!orbit.drag) return
+  orbit.a -= (e.clientX - orbit.px) * 0.006
+  orbit.b += (e.clientY - orbit.py) * 0.006
+  orbit.b = Math.max(-1.4, Math.min(1.4, orbit.b))
+  orbit.px = e.clientX; orbit.py = e.clientY
+})
+canvas.addEventListener('pointerup', () => { orbit.drag = false })
+canvas.addEventListener('wheel', (e) => {
+  orbit.d = Math.max(2.5, Math.min(40, orbit.d + e.deltaY * 0.01))
+}, {passive: true})
+
+/* ------------------------------- UI -------------------------------- */
+function drawParams() {
+  const box = document.getElementById('params')
+  box.innerHTML = ''
+  const rows = [['count', 500, 20000, 250]].concat(CONTROLS[state.kind])
+  rows.forEach(([key, lo, hi, step]) => {
+    const val = key === 'count' ? state.count : state.p[key]
+    const l = document.createElement('label')
+    l.innerHTML = key + ' <b>' + val + '</b>'
+    const r = document.createElement('input')
+    r.type = 'range'; r.min = lo; r.max = hi; r.step = step; r.value = val
+    r.oninput = () => {
+      const v = parseFloat(r.value)
+      if (key === 'count') state.count = v; else state.p[key] = v
+      l.querySelector('b').textContent = v
+      rebuild()
+    }
+    box.appendChild(l); box.appendChild(r)
+  })
+}
+
+const DEFAULT_RAMPS = {}
+
+// One row per stop: the swatch, its position in the ramp, and a remove button. Two stops is
+// the floor - below that there is nothing to interpolate.
+function drawColors() {
+  const box = document.getElementById('colors')
+  box.innerHTML = ''
+  state.colors.forEach((hex, idx) => {
+    const row = document.createElement('div')
+    row.className = 'row'
+    const sw = document.createElement('input')
+    sw.type = 'color'; sw.value = hex
+    sw.oninput = () => { state.colors[idx] = sw.value; rebuild() }
+    const label = document.createElement('span')
+    label.textContent = idx === 0 ? 'centre'
+      : idx === state.colors.length - 1 ? 'edge' : 'stop ' + idx
+    row.appendChild(sw); row.appendChild(label)
+    if (state.colors.length > 2) {
+      const x = document.createElement('button')
+      x.className = 'x'; x.textContent = 'x'
+      x.title = 'remove this stop'
+      x.onclick = () => { state.colors.splice(idx, 1); drawColors(); rebuild() }
+      row.appendChild(x)
+    }
+    box.appendChild(row)
+  })
+}
+
+function mark(sel, text) {
+  document.querySelectorAll(sel + ' button').forEach((b) => {
+    b.classList.toggle('on', b.textContent === text)
+  })
+}
+
+function apply(def, label) {
+  state = JSON.parse(JSON.stringify(def))
+  DEFAULT_RAMPS[state.kind] = def.colors.slice()
+  drawColors()
+  orbit.d = state.p.spread * (state.dist || 2.6)   // frame each object to suit its shape
+  orbit.b = state.tilt === undefined ? 0.25 : state.tilt
+  drawParams()
+  mark('#presets', label || '')
+  mark('#kinds', state.kind)
+  rebuild()
+}
+
+Object.keys(PRESETS).forEach((name) => {
+  const b = document.createElement('button')
+  b.textContent = name
+  b.onclick = () => apply(PRESETS[name], name)
+  document.getElementById('presets').appendChild(b)
+})
+
+Object.keys(GENERATORS).forEach((kind) => {
+  const b = document.createElement('button')
+  b.textContent = kind
+  b.onclick = () => {
+    const def = Object.values(PRESETS).find(p => p.kind === kind) || EXTRA[kind]
+    apply(def, null)
+  }
+  document.getElementById('kinds').appendChild(b)
+})
+
+// A new stop lands next to the edge, taking the edge colour, so adding one never jolts the
+// look - you nudge it from there.
+document.getElementById('addColor').onclick = () => {
+  if (state.colors.length >= 8) return
+  state.colors.splice(state.colors.length - 1, 0, state.colors[state.colors.length - 1])
+  drawColors(); rebuild()
+}
+document.getElementById('resetColors').onclick = () => {
+  const def = DEFAULT_RAMPS[state.kind]
+  if (def) { state.colors = def.slice(); drawColors(); rebuild() }
+}
+
+try {
+  if (!THREE) throw new Error('THREE not available from 8frame')
+  initGL()
+  apply(PRESETS['M42 Orion Nebula'], 'M42 Orion Nebula')
+  frame()
+} catch (err) {
+  fail('Bench failed to start: ' + err.message)
+  console.error(err)
+}
+</script>
+</body>
+</html>
