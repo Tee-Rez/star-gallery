@@ -87,6 +87,20 @@ test('a stored blank entry does not become a phantom id', () => {
   assert.deepStrictEqual(s.load('orion'), ['rigel', 'saiph'])
 })
 
+// Quota exceeded: getItem returns real (stale) data, but setItem always fails.
+// mark() must return true only once even when write persistence fails.
+test('quota failure (write-only) degrades to memory while maintaining mark contract', () => {
+  const quotaLimited = {
+    getItem: k => (k === D.KEY_PREFIX + 'orion' ? '' : null),   // returns real but stale data
+    setItem: () => { throw new Error('QuotaExceededError') },    // write always fails
+    removeItem: () => { throw new Error('QuotaExceededError') },
+  }
+  const s = D.createStore(quotaLimited)
+  assert.strictEqual(s.mark('orion', 'rigel'), true)            // first time: true
+  assert.strictEqual(s.isVisited('orion', 'rigel'), true)       // held in memory
+  assert.strictEqual(s.mark('orion', 'rigel'), false)           // second time: false (contract)
+})
+
 // Private browsing throws on write. The layer has to work with no persistence at all.
 test('a storage that throws degrades to memory instead of raising', () => {
   const hostile = {

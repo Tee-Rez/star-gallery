@@ -11,22 +11,32 @@ const KEY_PREFIX = 'discovered:'
 
 function createStore(storage) {
   const memory = new Map()          // fallback, and the mirror when storage refuses
+  const failedWrites = new Set()    // keys where setItem has thrown; memory-owned for this session
 
   const key = c => KEY_PREFIX + c
 
   function readRaw(c) {
+    const k = key(c)
+    // If this key's write has failed, it is memory-owned; do not consult stale storage data
+    if (failedWrites.has(k)) {
+      return memory.has(k) ? memory.get(k) : ''
+    }
     try {
-      const v = storage && storage.getItem(key(c))
+      const v = storage && storage.getItem(k)
       if (v !== null && v !== undefined) return v
     } catch (e) { /* fall through to memory */ }
-    return memory.has(key(c)) ? memory.get(key(c)) : ''
+    return memory.has(k) ? memory.get(k) : ''
   }
 
   function writeRaw(c, raw) {
-    memory.set(key(c), raw)
+    const k = key(c)
+    memory.set(k, raw)
     try {
-      if (storage) storage.setItem(key(c), raw)
-    } catch (e) { /* memory already holds it */ }
+      if (storage) storage.setItem(k, raw)
+    } catch (e) {
+      // Mark this key as memory-owned; future reads will bypass stale storage data
+      failedWrites.add(k)
+    }
   }
 
   function load(c) {
@@ -55,9 +65,11 @@ function createStore(storage) {
   }
 
   function clear(c) {
-    memory.delete(key(c))
+    const k = key(c)
+    memory.delete(k)
+    failedWrites.delete(k)
     try {
-      if (storage) storage.removeItem(key(c))
+      if (storage) storage.removeItem(k)
     } catch (e) { /* memory is already clear */ }
   }
 
