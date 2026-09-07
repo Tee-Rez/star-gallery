@@ -54,6 +54,7 @@ const deepSkyFieldComponent = {
   init() {
     this.points = null
     this.pointCount = 0
+    this.params = null
     this.build()
   },
 
@@ -77,15 +78,16 @@ const deepSkyFieldComponent = {
     const raw = this.el.getDOMAttribute(this.attrName) || {}
     const p = Object.assign({}, FIELD_DEFAULTS[this.data.layer] || {}, raw)
     p.layer = this.data.layer
-    // Coerce numeric keys from HTML strings; keep colors as string. Use this.data as fallback.
+    // Coerce numeric keys from HTML strings (e.g., from attribute="0.13").
     const numericKeys = ['count', 'spread', 'sizeRatio', 'opacity', 'spin',
                          'turbulence', 'contrast', 'cores', 'coreGain', 'dust',
                          'fill', 'embedded', 'arms', 'wind', 'scatter', 'bulge']
     for (const k of numericKeys) {
       if (typeof p[k] === 'string') p[k] = parseFloat(p[k])
-      if (!(k in raw)) p[k] = this.data[k]
     }
+    // colors is not in FIELD_DEFAULTS, so fall back to schema default if not set
     if (!('colors' in raw)) p.colors = this.data.colors
+    this.params = p
     const stops = parseColors(p.colors)
     const out = gen(p.count, p, stops)
     if (!out.used) {
@@ -100,11 +102,11 @@ const deepSkyFieldComponent = {
       new THREE.BufferAttribute(out.colors.subarray(0, out.used * 3), 3))
 
     const material = new THREE.PointsMaterial({
-      size: this.data.spread * this.data.sizeRatio,
+      size: p.spread * p.sizeRatio,
       map: sprite(THREE),
       vertexColors: true,
       transparent: true,
-      opacity: this.data.opacity,
+      opacity: p.opacity,
       blending: THREE.AdditiveBlending,
       depthWrite: false,          // additive gas must not occlude what is behind it
       sizeAttenuation: true,
@@ -116,7 +118,7 @@ const deepSkyFieldComponent = {
   },
 
   tick(time, delta) {
-    if (this.points) this.points.rotation.y += (delta / 1000) * this.data.spin
+    if (this.points && this.params) this.points.rotation.y += (delta / 1000) * this.params.spin
   },
 
   dispose() {
@@ -126,6 +128,7 @@ const deepSkyFieldComponent = {
     this.points.material.dispose()
     this.points = null
     this.pointCount = 0
+    this.params = null
   },
 
   remove() {
