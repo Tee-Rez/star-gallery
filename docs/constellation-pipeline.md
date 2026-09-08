@@ -46,7 +46,7 @@ and per deep-sky object, and the connection pairs with a `type` on each.
 **4 → 5** The data file path, the constellation `id`, and confirmation the embedded loader copy
 matches the JSON.
 
-## The six failures this pipeline exists to prevent
+## The eight failures this pipeline exists to prevent
 
 1. **A star that is not in the figure.** Orion carried "Eta Orionis" in its sword; the real eta
    Orionis is west of the belt. Reconcile the star set against sourced figure lines, and
@@ -61,7 +61,19 @@ matches the JSON.
    in the data.
 5. **Measuring geometry in world space.** `#root` moves when the constellation is placed, so
    world coordinates taken moments apart are not comparable. Measure in `#root`-local space.
-6. **Star tones left to the spectral-class estimate.** Each star sings a pitch derived from
+6. **Editing `constellation-loader.js` with a tool that normalises line endings.** That file
+   is ~92 KB, mostly one embedded data literal. Three separate attempts in this project turned a
+   ten-line change into a 1,500-2,900 line diff by rewriting every line ending; all three were
+   caught only by running `git diff --stat` before committing, and discarded. Patch it with a
+   byte-precise script, check the stat, and never commit a reformatted file. The same hazard
+   applies to the JSON data files: rewriting one with `json.dumps` escapes every Greek letter in
+   a designation (`α` becomes `α`), so change a single value surgically in the raw
+   text instead of re-serialising the document.
+7. **Hand-editing the embedded copy.** The runtime reads the copy inside
+   `getEmbeddedConstellationData()`, not the JSON file. Regenerate it from the file with a
+   brace-matching script and then assert the two are deep-equal; Orion once drifted silently and
+   the difference was invisible on screen.
+8. **Star tones left to the spectral-class estimate.** Each star sings a pitch derived from
    `nu_max ∝ M / (R² √T)`. Without measured mass, radius and temperature the app estimates all
    three from the spectral class - and measured against the real figures for Andromeda that
    estimate was out by up to **4.6x**, agreed on the size ordering for only **6 of 14** stars,
@@ -83,6 +95,22 @@ The Starsong tab plays each star, so the physics is part of the data, not an aft
   any zero or shared `nu_max`, and prints the stars ordered by pitch - which must run from the
   largest and coolest up to the smallest and hottest.
 
+## Deep-sky objects: the second layer
+
+A constellation's nebulae, galaxies and clusters are not decoration — each one with a `layer`
+becomes a place you can go. See `docs/constellation-data-schema.md` for the full field
+reference; what the pipeline needs to know:
+
+- **Stage 1 gathers them** alongside the stars: coordinates, distance, magnitude, angular size,
+  and — for anything that will be in the layer — sourced `info.basic` / `info.scientific` and
+  `sources`, exactly as a star gets them.
+- **Stage 2 projects them in the same run** as the stars, so they share a centre and scale.
+- **Only the primary of a close group gets a marker.** Companions carry `"layer": "none"`.
+- **A cluster needs its own star set**, in the full star schema with `physics`, projected to fit
+  the PARENT's portal because it borrows that portal and box.
+- **Depth is clamped, never extended.** A far object parks at the back of the box, so the real
+  distance has to be stated in `info.scientific` — the geometry no longer carries it.
+
 ## Genericity notes
 
 The pipeline has to cope with the whole sky, not just the bright northern figures:
@@ -99,6 +127,27 @@ The pipeline has to cope with the whole sky, not just the bright northern figure
 - **Stars without proper names.** Bayer or Flamsteed designations are normal and fine.
 - **Constellations crossing 0h RA.** The figure-line source uses negative degrees there; convert
   before matching.
+
+## Verifying in a browser
+
+Earlier belief in this project was that nothing could be checked without a phone, because the
+app boots through 8th Wall's `xrweb` SLAM pipeline. That is wrong, and the over-caution let a
+dead-on-arrival bug reach review: **the camera gates AR placement only.** A-Frame component
+initialisation, event wiring, the scene graph, `localStorage` and the HUD all work headlessly.
+
+```bash
+cd orion && npm run build
+npx http-server dist -p 5111 -c-1 -s     # -c-1 disables caching
+```
+
+Then load `http://127.0.0.1:5111/index.html?c=<id>` and drive components from the console.
+
+- **Use `npx http-server`, not `python -m http.server`** — the latter behaved unreliably here
+  and the app silently fell back to default data, which looks like a passing test.
+- **Disable caching (`-c-1`).** A stale `bundle.js` will happily report the previous build's
+  behaviour; a query string on the HTML does not bust the bundle.
+- What still needs a real device: frame rate with camera plus SLAM running, and any judgement
+  about how something *looks*.
 
 ## The projection tool
 

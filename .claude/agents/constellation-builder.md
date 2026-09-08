@@ -48,9 +48,41 @@ researcher left without one. A missing block is a deliberate statement that the 
 not published, and the app labels that tone as estimated. Place `physics` after `stellarType`
 and before `info` so the numeric fields read together.
 
+**Deep-sky objects are not decoration.** Each one you mark with a `layer` becomes somewhere
+the viewer can go, so it needs the same care as a star. Read the `deepSkyObjects` section of
+`docs/constellation-data-schema.md` in full before writing any. In short:
+
+- `layer` is `nebula` | `galaxy` | `cluster` | `none`. State it explicitly.
+- Only the PRIMARY of a close group gets a marker; companions get `"layer": "none"`. Rings
+  closer than roughly 0.3 units overlap into something untappable.
+- Anything not `none` needs `position2D` (it throws without one), plus sourced `info.basic`,
+  `info.scientific` and `sources`.
+- `nebula`/`galaxy` need a `field` block whose keys match `FIELD_DEFAULTS[layer]`, with `colors`
+  as a comma-separated STRING. Gas wants large faint sprites; a galaxy wants many small crisp
+  ones. Getting those backwards is the single most likely mistake.
+- A `cluster` needs its own `stars` and `connections` in the full star schema, `physics`
+  included, projected to fit the PARENT's portal — it borrows that portal and box.
+- Depth is clamped to the box and the box is never extended, so `info.scientific` must state the
+  real distance in words; the geometry no longer carries it.
+
 Every star needs `info.basic` and `info.scientific`. Keep them factual and sourced. **Never
 add an `esoteric` field** - it does not exist in this schema any more, and the lore lives in
 the journey.
+
+## 1b. Writing the files without wrecking them
+
+Two edits in this project have to be made carefully, and both have burned people:
+
+**`constellation-loader.js` holds the embedded copy that actually runs.** It is ~92 KB, mostly
+one data literal. Never hand-edit that literal, and never let an editing tool rewrite the file:
+three attempts here turned a small change into a 1,500-2,900 line diff by normalising every line
+ending. Regenerate the embedded object from the JSON file with a brace-matching script, then
+`git diff --stat` and confirm the change is small before committing. Finish by asserting the
+embedded object is deep-equal to the file.
+
+**Do not re-serialise a JSON data file to change one value.** `json.dumps` escapes non-ASCII, so
+every Greek designation (`α Orionis`) turns into `α Orionis` and the diff explodes.
+Change the value surgically in the raw text.
 
 ## 2. gridBox and portal
 

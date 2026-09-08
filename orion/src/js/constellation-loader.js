@@ -1904,6 +1904,13 @@ const constellationLoaderComponent = {
       // Shared with deep-sky-layer.enter(), so a marker exists exactly when entry works.
       const layer = resolveLayer(obj)
       if (layer === 'none') return
+      // A marked object with no position cannot be placed. Skipping it costs one marker;
+      // letting it through throws right below, and during a cluster restore that strands
+      // the layer over a half-rebuilt figure with no way back.
+      if (!obj.position2D) {
+        console.warn('[constellation-loader] deep-sky object has no position2D, skipping:', obj.id)
+        return
+      }
 
       const entity = document.createElement('a-entity')
       // Angular size varies hugely; floor it so a small object stays tappable.

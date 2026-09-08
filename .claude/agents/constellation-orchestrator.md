@@ -49,8 +49,16 @@ most; see the fabrication note below.
 copy in `constellation-loader.js` matches the JSON file.
 
 **After stage 5** - the build compiles, the constellation loads via `?c=<id>`, the grid walls
-meet the portal frame on all four sides, and section 1b reports no zero or shared `nu_max` with
-the stars ordered largest-and-coolest to smallest-and-hottest.
+meet the portal frame on all four sides, section 1b reports no zero or shared `nu_max` with the
+stars ordered largest-and-coolest to smallest-and-hottest, and section 1c reports every marked
+deep-sky object complete with no overlapping rings.
+
+**Deep-sky gate, wherever the constellation has objects** - each one marked with a `layer` is a
+place the viewer can GO, not a label. It needs `position2D`, sourced `info` and `sources`, and
+either a `field` block (nebula/galaxy) or its own projected star set (cluster). Only the primary
+of a close group gets a marker. Send it back if a nebula and a galaxy have been given the same
+particle treatment: gas wants large faint sprites, a galaxy many small crisp ones, and the two
+being swapped is the most likely mistake in the whole stage.
 
 ## Things that have actually gone wrong here
 
@@ -68,6 +76,11 @@ Carry these forward; each cost real rework.
   temperature were estimated from the spectral class - so three Orion stars sharing a class got
   an identical tone, and the estimate was out by up to 4.6x against Andromeda's real figures.
   The numbers live in each star's own Wikipedia infobox, not the "List of stars in..." page.
+- **A whole feature shipped dead because of an async assumption.** Marker taps did nothing for
+  a full task: the loader wired a click handler to a collision sphere that the marker COMPONENT
+  creates asynchronously, so the query always returned null and the listener was never attached.
+  It was caught only when a reviewer drove the app in a real browser. Do not accept "the code
+  looks right" for anything involving component lifecycle.
 - **Orion's dimensions were hardcoded in shared code.** Several bugs (hider wall travel, grid
   wall sizing, position scaling) came from constants that were secretly Orion's 6x9 portal.
   When the verifier reports a geometry mismatch, suspect a hardcoded Orion value before you

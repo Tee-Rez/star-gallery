@@ -59,6 +59,50 @@ rows.forEach(r=>console.log('  ', r.nu, r.src, 'R='+r.R, r.n));"
 - Stars listed as `estimated` are acceptable when the source genuinely lacks mass or radius -
   the app labels them honestly - but name them so the gap is visible.
 
+## 1c. Deep-sky layer
+
+```bash
+cd orion && node -e "
+const {resolveLayer, FIELD_DEFAULTS} = require('./src/js/deep-sky-field.js');
+const d=require('./src/data/constellations/<id>.json');
+const objs=d.deepSkyObjects||[];
+objs.forEach(o=>{
+  const layer=resolveLayer(o);
+  const line=[o.id, 'layer='+layer];
+  if(layer!=='none'){
+    line.push('position2D='+(o.position2D?'ok':'MISSING(will throw)'));
+    line.push('info='+((o.info&&o.info.basic&&o.info.scientific)?'ok':'MISSING'));
+    line.push('sources='+(o.sources?'ok':'MISSING'));
+    if(layer==='nebula'||layer==='galaxy'){
+      const need=Object.keys(FIELD_DEFAULTS[layer]||{});
+      const miss=need.filter(k=>typeof (o.field||{})[k]!=='number');
+      line.push('field='+(miss.length?'MISSING '+miss.join(','):'ok'));
+      line.push('colors='+(typeof (o.field||{}).colors==='string'?'ok':'must be a STRING'));
+    }
+    if(layer==='cluster'){
+      line.push('stars='+((o.stars||[]).length));
+      line.push('connections='+((o.connections||[]).length));
+    }
+  }
+  console.log(' ', line.join('  '));
+});
+// Rings closer than this overlap into something untappable.
+const marked=objs.filter(o=>resolveLayer(o)!=='none');
+marked.forEach((a,i)=>marked.slice(i+1).forEach(b=>{
+  const dx=a.position2D.x-b.position2D.x, dy=a.position2D.y-b.position2D.y;
+  const dist=Math.hypot(dx,dy);
+  if(dist<0.3) console.log('  OVERLAP', a.id, b.id, dist.toFixed(3), '- one should be layer:none');
+}));"
+```
+
+- **Every marked object must have `position2D`** — `createDeepSkyMarkers()` reads it unguarded.
+- **No two marked objects within ~0.3 units.** Their rings become one unusable blob.
+- **A nebula's `sizeRatio` should be ~0.13 with low opacity; a galaxy's ~0.02 with high.**
+  Reversed values are a real and easy mistake: gas needs large faint sprites that accumulate,
+  a galaxy needs many small crisp ones.
+- A cluster's stars must satisfy the star schema, `physics` included, and be projected to the
+  PARENT's portal.
+
 ## 2. Build
 
 ```bash
@@ -69,7 +113,26 @@ Exit code 0. Two webpack size warnings are normal; anything else is a failure.
 
 ## 3. Runtime and geometry
 
-Serve `orion/dist` and load `?c=<id>`, then check in the browser.
+```bash
+cd orion && npm run build
+npx http-server dist -p 5111 -c-1 -s      # -c-1 disables caching
+```
+
+Load `http://127.0.0.1:5111/index.html?c=<id>` and drive components from the console. The
+camera gates AR PLACEMENT only — component init, event wiring, the scene graph, localStorage and
+the HUD all work headlessly, so most of this checklist is reachable without a device.
+
+Two traps: use `npx http-server`, not `python -m http.server` (the latter behaved unreliably
+here and the app silently fell back to DEFAULT data, which looks like a pass); and disable
+caching, because a stale `bundle.js` reports the previous build's behaviour and a query string
+on the HTML does not bust it.
+
+Also step the deep-sky layer if the constellation has one: tap the marker, confirm the object
+grows at the CENTRE of the grid, tap its detail ring, confirm the panel shows the object's
+sourced text with no Starsong tab, confirm the ring dims and the HUD's "Deep Sky Explored"
+increments, then confirm the back control and the completion return both restore the
+constellation. For a cluster, confirm its stars replace the figure, each opens a star panel and
+is checked off, and finding the last one returns you.
 
 **Loads correctly** - constellation name, star count in the DOM, portal and gridBox values
 all match the data file.

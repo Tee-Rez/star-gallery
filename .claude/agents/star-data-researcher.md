@@ -123,6 +123,22 @@ Include the ones a viewer would actually care about - Messier objects, named neb
 clusters. Give each an `raH`/`dec` so it can be projected alongside the stars. Cap it at about
 five; this is a constellation figure, not a survey.
 
+**The notable ones are places the viewer can GO, not labels.** Anything that will carry a
+`layer` needs the same depth of research as a star: sourced `info.basic` (what a curious person
+wants to know) and `info.scientific` (the measured account), plus `sources`. Say which you think
+should be explorable and which are companions too close to their neighbour to get their own
+marker - rings within about 0.3 projected units overlap into something untappable, so M42/M43
+and M31/M32/M110 each get ONE.
+
+Because a far object's depth is clamped to the constellation's box rather than the box being
+extended, **`info.scientific` must state the real distance in words** - the geometry stops
+carrying it.
+
+**A star cluster needs its member stars too**, in the same shape as the constellation's own:
+name, designation, RA/Dec, magnitude, distance, spectral class, and `physics` where published.
+Gather the figure-defining members the way you would a constellation's - for the Pleiades that
+is the named sisters plus Atlas and Pleione, not all several hundred members.
+
 ## Rules
 
 - Never invent or estimate a coordinate. If you cannot source it, say so and leave it out.
