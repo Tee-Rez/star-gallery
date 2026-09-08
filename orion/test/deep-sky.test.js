@@ -127,4 +127,38 @@ test('generatorFor maps the two shipping layers', () => {
   assert.strictEqual(F.generatorFor('nonsense'), null)
 })
 
+// resolveLayer: shared by createDeepSkyMarkers and enter() so a marker exists exactly when
+// entry works. Spec: layer missing -> derive from type; unrecognised (either field) -> none.
+test('resolveLayer accepts an explicit valid layer', () => {
+  assert.strictEqual(F.resolveLayer({layer: 'nebula'}), 'nebula')
+  assert.strictEqual(F.resolveLayer({layer: 'galaxy'}), 'galaxy')
+  assert.strictEqual(F.resolveLayer({layer: 'cluster'}), 'cluster')
+})
+
+test('resolveLayer keeps an explicit none as none, even with a matching type', () => {
+  assert.strictEqual(F.resolveLayer({layer: 'none', type: 'emission_nebula'}), 'none')
+})
+
+test('resolveLayer derives from type by substring when layer is missing', () => {
+  assert.strictEqual(F.resolveLayer({type: 'emission_nebula'}), 'nebula')
+  assert.strictEqual(F.resolveLayer({type: 'spiral_galaxy'}), 'galaxy')
+  assert.strictEqual(F.resolveLayer({type: 'open_cluster'}), 'cluster')
+})
+
+test('resolveLayer treats an unrecognised layer string as none when type does not resolve it', () => {
+  assert.strictEqual(F.resolveLayer({layer: 'quasar'}), 'none')
+  assert.strictEqual(F.resolveLayer({layer: 'quasar', type: 'quasar'}), 'none')
+})
+
+// An explicit-but-invalid layer is not whitelisted, so it falls through to the same
+// type-derivation as a missing layer - it is only "none" when type doesn't resolve it either.
+test('resolveLayer falls through an unrecognised layer to type derivation', () => {
+  assert.strictEqual(F.resolveLayer({layer: 'quasar', type: 'emission_nebula'}), 'nebula')
+})
+
+test('resolveLayer is none when both layer and type are missing', () => {
+  assert.strictEqual(F.resolveLayer({}), 'none')
+  assert.strictEqual(F.resolveLayer(null), 'none')
+})
+
 console.log('\n' + passed + ' passed')

@@ -28,6 +28,15 @@ const resetViewButtonComponent = {
     this.el.sceneEl.addEventListener('constellationPlaced', () => {
       console.log('Constellation placed event received, showing button...')
       setTimeout(() => {
+        // If the deep-sky layer is open, showing now would re-reveal Recenter mid-layer
+        // (it hides itself on entry and expects to stay hidden until it exits). Defer to
+        // the layer instead: it remembers this happened and reveals the button itself on exit.
+        const dsl = document.querySelector('[deep-sky-layer]')
+        const c = dsl && dsl.components && dsl.components['deep-sky-layer']
+        if (c && c.isActive()) {
+          c.noteResetWanted()
+          return
+        }
         this.showButton()
       }, 500)
     })

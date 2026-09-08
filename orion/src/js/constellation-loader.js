@@ -1,5 +1,6 @@
 // constellation-loader.js
 import {defaultStore} from './discovery-store'
+import {resolveLayer} from './deep-sky-field'
 
 const constellationLoaderComponent = {
   schema: {
@@ -1763,7 +1764,7 @@ const constellationLoaderComponent = {
     const cid = this.data.constellationFile
     const stars = this.constellationData.stars || []
     const objects = (this.constellationData.deepSkyObjects || [])
-      .filter(o => o.layer && o.layer !== 'none')
+      .filter(o => resolveLayer(o) !== 'none')
 
     header.setAttribute('portal-header', {
       starsExplored: defaultStore.countVisited(cid, stars.map(s => s.id)),
@@ -1899,13 +1900,20 @@ const constellationLoaderComponent = {
     const objects = this.constellationData.deepSkyObjects || []
 
     objects.forEach((obj) => {
-      const layer = obj.layer || 'none'
+      // The spec: layer missing means derive it from type; unrecognised means none.
+      // Shared with deep-sky-layer.enter(), so a marker exists exactly when entry works.
+      const layer = resolveLayer(obj)
       if (layer === 'none') return
 
       const entity = document.createElement('a-entity')
       // Angular size varies hugely; floor it so a small object stays tappable.
       const radius = Math.max(0.28, Math.min(0.9, (obj.size || 1) * 0.32))
-      entity.setAttribute('deep-sky-marker', {radius})
+      // "Once visited, the ring dims" - seeded here so it survives a reload, and kept
+      // in step during the session by deep-sky-layer.dimMarker().
+      entity.setAttribute('deep-sky-marker', {
+        radius,
+        visited: defaultStore.isVisited(this.data.constellationFile, obj.id),
+      })
 
       const label = document.createElement('a-entity')
       label.setAttribute('billboard', '')
@@ -2060,6 +2068,17 @@ const constellationLoaderComponent = {
     })
   },
 
+  // True while the deep-sky layer has the constellation's OWN stars hidden behind a
+  // field. three.js r137's Raycaster does not skip invisible objects and A-Frame 1.3.0
+  // adds no visibility filter, so a hidden star's collision sphere still reports hits;
+  // every consumer of a star tap has to ask. A cluster replaces the figure rather than
+  // hiding it, so its stars stay tappable. Guards for the component being absent.
+  deepSkyHidingStars() {
+    const el = document.querySelector('[deep-sky-layer]')
+    const c = el && el.components && el.components['deep-sky-layer']
+    return !!(c && c.isActive() && c.suppressesStarTaps())
+  },
+
   setupInteractions() {
     this.stars.forEach((starEntity) => {
       const collisionSphere = starEntity.querySelector('a-sphere.cantap')
@@ -2067,6 +2086,7 @@ const constellationLoaderComponent = {
 
       if (collisionSphere) {
         collisionSphere.addEventListener('click', () => {
+          if (this.deepSkyHidingStars()) return
           if (!this.isAnimating) {
             this.pulseStarOnSelect(starCore, collisionSphere)
             // Entities carry the star's NAME in dataset.name, not its id, so look up by name.
@@ -2074,6 +2094,12 @@ const constellationLoaderComponent = {
               .find(s => s.name === starEntity.dataset.name)
             if (record && defaultStore.mark(this.data.constellationFile, record.id)) {
               this.refreshExploredCounts()
+              // A cluster completes when every one of its stars is visited, and this is
+              // the only moment that answer can change. deep-sky-layer listens while a
+              // cluster is open. Payload: {constellation, id} - both plain strings.
+              this.el.sceneEl.emit('starVisited', {
+                constellation: this.data.constellationFile, id: record.id,
+              })
             }
           }
         })

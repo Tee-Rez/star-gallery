@@ -213,6 +213,29 @@ const FIELD_DEFAULTS = {
   },
 }
 
+// ---- which behaviour an object gets ----
+
+// ONE definition, imported by both the marker builder and the layer, so the two can never
+// disagree about what an object is. The spec: an explicit layer wins if it names a
+// behaviour we ship; otherwise derive from the astronomical `type` by substring; anything
+// still unrecognised - and an explicit "none" - means none. That keeps a typo like
+// layer: "quasar" out of the layer instead of entering a blank object with no generator.
+const LAYERS = ['nebula', 'galaxy', 'cluster']
+
+function resolveLayer(obj) {
+  if (!obj) return 'none'
+  const layer = (obj.layer === undefined || obj.layer === null)
+    ? '' : String(obj.layer).trim().toLowerCase()
+  if (layer === 'none') return 'none'
+  if (LAYERS.indexOf(layer) !== -1) return layer
+  const type = (obj.type === undefined || obj.type === null)
+    ? '' : String(obj.type).trim().toLowerCase()
+  for (let i = 0; i < LAYERS.length; i++) {
+    if (type.indexOf(LAYERS[i]) !== -1) return LAYERS[i]
+  }
+  return 'none'
+}
+
 function generatorFor(layer) {
   if (layer === 'nebula') return nebulaField
   if (layer === 'galaxy') return spiralField
@@ -220,10 +243,14 @@ function generatorFor(layer) {
 }
 
 const DeepSkyField = {
-  hexToRgb, parseColors, rampColor, nebulaField, spiralField, generatorFor, FIELD_DEFAULTS,
+  hexToRgb, parseColors, rampColor, nebulaField, spiralField, generatorFor, resolveLayer,
+  FIELD_DEFAULTS, LAYERS,
 }
 
 if (typeof module !== 'undefined' && module.exports) module.exports = DeepSkyField
 
-export {hexToRgb, parseColors, rampColor, nebulaField, spiralField, generatorFor, FIELD_DEFAULTS}
+export {
+  hexToRgb, parseColors, rampColor, nebulaField, spiralField, generatorFor, resolveLayer,
+  FIELD_DEFAULTS, LAYERS,
+}
 export default DeepSkyField

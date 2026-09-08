@@ -144,9 +144,21 @@ const starInfoOverlayComponent = {
     this.closeButton = closeButton
   },
 
+  // True while the deep-sky layer has the constellation's own stars hidden behind a field.
+  // three.js r137's Raycaster does not skip invisible objects, so a hidden star's collision
+  // sphere still reports hits; without this a tap through the field would replace this panel
+  // with the star's, and closing that panel would fire the layer's own auto-return listener.
+  // A cluster replaces the figure rather than hiding it, so its stars stay tappable.
+  deepSkyHidingStars() {
+    const el = document.querySelector('[deep-sky-layer]')
+    const c = el && el.components && el.components['deep-sky-layer']
+    return !!(c && c.isActive() && c.suppressesStarTaps())
+  },
+
   handleStarClick(event) {
     const clickedEl = event.detail.intersectedEl
     if (!clickedEl || !clickedEl.matches('a-sphere.cantap')) return
+    if (this.deepSkyHidingStars()) return
 
     // If it's the dynamic star that was clicked, just hide
     if (clickedEl.closest('#dynamic-star')) {
