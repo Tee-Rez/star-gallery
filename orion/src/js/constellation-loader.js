@@ -1739,9 +1739,10 @@ const constellationLoaderComponent = {
       // the constellation green, while the HUD band matches the star-info panel palette.
     })
 
-    // Attach the lore-journey behavior to the scene once.
+    // Attach the lore-journey and deep-sky-layer behaviors to the scene once.
     const scene = this.el.sceneEl
     if (!scene.hasAttribute('lore-journey')) scene.setAttribute('lore-journey', '')
+    if (!scene.hasAttribute('deep-sky-layer')) scene.setAttribute('deep-sky-layer', '')
   },
 
   createGridWalls() {
@@ -2043,6 +2044,16 @@ const constellationLoaderComponent = {
           }
         })
       }
+    })
+
+    // Markers open the deep-sky layer rather than the star info panel.
+    ;(this.deepSkyMarkers || []).forEach((marker) => {
+      const hit = marker.querySelector('a-sphere.cantap')
+      if (!hit) return
+      hit.addEventListener('click', () => {
+        if (this.isAnimating) return
+        this.el.sceneEl.emit('deepSkyRequested', {id: marker.dataset.deepSkyId})
+      })
     })
 
     this.currentlyIntersected = null
