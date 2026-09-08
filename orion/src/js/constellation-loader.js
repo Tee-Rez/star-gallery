@@ -52,6 +52,7 @@ const constellationLoaderComponent = {
 
       this.stars = []
       this.connections = []
+      this.deepSkyMarkers = []
       this.isAnimating = false
 
       console.log('Starting constellation creation...')
@@ -68,6 +69,8 @@ const constellationLoaderComponent = {
 
       await this.createConnectionsAsync()
       console.log('Connections created:', this.connections.length)
+
+      this.createDeepSkyMarkers()
 
       this.setupInteractions()
       console.log('Interactions setup')
@@ -1858,6 +1861,53 @@ const constellationLoaderComponent = {
     return starEntity
   },
 
+  // Deep-sky objects that are in the layer get a marker. Objects with layer 'none' - the
+  // companions of a marked primary, and anything deferred - are skipped: two dashed rings
+  // 0.03 units apart, which is what M42 and M43 are, would be untappable.
+  createDeepSkyMarkers() {
+    this.deepSkyMarkers = []
+    const objects = this.constellationData.deepSkyObjects || []
+
+    objects.forEach((obj) => {
+      const layer = obj.layer || 'none'
+      if (layer === 'none') return
+
+      const entity = document.createElement('a-entity')
+      // Angular size varies hugely; floor it so a small object stays tappable.
+      const radius = Math.max(0.28, Math.min(0.9, (obj.size || 1) * 0.32))
+      entity.setAttribute('deep-sky-marker', {radius})
+
+      const label = document.createElement('a-entity')
+      label.setAttribute('billboard', '')
+      const text = document.createElement('a-text')
+      text.setAttribute('value', obj.name)
+      text.setAttribute('align', 'center')
+      text.setAttribute('position', `0 ${radius + 0.22} 0.02`)
+      text.setAttribute('scale', '1.5 1.5 1.5')
+      text.setAttribute('color', '#bfe4ff')
+      text.setAttribute('width', '3')
+      text.setAttribute('font', 'exo2bold')
+      label.appendChild(text)
+      entity.appendChild(label)
+
+      entity.setAttribute('position', {x: obj.position2D.x, y: obj.position2D.y, z: 0})
+      entity.dataset.deepSkyId = obj.id
+      entity.dataset.name = obj.name
+      entity.dataset.realX = obj.position2D.x
+      entity.dataset.realY = obj.position2D.y
+      entity.dataset.realZ = obj.distance ? -obj.distance : 0
+
+      this.rotatingContainer.appendChild(entity)
+      this.deepSkyMarkers.push(entity)
+    })
+
+    console.log('Deep-sky markers created:', this.deepSkyMarkers.length)
+  },
+
+  getDeepSkyById(id) {
+    return (this.constellationData.deepSkyObjects || []).find(o => o.id === id) || null
+  },
+
   formatStarInfo(starData) {
     let info = ''
 
@@ -2128,6 +2178,31 @@ const constellationLoaderComponent = {
       })
     })
 
+    // Deep-sky objects are clamped INTO the box; the box is never extended to reach them.
+    // M31 sits 2.54 million light-years away against Andromeda's 44-700 ly stars, so honest
+    // scaling would flatten the figure to a plane. Depth here is expressive, not measured -
+    // the real distance is stated in the object's info instead.
+    const halfBox = depthExtent / 2
+    ;(this.deepSkyMarkers || []).forEach((marker) => {
+      let position
+      if (this.data.showRealPositions) {
+        const realZ = parseFloat(marker.dataset.realZ)
+        const raw = (maxAbsZ > 0 ? (realZ / maxAbsZ) * depthExtent : 0) - depthMid
+        position = {
+          x: parseFloat(marker.dataset.realX) * (this.gridWidth / (this.portalWidth || 6)),
+          y: parseFloat(marker.dataset.realY) * (this.gridHeight / (this.portalHeight || 9)),
+          z: Math.max(-halfBox, Math.min(halfBox, raw)),
+        }
+      } else {
+        position = {
+          x: parseFloat(marker.dataset.realX) * (this.gridWidth / (this.portalWidth || 6)),
+          y: parseFloat(marker.dataset.realY) * (this.gridHeight / (this.portalHeight || 9)),
+          z: 0,
+        }
+      }
+      positionUpdates.push({star: marker, position})
+    })
+
     // Apply animations (or snap instantly when requested, e.g. during the lore journey).
     positionUpdates.forEach((update) => {
       if (instant) {
@@ -2182,6 +2257,19 @@ const constellationLoaderComponent = {
         collisionSphere.setAttribute('radius', newRadius)
       }
     })
+
+    // Markers get the same camera-distance growth as stars, or they become impossible to
+    // hit once the constellation is placed across the room.
+    ;(this.deepSkyMarkers || []).forEach((marker) => {
+      const p = marker.getAttribute('position')
+      const dx = cameraPosition.x - p.x, dy = cameraPosition.y - p.y, dz = cameraPosition.z - p.z
+      const distance = Math.sqrt(dx * dx + dy * dy + dz * dz)
+      const hit = marker.querySelector('a-sphere.cantap')
+      const comp = marker.components['deep-sky-marker']
+      if (!hit || !comp) return
+      const base = Math.max(comp.data.radius, 0.35)
+      hit.setAttribute('radius', base * Math.min(Math.max(distance / 10, 1), 2))
+    })
   },
 
   tick(time, delta) {
@@ -2225,6 +2313,7 @@ const constellationLoaderComponent = {
     // Reset arrays
     this.stars = []
     this.connections = []
+    this.deepSkyMarkers = []
   },
 
   remove() {
