@@ -808,7 +808,7 @@ const constellationLoaderComponent = {
             "size": 1.5,
             "description": "The Great Orion Nebula, one of the brightest nebulae in the sky and the nearest region of massive star formation to the Sun.",
             "field": {
-              "count": 5000,
+              "count": 3200,
               "spread": 3.4,
               "sizeRatio": 0.13,
               "opacity": 0.24,

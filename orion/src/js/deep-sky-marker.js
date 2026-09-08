@@ -14,6 +14,11 @@ const deepSkyMarkerComponent = {
     dashRatio: {type: 'number', default: 0.55},  // fraction of each segment that is drawn
     spin: {type: 'number', default: 0.6},      // radians per second
     visited: {type: 'boolean', default: false},
+    // The same ring means two different things depending on where it hangs:
+    //   select - among the constellation's stars; tapping ENTERS the object
+    //   detail - inside the entered object; tapping opens its INFO panel
+    // One component, two roles, so the two rings are visually identical by construction.
+    role: {type: 'string', default: 'select'},
   },
 
   init() {
@@ -102,7 +107,8 @@ const deepSkyMarkerComponent = {
     const loaderEl = document.querySelector('[constellation-loader]')
     const loader = loaderEl && loaderEl.components['constellation-loader']
     if (loader && loader.isAnimating) return
-    this.el.sceneEl.emit('deepSkyRequested', {id: this.el.dataset.deepSkyId})
+    const event = this.data.role === 'detail' ? 'deepSkyDetailRequested' : 'deepSkyRequested'
+    this.el.sceneEl.emit(event, {id: this.el.dataset.deepSkyId})
   },
 
   applyVisited() {

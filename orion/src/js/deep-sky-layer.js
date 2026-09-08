@@ -17,7 +17,6 @@ const deepSkyLayerComponent = {
     // in front of the camera, the way lore-journey.frameStar() does. That framing is
     // deliberately deferred - it needs visual judgement on a real device - so this field is
     // kept as the knob it will use rather than removed and re-added later. Not dead config.
-    focusDistance: {type: 'number', default: 2.4},  // units in front of the camera
     completeDelay: {type: 'number', default: 900},  // beat before an automatic return
   },
 
@@ -39,6 +38,7 @@ const deepSkyLayerComponent = {
     this.onContextLost = this.onContextLost.bind(this)
     this.bindContextLoss = this.bindContextLoss.bind(this)
     this.el.sceneEl.addEventListener('deepSkyRequested', this.onRequest)
+    this.el.sceneEl.addEventListener('deepSkyDetailRequested', this.onOrbClick)
     this.bindContextLoss()
 
     this.createBackButton()
@@ -46,6 +46,7 @@ const deepSkyLayerComponent = {
 
   remove() {
     this.el.sceneEl.removeEventListener('deepSkyRequested', this.onRequest)
+    this.el.sceneEl.removeEventListener('deepSkyDetailRequested', this.onOrbClick)
     this.el.sceneEl.removeEventListener('renderstart', this.bindContextLoss)
     if (this.lossCanvas) {
       this.lossCanvas.removeEventListener('webglcontextlost', this.onContextLost)
@@ -261,20 +262,16 @@ const deepSkyLayerComponent = {
     return markers.find(m => m.dataset && m.dataset.deepSkyId === id) || null
   },
 
-  // The object grows where its marker sits, not at the constellation's centre - the marker is
-  // the thing you tapped, so that is where the object has to appear.
+  // The object grows at the CENTRE of the grid, not where its marker sat. The marker is a
+  // signpost, not the thing itself; once you are inside the object the constellation is gone
+  // and an off-centre object would just sit lopsided in the frame with nothing to relate to.
   spawnField(obj, layer) {
     const l = this.loader()
     this.host = document.createElement('a-entity')
 
     const field = Object.assign({layer}, obj.field || {})
     this.host.setAttribute('deep-sky-field', field)
-
-    const marker = this.markerFor(obj.id)
-    const at = marker ? marker.getAttribute('position') : null
-    this.host.setAttribute('position', at
-      ? {x: at.x, y: at.y, z: at.z}
-      : {x: 0, y: 0, z: 0})
+    this.host.setAttribute('position', {x: 0, y: 0, z: 0})
 
     const fit = this.fitScale(field)
     this.host.setAttribute('scale', '0.01 0.01 0.01')
@@ -284,17 +281,18 @@ const deepSkyLayerComponent = {
       easing: 'easeOutCubic',
     })
 
-    // One orb: the object's own explorable part.
-    this.orb = document.createElement('a-sphere')
-    this.orb.setAttribute('radius', 0.28)
-    this.orb.setAttribute('class', 'cantap')
-    this.orb.setAttribute('material', {
-      color: '#ffffff', opacity: 0.55, transparent: true,
-      emissive: '#9fd0ff', emissiveIntensity: 0.6, depthWrite: false,
+    // The object's own explorable part is the SAME dashed ring you tapped to get here, in its
+    // 'detail' role. It hangs outside the host so the host's fit scale cannot shrink it out of
+    // reach, and it carries the object's id so the component can name it when tapped.
+    this.orb = document.createElement('a-entity')
+    this.orb.dataset.deepSkyId = obj.id
+    this.orb.setAttribute('deep-sky-marker', {
+      radius: 0.45,
+      role: 'detail',
+      visited: defaultStore.isVisited(this.constellationId(), obj.id),
     })
-    this.orb.setAttribute('position', '0 0 0')
-    this.orb.addEventListener('click', this.onOrbClick)
-    this.host.appendChild(this.orb)
+    this.orb.setAttribute('position', {x: 0, y: 0, z: 0})
+    l.rotatingContainer.appendChild(this.orb)
   },
 
   // Keep the object inside the portal's shaft, which is the same reason depth is clamped: an
@@ -342,10 +340,15 @@ const deepSkyLayerComponent = {
   // "Once visited, the ring dims." The marker is hidden behind the field at this instant, but
   // it is restored on the way out, and createDeepSkyMarkers seeds the same flag from storage
   // on the next load so the dimming survives a reload.
+  // Dim both rings for this object: the signpost out in the constellation, and the detail ring
+  // standing in front of you right now. The second is the one you just tapped, so leaving it
+  // bright would make the tap look like it had not registered.
   dimMarker(id) {
     const marker = this.markerFor(id)
     const c = marker && marker.components && marker.components['deep-sky-marker']
     if (c) c.setVisited(true)
+    const oc = this.orb && this.orb.components && this.orb.components['deep-sky-marker']
+    if (oc) oc.setVisited(true)
   },
 
   // ---- cluster completion ----
@@ -418,11 +421,15 @@ const deepSkyLayerComponent = {
     this.awaitingClose = false
     this.unwatchClusterStars()
 
+    // The detail ring is a sibling of the host, not a child, so it has to be removed on its
+    // own - the host going away would otherwise leave a tappable ring floating in the figure.
+    if (this.orb) {
+      if (this.orb.parentNode) this.orb.parentNode.removeChild(this.orb)
+      this.orb = null
+    }
     if (this.host) {
-      if (this.orb) this.orb.removeEventListener('click', this.onOrbClick)
       if (this.host.parentNode) this.host.parentNode.removeChild(this.host)
       this.host = null
-      this.orb = null
     }
 
     const l = this.loader()
