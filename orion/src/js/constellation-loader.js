@@ -54,6 +54,7 @@ const constellationLoaderComponent = {
       this.connections = []
       this.deepSkyMarkers = []
       this.isAnimating = false
+      this.restoringFigure = false
 
       console.log('Starting constellation creation...')
 
@@ -2329,7 +2330,7 @@ const constellationLoaderComponent = {
     }
 
     // Remember the real figure the first time we leave it.
-    if (!this.baseFigure) {
+    if (!this.baseFigure && !this.restoringFigure) {
       this.baseFigure = {
         stars: this.constellationData.stars,
         connections: this.constellationData.connections,
@@ -2365,8 +2366,13 @@ const constellationLoaderComponent = {
   restoreFigure() {
     if (!this.baseFigure) return false
     const base = this.baseFigure
-    this.baseFigure = null
-    return this.swapFigure(base) || true
+    // Suppress swapFigure's first-swap capture: without this it would record the figure we
+    // are leaving (the cluster) as the new base, and the real constellation would be lost.
+    this.restoringFigure = true
+    const ok = this.swapFigure(base)
+    this.restoringFigure = false
+    if (ok) this.baseFigure = null      // only forget the base once we are actually back
+    return ok
   },
 
   remove() {
