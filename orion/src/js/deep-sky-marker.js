@@ -19,6 +19,7 @@ const deepSkyMarkerComponent = {
   init() {
     this.ring = null
     this.hitEl = null
+    this.onTap = this.onTap.bind(this)
     this.build()
   },
 
@@ -64,6 +65,11 @@ const deepSkyMarkerComponent = {
   },
 
   // Stars use a .cantap sphere for selection; matching that keeps the raycaster untouched.
+  //
+  // The hit sphere is created here, inside init() -> build(), which A-Frame runs at least one
+  // microtask after this.el is appended to its parent. A caller wiring listeners onto this
+  // sphere synchronously right after appendChild would always find it null, so this component
+  // owns its own tap listener instead of exposing the sphere for someone else to wire.
   ensureTapTarget() {
     let hit = this.el.querySelector('a-sphere.cantap')
     if (!hit) {
@@ -81,6 +87,22 @@ const deepSkyMarkerComponent = {
       this.hitEl = hit
     }
     hit.setAttribute('radius', Math.max(this.data.radius, 0.35))
+
+    // build() can re-run on update() (a non-'visited' data change), so guard against attaching
+    // the click listener twice onto the same (or a freshly-created) hit sphere.
+    if (this.hitEl && !this.hitListenerAttached) {
+      this.hitEl.addEventListener('click', this.onTap)
+      this.hitListenerAttached = true
+    }
+  },
+
+  // Loader-shaped guard, mirroring the star click handler's `if (!this.isAnimating)`: read the
+  // loader straight off the DOM since this component has no other channel to it.
+  onTap() {
+    const loaderEl = document.querySelector('[constellation-loader]')
+    const loader = loaderEl && loaderEl.components['constellation-loader']
+    if (loader && loader.isAnimating) return
+    this.el.sceneEl.emit('deepSkyRequested', {id: this.el.dataset.deepSkyId})
   },
 
   applyVisited() {
@@ -105,10 +127,12 @@ const deepSkyMarkerComponent = {
 
   remove() {
     this.dispose()
-    if (this.hitEl && this.hitEl.parentNode) {
-      this.hitEl.parentNode.removeChild(this.hitEl)
+    if (this.hitEl) {
+      this.hitEl.removeEventListener('click', this.onTap)
+      if (this.hitEl.parentNode) this.hitEl.parentNode.removeChild(this.hitEl)
     }
     this.hitEl = null
+    this.hitListenerAttached = false
   },
 }
 

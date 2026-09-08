@@ -2046,16 +2046,6 @@ const constellationLoaderComponent = {
       }
     })
 
-    // Markers open the deep-sky layer rather than the star info panel.
-    ;(this.deepSkyMarkers || []).forEach((marker) => {
-      const hit = marker.querySelector('a-sphere.cantap')
-      if (!hit) return
-      hit.addEventListener('click', () => {
-        if (this.isAnimating) return
-        this.el.sceneEl.emit('deepSkyRequested', {id: marker.dataset.deepSkyId})
-      })
-    })
-
     this.currentlyIntersected = null
   },
 

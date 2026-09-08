@@ -140,8 +140,21 @@ const loreJourneyComponent = {
     l.updatePositions(true)
   },
 
+  // Mirrors deep-sky-layer.js's loreRunning() check: the two modes are mutually exclusive, and
+  // each side needs to refuse the other so tapping "Lore" from inside a nebula/cluster can't
+  // put both mode managers in charge of rotatingContainer, showRealPositions and Recenter.
+  deepSkyActive() {
+    const el = document.querySelector('[deep-sky-layer]')
+    const c = el && el.components['deep-sky-layer']
+    return !!(c && c.isActive())
+  },
+
   startJourney() {
     if (this.active) return
+    if (this.deepSkyActive()) {
+      console.warn('[lore-journey] refused: the deep-sky layer is active')
+      return
+    }
     this.stops = this.getStops()
     if (!this.stops.length) return
     this.index = 0
