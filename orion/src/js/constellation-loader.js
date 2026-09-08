@@ -2316,6 +2316,59 @@ const constellationLoaderComponent = {
     this.deepSkyMarkers = []
   },
 
+  // Swap the figure inside the portal without disturbing the frame.
+  //
+  // #portal is a markup element and the grid walls live in staticContainer, so only
+  // rotatingContainer holds stars and connection lines. Rebuilding just that container is
+  // what lets a star cluster stand in for the constellation without making this whole
+  // component re-entrant.
+  swapFigure(figure) {
+    if (!figure || !Array.isArray(figure.stars) || !figure.stars.length) {
+      console.warn('[constellation-loader] swapFigure refused: no stars')
+      return false
+    }
+
+    // Remember the real figure the first time we leave it.
+    if (!this.baseFigure) {
+      this.baseFigure = {
+        stars: this.constellationData.stars,
+        connections: this.constellationData.connections,
+        deepSkyObjects: this.constellationData.deepSkyObjects,
+      }
+    }
+
+    while (this.rotatingContainer.firstChild) {
+      this.rotatingContainer.removeChild(this.rotatingContainer.firstChild)
+    }
+    this.stars = []
+    this.connections = []
+    this.deepSkyMarkers = []
+
+    this.constellationData.stars = figure.stars
+    this.constellationData.connections = figure.connections || []
+    this.constellationData.deepSkyObjects = figure.deepSkyObjects || []
+
+    this.createStars()
+    this.createConnections()
+    this.createDeepSkyMarkers()
+    this.setupInteractions()
+    this.updatePositions(true)
+
+    // Tones are ranged across the set on screen, so a new set needs a new range.
+    const audioEl = document.querySelector('[star-audio]')
+    const audio = audioEl && audioEl.components['star-audio']
+    if (audio && audio.computeRange) audio.computeRange(figure.stars)
+
+    return true
+  },
+
+  restoreFigure() {
+    if (!this.baseFigure) return false
+    const base = this.baseFigure
+    this.baseFigure = null
+    return this.swapFigure(base) || true
+  },
+
   remove() {
     this.clearConstellation()
   },
