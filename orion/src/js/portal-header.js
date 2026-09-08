@@ -16,11 +16,11 @@
 // The buttons only emit events; the constellation-loader owns the 2D/3D view, the same way
 // the Lore button delegates to lore-journey. That keeps this component presentational.
 //
-// Two of Unity's controls are deliberately not here. Its third info line ("Lore Journey
-// Taken") needs discovery state the web build does not track, and Recenter would be
-// self-defeating in the band: if you can read this HUD you are already facing the
-// constellation, so the control has to reach you when you are looking away. It lives at the
-// top of the screen instead (see reset-view-button.js).
+// Unity's Recenter control is deliberately not here: it would be self-defeating in the band,
+// since if you can read this HUD you are already facing the constellation, so the control has
+// to reach you when you are looking away. It lives at the top of the screen instead (see
+// reset-view-button.js). Unity's third info line ("Lore Journey Taken") IS here now, driven by
+// discovery-store visit counts pushed in from constellation-loader's refreshExploredCounts().
 //
 // Buttons are centred as a group, so the column stays balanced whatever it holds; at three
 // buttons this reproduces Unity's spacing to within 5 canvas units.
@@ -34,7 +34,7 @@ const U = {
   buttonsW: 1100,
   edge: 10,           // border thickness of each group's box
   textX: 50,          // text inset from its group's left edge
-  textY: [-50, -320],  // top edge of each info line, from the group's top
+  textY: [-50, -320, -590],  // top edge of each info line, from the group's top
   textH: 240,
   fontSize: 90,
   btnW: 960,
@@ -75,6 +75,9 @@ const portalHeaderComponent = {
   schema: {
     label: {type: 'string', default: 'Orion'},      // constellation name
     starCount: {type: 'int', default: 0},            // number of stars
+    starsExplored: {type: 'int', default: 0},        // stars visited, of starCount
+    deepSkyExplored: {type: 'int', default: 0},      // deep-sky objects visited
+    deepSkyTotal: {type: 'int', default: 0},         // 0 hides the line entirely
     frameWidth: {type: 'number', default: 3},        // portal's DRAWN frame width (world units)
     frameHeight: {type: 'number', default: 4.5},     // portal's DRAWN frame height (world units)
     bandWidth: {type: 'number', default: 4},         // world width of the whole HUD band
@@ -129,7 +132,13 @@ const portalHeaderComponent = {
     const controls = this.makeGroup(halfBand - inset - (buttonsW / 2), buttonsW, groupH)
 
     this.addLine(info, `Constellation Name: ${d.label}`, 0, infoW)
-    this.addLine(info, `# of Stars: ${d.starCount}`, 1, infoW)
+    this.addLine(info, `# of Stars Explored: ${d.starsExplored} / ${d.starCount}`, 1, infoW)
+
+    // Unity carries this line too. Constellations with nothing in the layer omit it rather
+    // than advertising "0 / 0".
+    if (d.deepSkyTotal > 0) {
+      this.addLine(info, `Deep Sky Explored: ${d.deepSkyExplored} / ${d.deepSkyTotal}`, 2, infoW)
+    }
 
     // Label shows the mode the button switches TO, matching the Unity build.
     const controlCount = 2

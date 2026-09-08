@@ -1,4 +1,6 @@
 // constellation-loader.js
+import {defaultStore} from './discovery-store'
+
 const constellationLoaderComponent = {
   schema: {
     constellationFile: {type: 'string', default: 'orion'},
@@ -24,6 +26,13 @@ const constellationLoaderComponent = {
     } catch (e) {
       console.warn('Could not read constellation from URL:', e)
     }
+
+    // Entering or leaving a cluster swaps the star set, so the ratio has to be recomputed
+    // against whichever figure is on screen - refreshExploredCounts reads the current one.
+    this.onExploredChanged = () => this.refreshExploredCounts()
+    this.el.sceneEl.addEventListener('deepSkyVisited', this.onExploredChanged)
+    this.el.sceneEl.addEventListener('deepSkyEntered', this.onExploredChanged)
+    this.el.sceneEl.addEventListener('deepSkyExited', this.onExploredChanged)
 
     // Wait for A-Frame and 8th Wall to be fully ready
     if (this.el.sceneEl.hasLoaded) {
@@ -72,6 +81,7 @@ const constellationLoaderComponent = {
       console.log('Connections created:', this.connections.length)
 
       this.createDeepSkyMarkers()
+      this.refreshExploredCounts()
 
       this.setupInteractions()
       console.log('Interactions setup')
@@ -1745,6 +1755,24 @@ const constellationLoaderComponent = {
     if (!scene.hasAttribute('deep-sky-layer')) scene.setAttribute('deep-sky-layer', '')
   },
 
+  // Push the visit counts onto the HUD. Called after the header exists, whenever a star or
+  // deep-sky object is discovered.
+  refreshExploredCounts() {
+    const header = document.querySelector('#portal-header')
+    if (!header || !this.constellationData) return
+    const cid = this.data.constellationFile
+    const stars = this.constellationData.stars || []
+    const objects = (this.constellationData.deepSkyObjects || [])
+      .filter(o => o.layer && o.layer !== 'none')
+
+    header.setAttribute('portal-header', {
+      starsExplored: defaultStore.countVisited(cid, stars.map(s => s.id)),
+      starCount: stars.length,
+      deepSkyExplored: defaultStore.countVisited(cid, objects.map(o => o.id)),
+      deepSkyTotal: objects.length,
+    })
+  },
+
   createGridWalls() {
     const positions = ['left', 'right', 'top', 'bottom']
 
@@ -2041,6 +2069,12 @@ const constellationLoaderComponent = {
         collisionSphere.addEventListener('click', () => {
           if (!this.isAnimating) {
             this.pulseStarOnSelect(starCore, collisionSphere)
+            // Entities carry the star's NAME in dataset.name, not its id, so look up by name.
+            const record = (this.constellationData.stars || [])
+              .find(s => s.name === starEntity.dataset.name)
+            if (record && defaultStore.mark(this.data.constellationFile, record.id)) {
+              this.refreshExploredCounts()
+            }
           }
         })
       }
@@ -2377,6 +2411,9 @@ const constellationLoaderComponent = {
   },
 
   remove() {
+    this.el.sceneEl.removeEventListener('deepSkyVisited', this.onExploredChanged)
+    this.el.sceneEl.removeEventListener('deepSkyEntered', this.onExploredChanged)
+    this.el.sceneEl.removeEventListener('deepSkyExited', this.onExploredChanged)
     this.clearConstellation()
   },
 }
