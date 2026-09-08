@@ -103,6 +103,7 @@ const starInfoOverlayComponent = {
     this.hideInfo = this.hideInfo.bind(this)
     this.handleStarClick = this.handleStarClick.bind(this)
     this.handleInfoClosed = this.handleInfoClosed.bind(this)
+    this.handleDeepSkyInfo = this.handleDeepSkyInfo.bind(this)
 
     this.createCloseButton()
 
@@ -110,6 +111,9 @@ const starInfoOverlayComponent = {
 
     // Listen for close events from dynamic star
     this.el.sceneEl.addEventListener('starInfoClosed', this.handleInfoClosed)
+
+    // A deep-sky object's orb reuses this same panel instead of opening its own.
+    this.el.sceneEl.addEventListener('deepSkyInfoRequested', this.handleDeepSkyInfo)
 
     // Initial state
     this.isVisible = false
@@ -204,17 +208,19 @@ const starInfoOverlayComponent = {
   },
 
   buildStarsongPane(name) {
+    // Deep-sky objects (M42, M31, ...) aren't in the constellation's star list, so there is
+    // no record to synthesise a tone from -- no mass, radius or temperature, no nu_max. Return
+    // empty rather than a placeholder pane; wireTabs uses that to omit the tab entirely.
+    const rec = this.starRecord(name)
+    if (!rec) return ''
+
     const audio = this.starAudio()
-    const star = this.starRecord(name)
 
     if (!audio || !audio.isAvailable()) {
       return '<p style="opacity:.7;font-size:12px;">Audio is not available in this browser.</p>'
     }
-    if (!star) {
-      return '<p style="opacity:.7;font-size:12px;">No tone data for this star.</p>'
-    }
 
-    const d = audio.describe(star)
+    const d = audio.describe(rec)
     const btn = 'width:100%;padding:10px;border:1px solid ' + this.data.borderColor +
       ';border-radius:8px;color:#eaf3ff;font-size:14px;cursor:pointer;'
 
@@ -251,7 +257,17 @@ const starInfoOverlayComponent = {
 
   // Rebound on every render, because the panel rewrites its body for each star.
   wireTabs(name) {
+    // buildStarsongPane returns '' for a deep-sky object (no star record, so no tone) --
+    // hide that tab rather than wiring clicks into an empty pane.
+    const starsongPane = this.content.querySelector('[data-pane="starsong"]')
+    const hasStarsong = !!(starsongPane && starsongPane.innerHTML.trim())
+    if (!hasStarsong) {
+      const starsongTab = this.content.querySelector('[data-tab="starsong"]')
+      if (starsongTab) starsongTab.style.display = 'none'
+    }
+
     this.content.querySelectorAll('[data-tab]').forEach((btn) => {
+      if (!hasStarsong && btn.dataset.tab === 'starsong') return
       btn.addEventListener('click', (ev) => {
         ev.stopPropagation()
         const want = btn.dataset.tab
@@ -295,6 +311,18 @@ const starInfoOverlayComponent = {
           : {mapping: 'compress', scale: 'pentatonic', hold: 2.5})
       })
     })
+  },
+
+  // A deep-sky object reuses the star panel, minus Starsong: with no mass, radius or
+  // temperature there is no nu_max, so there is no tone to offer.
+  handleDeepSkyInfo(e) {
+    const d = (e && e.detail) || {}
+    const info = d.info || {}
+    let body = ''
+    if (info.basic) body += info.basic
+    if (info.scientific) body += (body ? '\n\n' : '') + info.scientific
+    if (d.sources) body += (body ? '\n\n' : '') + 'Sources: ' + d.sources
+    this.showInfo(d.name, body, '#8fd8ff', 0.3, 'deep_sky', d.designation || '')
   },
 
   showInfo(name, info, starColor, starSize, starType, designation) {
@@ -400,6 +428,7 @@ const starInfoOverlayComponent = {
     }
     this.el.sceneEl.removeEventListener('click', this.handleStarClick)
     this.el.sceneEl.removeEventListener('starInfoClosed', this.handleInfoClosed)
+    this.el.sceneEl.removeEventListener('deepSkyInfoRequested', this.handleDeepSkyInfo)
   },
 }
 
