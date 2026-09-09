@@ -69,23 +69,6 @@
       }
     },
     {
-      "id": "delta3_tauri",
-      "name": "Delta3 Tauri",
-      "designation": "δ³ Tauri (68 Tauri)",
-      "raH": 4.424811,
-      "dec": 17.928,
-      "dist": 148,
-      "mag": 4.3,
-      "spectralClass": "A2IV-Vs",
-      "source": "Wikipedia List of stars in Taurus; Wikipedia Delta3 Tauri (infobox, physics)",
-      "physics": {
-        "massSolar": 2.27,
-        "radiusSolar": 2.4,
-        "tempKelvin": 9025,
-        "note": "Primary component; Am chemically peculiar blue straggler"
-      }
-    },
-    {
       "id": "epsilon_tauri",
       "name": "Epsilon Tauri",
       "designation": "ε Tauri (Ain)",
@@ -124,7 +107,7 @@
       "spectralClass": "B7III",
       "source": "Wikipedia List of stars in Taurus; Wikipedia Beta Tauri (infobox, physics)",
       "physics": {
-        "massSolar": 5.0,
+        "massSolar": 5,
         "radiusSolar": 4.79,
         "tempKelvin": 13600,
         "note": "Primary; mercury-manganese peculiar star; also catalogued as Gamma Aurigae, shared between Taurus and Auriga"
@@ -145,6 +128,107 @@
         "radiusSolar": 5.5,
         "tempKelvin": 15500,
         "note": "Component A, primary of a single-lined spectroscopic binary; Be shell star"
+      }
+    },
+    {
+      "id": "lambda_tauri",
+      "name": "Lambda Tauri",
+      "designation": "λ Tauri (Bibing)",
+      "raH": 4.011339,
+      "dec": 12.490389,
+      "dist": 370,
+      "mag": 3.41,
+      "spectralClass": "B3V",
+      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Lambda Tauri",
+      "physics": {
+        "massSolar": 7.18,
+        "radiusSolar": 6.4,
+        "tempKelvin": 18700,
+        "note": "Component A"
+      }
+    },
+    {
+      "id": "mu_tauri",
+      "name": "Mu Tauri",
+      "designation": "μ Tauri",
+      "raH": 4.258903,
+      "dec": 8.892417,
+      "dist": 435,
+      "mag": 4.27,
+      "spectralClass": "B3IV",
+      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Mu Tauri",
+      "physics": {
+        "massSolar": 6.7,
+        "radiusSolar": 6.9,
+        "tempKelvin": 16980
+      }
+    },
+    {
+      "id": "nu_tauri",
+      "name": "Nu Tauri",
+      "designation": "ν Tauri",
+      "raH": 4.052606,
+      "dec": 5.989306,
+      "dist": 129,
+      "mag": 3.91,
+      "spectralClass": "A1V",
+      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Nu Tauri",
+      "physics": {
+        "massSolar": 2.25,
+        "radiusSolar": 2.87,
+        "tempKelvin": 7836,
+        "note": "Single star; radius and temperature quoted with asymmetric errors, central values used"
+      }
+    },
+    {
+      "id": "xi_tauri",
+      "name": "Xi Tauri",
+      "designation": "ξ Tauri (Ushakaron)",
+      "raH": 3.452811,
+      "dec": 9.732778,
+      "dist": 222,
+      "mag": 3.73,
+      "spectralClass": "B9Vn",
+      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Xi Tauri",
+      "physics": {
+        "massSolar": 2.25,
+        "radiusSolar": 1.691,
+        "tempKelvin": 11000,
+        "note": "Component Aa, the more massive star of the inner eclipsing pair"
+      }
+    },
+    {
+      "id": "omicron_tauri",
+      "name": "Omicron Tauri",
+      "designation": "ο Tauri",
+      "raH": 3.413567,
+      "dec": 9.029056,
+      "dist": 211,
+      "mag": 3.61,
+      "spectralClass": "G8III",
+      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Omicron Tauri",
+      "physics": {
+        "massSolar": 3.21,
+        "radiusSolar": 20.28,
+        "tempKelvin": 5094,
+        "note": "Component A"
+      }
+    },
+    {
+      "id": "five_tauri",
+      "name": "5 Tauri",
+      "designation": "5 Tauri (f Tauri)",
+      "raH": 3.514551,
+      "dec": 12.93668,
+      "dist": 530,
+      "mag": 4.14,
+      "spectralClass": "K0III",
+      "source": "Wikipedia, 5 Tauri",
+      "physics": {
+        "massSolar": 4,
+        "radiusSolar": 8.5,
+        "tempKelvin": 4644,
+        "note": "Component A"
       }
     }
   ],
@@ -198,7 +282,7 @@
           "spectralClass": "B7IIIe",
           "source": "Wikipedia Alcyone (star)",
           "physics": {
-            "massSolar": 6.0,
+            "massSolar": 6,
             "radiusSolar": 9.28,
             "tempKelvin": 12258,
             "note": "5.9-6.1 Msun midpoint; equatorial/polar radius 10.56/8.0 Rsun (rapid rotator, oblate), mean used"
@@ -283,7 +367,7 @@
           "spectralClass": "B7V",
           "source": "Wikipedia Celaeno (star)",
           "physics": {
-            "massSolar": 4.0,
+            "massSolar": 4,
             "radiusSolar": 2.34,
             "tempKelvin": 12800,
             "note": "Primary"

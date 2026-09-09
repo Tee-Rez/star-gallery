@@ -2,8 +2,8 @@
   "metadata": {
     "name": "Taurus",
     "displayName": "Taurus the Bull",
-    "description": "Taurus is a large, bright constellation of the northern winter sky. The V-shaped Hyades cluster forms the bull’s face with orange Aldebaran as its eye, and two long horns run out to Elnath and Zeta Tauri. It contains the Pleiades, the brightest open cluster in the sky, and the Crab Nebula, the remnant of a star seen to explode in 1054.",
-    "mythology": "Babylonian astronomy knew this figure as GU4.AN.NA, the Bull of Heaven, sent by Ishtar to kill Gilgamesh and destroyed by Enkidu, who threw its hindquarters into the sky. Greek writers told it as Zeus in the form of a white bull carrying off Europa, or as Io transformed into a heifer; Acusilaus named it the Cretan Bull. To the early Hebrews it was the first constellation of the zodiac, marked by the letter Aleph.",
+    "description": "Taurus is a large, bright constellation of the northern winter sky. The V-shaped Hyades cluster forms the bull’s face with orange Aldebaran as its eye, two long horns run out to Elnath and Zeta Tauri, and a shoulder and forelegs reach west toward Omicron. It contains the Pleiades, the brightest open cluster in the sky, and the Crab Nebula, the remnant of a star seen to explode in 1054.",
+    "mythology": "Babylonian astronomy knew this figure as GU4.AN.NA, the Bull of Heaven, sent by Ishtar to kill Gilgamesh and destroyed by Enkidu, who threw its hindquarters into the sky — which is why the constellation has only a front half. Greek writers told it as Zeus in the form of a white bull carrying off Europa, or as Io transformed into a heifer; Acusilaus named it the Cretan Bull. To the early Hebrews it was the first constellation of the zodiac, marked by the letter Aleph.",
     "season": "winter",
     "hemisphere": "northern",
     "abbreviation": "Tau"
@@ -56,8 +56,8 @@
       "designation": "α Tauri",
       "isMajor": true,
       "position2D": {
-        "x": 0.431,
-        "y": -0.851
+        "x": -0.756,
+        "y": 0.168
       },
       "distance": 65,
       "magnitude": 0.87,
@@ -88,8 +88,8 @@
       "designation": "θ² Tauri (Chamukuy)",
       "isMajor": true,
       "position2D": {
-        "x": 0.915,
-        "y": -1.021
+        "x": -0.428,
+        "y": 0.042
       },
       "distance": 149,
       "magnitude": 3.4,
@@ -104,7 +104,7 @@
         "note": "Component Aa (Chamukuy); brighter of the theta Tauri pair"
       },
       "info": {
-        "basic": "Theta-2 Tauri, or Chamukuy, sits in the Hyades V. It has a near twin, Theta-1, so close beside it that the pair reads as a single point to the unaided eye.",
+        "basic": "Theta-2 Tauri, or Chamukuy, sits in the Hyades V. It has a near twin, Theta-1, so close beside it that the pair reads as a single point to the unaided eye — which is why only one of them is drawn here.",
         "scientific": {
           "class": "A7 III white giant",
           "temperature": "About 7,800 K",
@@ -120,8 +120,8 @@
       "designation": "γ Tauri (Prima Hyadum)",
       "isMajor": true,
       "position2D": {
-        "x": 1.509,
-        "y": -1.076
+        "x": -0.025,
+        "y": -0.006
       },
       "distance": 154,
       "magnitude": 3.65,
@@ -136,7 +136,7 @@
         "note": "Primary; apex/nose of the Hyades V, red clump giant"
       },
       "info": {
-        "basic": "Gamma Tauri, Prima Hyadum — \"the first of the Hyades\" — marks the point of the V where the bull’s face narrows toward the muzzle.",
+        "basic": "Gamma Tauri, Prima Hyadum — \"the first of the Hyades\" — marks the point of the V, where the bull’s face narrows toward the muzzle and the shoulder line begins.",
         "scientific": {
           "class": "G8 III yellow giant",
           "temperature": "About 4,840 K",
@@ -152,8 +152,8 @@
       "designation": "δ¹ Tauri (Secunda Hyadum)",
       "isMajor": true,
       "position2D": {
-        "x": 1.283,
-        "y": -0.551
+        "x": -0.166,
+        "y": 0.356
       },
       "distance": 153,
       "magnitude": 3.77,
@@ -179,45 +179,13 @@
       }
     },
     {
-      "id": "delta3_tauri",
-      "name": "Delta3 Tauri",
-      "designation": "δ³ Tauri (68 Tauri)",
-      "isMajor": false,
-      "position2D": {
-        "x": 1.112,
-        "y": -0.449
-      },
-      "distance": 148,
-      "magnitude": 4.3,
-      "spectralClass": "A2IV-Vs",
-      "color": "#ffffff",
-      "size": 0.055,
-      "stellarType": "white_subgiant",
-      "physics": {
-        "massSolar": 2.27,
-        "radiusSolar": 2.4,
-        "tempKelvin": 9025,
-        "note": "Primary component; Am chemically peculiar blue straggler"
-      },
-      "info": {
-        "basic": "Delta-3 Tauri, catalogued as 68 Tauri, is a fainter member of the cluster’s upper arm.",
-        "scientific": {
-          "class": "A2 IV subgiant",
-          "temperature": "About 9,000 K",
-          "mass": "Roughly 2.3 times the Sun",
-          "radius": "About 2.4 times the Sun",
-          "feature": "A chemically peculiar Am star, with an unusual surface composition"
-        }
-      }
-    },
-    {
       "id": "epsilon_tauri",
       "name": "Epsilon Tauri",
       "designation": "ε Tauri (Ain)",
       "isMajor": true,
       "position2D": {
-        "x": 0.9,
-        "y": -0.108
+        "x": -0.419,
+        "y": 0.669
       },
       "distance": 155,
       "magnitude": 3.53,
@@ -248,8 +216,8 @@
       "designation": "τ Tauri",
       "isMajor": false,
       "position2D": {
-        "x": 0.013,
-        "y": 0.924
+        "x": -1.011,
+        "y": 1.406
       },
       "distance": 400,
       "magnitude": 4.27,
@@ -273,8 +241,8 @@
       "designation": "β Tauri",
       "isMajor": true,
       "position2D": {
-        "x": -2.706,
-        "y": 2.624
+        "x": -2.92,
+        "y": 2.7
       },
       "distance": 131,
       "magnitude": 1.65,
@@ -305,8 +273,8 @@
       "designation": "ζ Tauri (Tianguan)",
       "isMajor": true,
       "position2D": {
-        "x": -3.6,
-        "y": 0.58
+        "x": -3.59,
+        "y": 1.264
       },
       "distance": 417,
       "magnitude": 2.97,
@@ -328,6 +296,197 @@
           "mass": "Roughly 11 times the Sun",
           "radius": "About 5.5 times the Sun",
           "feature": "A Be shell star, spinning fast enough to fling out a disc of its own gas"
+        }
+      }
+    },
+    {
+      "id": "lambda_tauri",
+      "name": "Lambda Tauri",
+      "designation": "λ Tauri (Bibing)",
+      "isMajor": true,
+      "position2D": {
+        "x": 0.86,
+        "y": -0.592
+      },
+      "distance": 370,
+      "magnitude": 3.41,
+      "spectralClass": "B3V",
+      "color": "#a8bcff",
+      "size": 0.085,
+      "stellarType": "blue_white_main_sequence",
+      "physics": {
+        "massSolar": 7.18,
+        "radiusSolar": 6.4,
+        "tempKelvin": 18700,
+        "note": "Component A"
+      },
+      "info": {
+        "basic": "Lambda Tauri, Bibing, is where the bull’s neck meets its shoulder — the junction the whole front of the animal hangs from. It is an eclipsing binary: two stars orbiting so closely that each passes in front of the other every four days, dimming the pair by a third.",
+        "scientific": {
+          "class": "B3 V blue-white main sequence, with an A-type companion",
+          "temperature": "About 18,700 K",
+          "mass": "Roughly 7.2 times the Sun",
+          "radius": "About 6.4 times the Sun",
+          "feature": "An Algol-type eclipsing binary with a 3.95-day period"
+        }
+      }
+    },
+    {
+      "id": "mu_tauri",
+      "name": "Mu Tauri",
+      "designation": "μ Tauri",
+      "isMajor": false,
+      "position2D": {
+        "x": 0.175,
+        "y": -1.285
+      },
+      "distance": 435,
+      "magnitude": 4.27,
+      "spectralClass": "B3IV",
+      "color": "#a8bcff",
+      "size": 0.058,
+      "stellarType": "blue_white_subgiant",
+      "physics": {
+        "massSolar": 6.7,
+        "radiusSolar": 6.9,
+        "tempKelvin": 16980
+      },
+      "info": {
+        "basic": "Mu Tauri runs down from the shoulder toward the foreleg, one of the fainter stars holding the bull’s front together.",
+        "scientific": {
+          "class": "B3 IV blue-white subgiant",
+          "temperature": "About 17,000 K",
+          "mass": "Roughly 6.7 times the Sun",
+          "radius": "About 6.9 times the Sun",
+          "feature": "At 435 light-years it stands far behind the Hyades, unrelated to them"
+        }
+      }
+    },
+    {
+      "id": "nu_tauri",
+      "name": "Nu Tauri",
+      "designation": "ν Tauri",
+      "isMajor": true,
+      "position2D": {
+        "x": 0.768,
+        "y": -1.842
+      },
+      "distance": 129,
+      "magnitude": 3.91,
+      "spectralClass": "A1V",
+      "color": "#ffffff",
+      "size": 0.075,
+      "stellarType": "white_main_sequence",
+      "physics": {
+        "massSolar": 2.25,
+        "radiusSolar": 2.87,
+        "tempKelvin": 7836,
+        "note": "Single star; radius and temperature quoted with asymmetric errors, central values used"
+      },
+      "info": {
+        "basic": "Nu Tauri is the lowest star of the figure, at the bull’s knee — and the nearest of the shoulder group, barely a third the distance of its neighbours.",
+        "scientific": {
+          "class": "A1 V white main sequence",
+          "temperature": "About 7,800 K",
+          "mass": "Roughly 2.3 times the Sun",
+          "radius": "About 2.9 times the Sun",
+          "feature": "A single star at 129 light-years"
+        }
+      }
+    },
+    {
+      "id": "xi_tauri",
+      "name": "Xi Tauri",
+      "designation": "ξ Tauri (Ushakaron)",
+      "isMajor": true,
+      "position2D": {
+        "x": 2.478,
+        "y": -1.076
+      },
+      "distance": 222,
+      "magnitude": 3.73,
+      "spectralClass": "B9Vn",
+      "color": "#bbccff",
+      "size": 0.08,
+      "stellarType": "blue_white_main_sequence",
+      "physics": {
+        "massSolar": 2.25,
+        "radiusSolar": 1.691,
+        "tempKelvin": 11000,
+        "note": "Component Aa, the more massive star of the inner eclipsing pair"
+      },
+      "info": {
+        "basic": "Xi Tauri, Ushakaron, sits near the far western end of the figure. What looks like a single star is four: two close pairs orbiting one another.",
+        "scientific": {
+          "class": "B9 V blue-white main sequence",
+          "temperature": "About 11,000 K",
+          "mass": "Roughly 2.3 times the Sun",
+          "radius": "About 1.7 times the Sun",
+          "feature": "A quadruple system; the inner pair eclipse each other every 7.15 days"
+        }
+      }
+    },
+    {
+      "id": "omicron_tauri",
+      "name": "Omicron Tauri",
+      "designation": "ο Tauri",
+      "isMajor": true,
+      "position2D": {
+        "x": 2.603,
+        "y": -1.21
+      },
+      "distance": 211,
+      "magnitude": 3.61,
+      "spectralClass": "G8III",
+      "color": "#fff0c8",
+      "size": 0.08,
+      "stellarType": "yellow_giant",
+      "physics": {
+        "massSolar": 3.21,
+        "radiusSolar": 20.28,
+        "tempKelvin": 5094,
+        "note": "Component A"
+      },
+      "info": {
+        "basic": "Omicron Tauri marks the end of the bull’s foreleg, the westernmost point of the whole figure.",
+        "scientific": {
+          "class": "G8 III yellow giant",
+          "temperature": "About 5,100 K",
+          "mass": "Roughly 3.2 times the Sun",
+          "radius": "About 20 times the Sun",
+          "feature": "An iron-poor giant, catalogued G8 III Fe-1 for its weak iron lines"
+        }
+      }
+    },
+    {
+      "id": "five_tauri",
+      "name": "5 Tauri",
+      "designation": "5 Tauri (f Tauri)",
+      "isMajor": true,
+      "position2D": {
+        "x": 2.26,
+        "y": -0.461
+      },
+      "distance": 530,
+      "magnitude": 4.14,
+      "spectralClass": "K0III",
+      "color": "#ffb877",
+      "size": 0.062,
+      "stellarType": "orange_giant",
+      "physics": {
+        "massSolar": 4,
+        "radiusSolar": 8.5,
+        "tempKelvin": 4644,
+        "note": "Component A"
+      },
+      "info": {
+        "basic": "5 Tauri, also catalogued f Tauri, carries the line westward from the shoulder out toward the bull’s foreleg.",
+        "scientific": {
+          "class": "K0 III orange giant",
+          "temperature": "About 4,600 K",
+          "mass": "Roughly 4 times the Sun",
+          "radius": "About 8.5 times the Sun",
+          "feature": "A binary; the companion is about 1.1 solar masses"
         }
       }
     }
@@ -355,11 +514,6 @@
     },
     {
       "from": "delta1_tauri",
-      "to": "delta3_tauri",
-      "type": "face"
-    },
-    {
-      "from": "delta3_tauri",
       "to": "epsilon_tauri",
       "type": "face"
     },
@@ -372,6 +526,36 @@
       "from": "tau_tauri",
       "to": "elnath",
       "type": "horn"
+    },
+    {
+      "from": "gamma_tauri",
+      "to": "lambda_tauri",
+      "type": "shoulder"
+    },
+    {
+      "from": "lambda_tauri",
+      "to": "mu_tauri",
+      "type": "foreleg"
+    },
+    {
+      "from": "mu_tauri",
+      "to": "nu_tauri",
+      "type": "foreleg"
+    },
+    {
+      "from": "lambda_tauri",
+      "to": "five_tauri",
+      "type": "shoulder"
+    },
+    {
+      "from": "five_tauri",
+      "to": "xi_tauri",
+      "type": "foreleg"
+    },
+    {
+      "from": "xi_tauri",
+      "to": "omicron_tauri",
+      "type": "foreleg"
     }
   ],
   "deepSkyObjects": [
@@ -382,8 +566,8 @@
       "type": "open_cluster",
       "layer": "cluster",
       "position2D": {
-        "x": 3.57,
-        "y": 1.441
+        "x": 1.429,
+        "y": 1.663
       },
       "distance": 444,
       "magnitude": 1.6,
@@ -711,7 +895,7 @@
         }
       ],
       "info": {
-        "basic": "The Seven Sisters — daughters of Atlas and Pleione in Greek myth, and half-sisters of the Hyades. Nearly every culture that recorded them counted seven, yet most people see only six, and the \"Lost Pleiad\" stories exist across the world to explain the missing one. Japan calls the cluster Subaru, \"to cluster together\"; Māori call it Matariki; pre-Islamic Arabia knew it as al-Thurayyā. Seven dots on the Nebra sky disc, buried in Germany around 1600 BC, are thought to be these stars.",
+        "basic": "The Seven Sisters — daughters of Atlas and Pleione in Greek myth, and half-sisters of the Hyades. Nearly every culture that recorded them counted seven, yet most people see only six, and \"Lost Pleiad\" stories exist across the world to explain the missing one. Japan calls the cluster Subaru, \"to cluster together\"; Māori call it Matariki; pre-Islamic Arabia knew it as al-Thurayyā. Seven dots on the Nebra sky disc, buried in Germany around 1600 BC, are thought to be these stars.",
         "scientific": {
           "type": "Open cluster of over 1,000 stars, about 25% of them brown dwarfs",
           "distance": "About 444 light-years (Gaia DR3), settling a long dispute after Hipparcos measured a closer 385",
@@ -729,8 +913,8 @@
       "type": "supernova_remnant",
       "layer": "none",
       "position2D": {
-        "x": -3.372,
-        "y": 0.809
+        "x": -3.422,
+        "y": 1.42
       },
       "distance": 6500,
       "magnitude": 8.4,
@@ -747,7 +931,7 @@
       "targetStarNames": [
         "Aldebaran"
       ],
-      "story": "Aldebaran is the bull’s eye, and Arab astronomers named it for what it does rather than what it is: al-dabaran, \"the follower\". It rises behind the Pleiades and pursues them across the sky all night without ever catching them. Ptolemy listed it among his original forty-eight constellations’ brightest stars, and to the early Hebrews Taurus was the first constellation of the zodiac, represented by Aleph, the first letter. The eye is a deception, though. Aldebaran looks like the brightest member of the Hyades cluster spread around it, but it is not a member at all — it sits 65 light-years away, less than half the cluster’s distance, and merely happens to fall along the same line of sight.",
+      "story": "Aldebaran is the bull’s eye, and Arab astronomers named it for what it does rather than what it is: al-dabaran, \"the follower\". It rises behind the Pleiades and pursues them across the sky all night without ever catching them. To the early Hebrews Taurus was the first constellation of the zodiac, represented by Aleph, the first letter. The eye is a deception, though. Aldebaran looks like the brightest member of the Hyades cluster spread around it, but it is not a member at all — it sits 65 light-years away, less than half the cluster’s distance, and merely happens to fall along the same line of sight.",
       "sources": "Wikipedia, Taurus (constellation); Wikipedia, Hyades (star cluster)"
     },
     {
@@ -758,7 +942,6 @@
       "targetStarNames": [
         "Gamma Tauri",
         "Delta1 Tauri",
-        "Delta3 Tauri",
         "Epsilon Tauri",
         "Theta2 Tauri"
       ],
@@ -779,16 +962,20 @@
       "sources": "Wikipedia, Taurus (constellation); Epic of Gilgamesh; Acusilaus"
     },
     {
-      "id": "horns",
-      "title": "The Butting One",
+      "id": "shoulder",
+      "title": "The Half a Bull",
       "view": "2d",
-      "centerStarName": "Elnath",
+      "centerStarName": "Lambda Tauri",
       "targetStarNames": [
-        "Elnath",
-        "Zeta Tauri"
+        "Lambda Tauri",
+        "Mu Tauri",
+        "Nu Tauri",
+        "5 Tauri",
+        "Xi Tauri",
+        "Omicron Tauri"
       ],
-      "story": "Two stars eight degrees apart tip the horns. The northern one is Elnath, from the Arabic al-nath, \"the butting one\" — named for the act, not the animal. It stands on the border with Auriga and was long counted as a star of both figures, carrying the second designation Gamma Aurigae until modern boundaries made constellations exclusive and Taurus kept it. The southern tip is Zeta Tauri, a star spinning fast enough to fling a disc of its own gas into space. It is also a signpost: the wreck of an exploded star lies just off it.",
-      "sources": "Wikipedia, Taurus (constellation)"
+      "story": "West of the face the figure carries on into a shoulder and two forelegs, and then simply stops. Taurus has no hindquarters, and the Babylonians had an explanation ready: Enkidu tore them off and threw them away. Lambda Tauri is the joint everything hangs from — an eclipsing binary whose two stars pass in front of one another every four days, dimming by a third each time, which anyone watching carefully can see without a telescope. The line runs down through Mu to Nu at the knee, and west through 5 Tauri to Xi and Omicron at the far end of the leg. Xi is stranger than it looks: four stars, two close pairs circling each other, reading as one point to the eye.",
+      "sources": "Wikipedia, Taurus (constellation); Wikipedia, Lambda Tauri; Wikipedia, Xi Tauri"
     },
     {
       "id": "guest_star",

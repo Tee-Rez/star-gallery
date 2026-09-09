@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>String-Art Nail Template</title>
+<style>
+  :root{
+    --ink:#111; --line:#c9c9c9; --line2:#e4e4e4; --paper:#fff;
+    --bg:#eceef2; --panel:#fff; --edge:#d5d9e0; --accent:#1d4ed8; --warn:#b45309;
+    --mut:#5b6472;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font:14px/1.5 -apple-system,system-ui,Segoe UI,Roboto,Arial,sans-serif;
+    color:var(--ink); background:var(--bg); display:flex; height:100vh; overflow:hidden}
+
+  /* ---- controls ---- */
+  #panel{width:320px; flex:0 0 320px; height:100%; overflow-y:auto; background:var(--panel);
+    border-right:1px solid var(--edge); padding:18px 18px 60px}
+  h1{font-size:16px; margin:0 0 2px}
+  .sub{color:var(--mut); font-size:12px; margin:0 0 16px; line-height:1.45}
+  h2{font-size:11px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut);
+    margin:20px 0 8px; border-top:1px solid var(--line2); padding-top:14px}
+  h2:first-of-type{border:0; padding-top:0}
+  label.row{display:flex; justify-content:space-between; align-items:center; gap:10px;
+    margin:9px 0; font-size:13px}
+  label.row span.k{color:#333}
+  input[type=number], select{font:inherit; font-size:13px; padding:5px 7px; border:1px solid var(--edge);
+    border-radius:6px; background:#fff; color:var(--ink); width:88px; text-align:right}
+  select{width:150px; text-align:left}
+  input[type=range]{width:130px; accent-color:var(--accent)}
+  .chk{display:flex; align-items:center; gap:8px; margin:7px 0; font-size:13px; cursor:pointer}
+  .chk input{width:15px; height:15px; accent-color:var(--accent)}
+  .val{color:var(--mut); font-variant-numeric:tabular-nums; min-width:34px; text-align:right}
+
+  .readout{background:#f6f8fb; border:1px solid var(--line2); border-radius:8px; padding:11px 12px;
+    font-size:12.5px; line-height:1.7; margin-top:6px}
+  .readout b{font-variant-numeric:tabular-nums}
+  .readout .big{font-size:15px; color:var(--accent); font-weight:600}
+  .warn{color:var(--warn); font-size:12px; margin-top:8px; display:none}
+  .warn.on{display:block}
+
+  .btns{display:flex; flex-wrap:wrap; gap:8px; margin-top:14px}
+  button{font:inherit; font-size:13px; font-weight:500; padding:9px 14px; border-radius:8px;
+    border:1px solid var(--accent); background:var(--accent); color:#fff; cursor:pointer}
+  button.alt{background:#fff; color:var(--accent)}
+  button:hover{filter:brightness(1.05)}
+
+  /* ---- stage ---- */
+  #stage{flex:1; height:100%; overflow:auto; display:flex; align-items:flex-start;
+    justify-content:center; padding:28px}
+  #paper{background:var(--paper); box-shadow:0 6px 30px rgba(20,30,60,.14);
+    border:1px solid #dfe3ea}
+  svg{display:block}
+
+  .key{margin-top:18px}
+  .key h2{margin-top:0}
+  .keylist{font-size:12px; color:#333; columns:2; column-gap:14px}
+  .keylist div{break-inside:avoid; margin:2px 0}
+  .keylist .n{display:inline-block; width:18px; color:var(--accent); font-weight:600;
+    font-variant-numeric:tabular-nums}
+
+  @media print{
+    body{display:block; height:auto; overflow:visible; background:#fff}
+    #panel{display:none}
+    #stage{padding:0; display:block; overflow:visible}
+    #paper{box-shadow:none; border:0}
+    .key{display:none}
+  }
+</style>
+</head>
+<body>
+
+<div id="panel">
+  <h1>String-Art Nail Template</h1>
+  <p class="sub">A true-scale drilling mask for a constellation portal &mdash; the receding grid
+    corners are nail points, the stars are the figure. Print at 100% and lay it on the wood.</p>
+
+  <h2>Constellation</h2>
+  <label class="row"><span class="k">Figure</span>
+    <select id="c"></select></label>
+
+  <div class="readout" id="board"></div>
+  <p class="warn" id="warn"></p>
+
+  <h2>Board scale</h2>
+  <label class="row"><span class="k">Inches per grid unit</span>
+    <input type="number" id="ipu" min="0.25" max="4" step="0.25" value="1"></label>
+  <label class="row"><span class="k">Margin (in)</span>
+    <input type="number" id="margin" min="0" max="4" step="0.125" value="0.75"></label>
+
+  <h2>Depth illusion</h2>
+  <label class="row"><span class="k">Depth rings</span>
+    <input type="range" id="steps" min="2" max="16" step="1" value="8"><span class="val" id="stepsV">8</span></label>
+  <label class="row"><span class="k">Back size</span>
+    <input type="range" id="back" min="15" max="80" step="1" value="42"><span class="val" id="backV">42%</span></label>
+
+  <h2>Nails</h2>
+  <label class="chk"><input type="checkbox" id="nRings"> Every ring&rsquo;s corners</label>
+  <label class="chk"><input type="checkbox" id="nStars" checked> Star points</label>
+  <label class="row"><span class="k">Nail dot &oslash; (in)</span>
+    <input type="number" id="dot" min="0.02" max="0.2" step="0.01" value="0.06"></label>
+
+  <h2>Reference guides <span style="text-transform:none;letter-spacing:0;color:#9aa2b0">(not drilled)</span></h2>
+  <label class="chk"><input type="checkbox" id="gRings" checked> Depth grid lines</label>
+  <label class="chk"><input type="checkbox" id="gWalls" checked> Tunnel wall lines</label>
+  <label class="chk"><input type="checkbox" id="gFigure" checked> Constellation figure</label>
+  <label class="chk"><input type="checkbox" id="gNums"> Number the stars</label>
+  <label class="chk"><input type="checkbox" id="gScale" checked> Scale bar &amp; corner marks</label>
+
+  <div class="btns">
+    <button id="svg">Save SVG</button>
+    <button id="png" class="alt">Save PNG</button>
+    <button id="print" class="alt">Print</button>
+  </div>
+
+  <div class="key">
+    <h2>Star key</h2>
+    <div class="keylist" id="keylist"></div>
+  </div>
+</div>
+
+<div id="stage">
+  <div id="paper"><div id="svgwrap"></div></div>
+</div>
+
+<script>
+/* ------------------------------------------------------------------ *
+ * Self-contained. Constellation geometry embedded below, pulled from the
+ * AR build's data files (orion / andromeda / taurus / pleiades). To add a
+ * constellation later, drop another entry into DATA with the same shape,
+ * or ask Claude to regenerate this block from the AR data.
+ * ------------------------------------------------------------------ */
+const DATA = {
+  "orion": {
+    "name": "Orion",
+    "portal": {
+      "width": 6,
+      "height": 9
+    },
+    "gridBox": {
+      "width": 6,
+      "height": 9,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "betelgeuse",
+        "name": "Betelgeuse",
+        "x": -1.442,
+        "y": 0.979,
+        "mag": 0.5
+      },
+      {
+        "id": "rigel",
+        "name": "Rigel",
+        "x": 0.883,
+        "y": -2.633,
+        "mag": 0.13
+      },
+      {
+        "id": "bellatrix",
+        "name": "Bellatrix",
+        "x": 0.268,
+        "y": 0.727,
+        "mag": 1.64
+      },
+      {
+        "id": "saiph",
+        "name": "Saiph",
+        "x": -1.035,
+        "y": -2.986,
+        "mag": 2.09
+      },
+      {
+        "id": "alnitak",
+        "name": "Alnitak",
+        "x": -0.625,
+        "y": -1.17,
+        "mag": 1.77
+      },
+      {
+        "id": "alnilam",
+        "name": "Alnilam",
+        "x": -0.364,
+        "y": -0.999,
+        "mag": 1.69
+      },
+      {
+        "id": "mintaka",
+        "name": "Mintaka",
+        "x": -0.123,
+        "y": -0.792,
+        "mag": 2.23
+      },
+      {
+        "id": "meissa",
+        "name": "Meissa",
+        "x": -0.299,
+        "y": 1.551,
+        "mag": 3.7
+      },
+      {
+        "id": "pi3_orionis",
+        "name": "Pi3 Orionis",
+        "x": 2.293,
+        "y": 0.891,
+        "mag": 3.65
+      },
+      {
+        "id": "pi4_orionis",
+        "name": "Pi4 Orionis",
+        "x": 2.216,
+        "y": 0.575,
+        "mag": 3.685
+      },
+      {
+        "id": "pi5_orionis",
+        "name": "Pi5 Orionis",
+        "x": 2.045,
+        "y": -0.159,
+        "mag": 3.69
+      },
+      {
+        "id": "chi1_orionis",
+        "name": "Chi1 Orionis",
+        "x": -1.378,
+        "y": 4.05,
+        "mag": 4.38
+      },
+      {
+        "id": "chi2_orionis",
+        "name": "Chi2 Orionis",
+        "x": -1.921,
+        "y": 4.04,
+        "mag": 4.63
+      },
+      {
+        "id": "c_orionis",
+        "name": "42 Orionis",
+        "x": -0.318,
+        "y": -1.839,
+        "mag": 4.59
+      },
+      {
+        "id": "theta1_orionis",
+        "name": "Theta1 Orionis",
+        "x": -0.311,
+        "y": -1.967,
+        "mag": 4
+      }
+    ],
+    "connections": [
+      {
+        "from": "alnitak",
+        "to": "alnilam"
+      },
+      {
+        "from": "alnilam",
+        "to": "mintaka"
+      },
+      {
+        "from": "betelgeuse",
+        "to": "alnitak"
+      },
+      {
+        "from": "alnitak",
+        "to": "saiph"
+      },
+      {
+        "from": "bellatrix",
+        "to": "mintaka"
+      },
+      {
+        "from": "mintaka",
+        "to": "rigel"
+      },
+      {
+        "from": "meissa",
+        "to": "betelgeuse"
+      },
+      {
+        "from": "meissa",
+        "to": "bellatrix"
+      },
+      {
+        "from": "bellatrix",
+        "to": "pi4_orionis"
+      },
+      {
+        "from": "pi3_orionis",
+        "to": "pi4_orionis"
+      },
+      {
+        "from": "pi4_orionis",
+        "to": "pi5_orionis"
+      },
+      {
+        "from": "betelgeuse",
+        "to": "chi2_orionis"
+      },
+      {
+        "from": "chi2_orionis",
+        "to": "chi1_orionis"
+      },
+      {
+        "from": "alnilam",
+        "to": "c_orionis"
+      },
+      {
+        "from": "c_orionis",
+        "to": "theta1_orionis"
+      }
+    ]
+  },
+  "andromeda": {
+    "name": "Andromeda",
+    "portal": {
+      "width": 8,
+      "height": 7
+    },
+    "gridBox": {
+      "width": 8,
+      "height": 7,
+      "depth": 7,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "alpheratz",
+        "name": "Alpheratz",
+        "x": 1.199,
+        "y": -2.034,
+        "mag": 2.07
+      },
+      {
+        "id": "delta_and",
+        "name": "Delta Andromedae",
+        "x": -0.211,
+        "y": -1.693,
+        "mag": 3.27
+      },
+      {
+        "id": "epsilon_and",
+        "name": "Epsilon Andromedae",
+        "x": -0.18,
+        "y": -2.02,
+        "mag": 4.34
+      },
+      {
+        "id": "zeta_and",
+        "name": "Zeta Andromedae",
+        "x": -0.618,
+        "y": -3.1,
+        "mag": 4.08
+      },
+      {
+        "id": "mirach",
+        "name": "Mirach",
+        "x": -1.476,
+        "y": -0.639,
+        "mag": 2.07
+      },
+      {
+        "id": "almach",
+        "name": "Almach",
+        "x": -3.463,
+        "y": 1.137,
+        "mag": 2.1
+      },
+      {
+        "id": "mu_and",
+        "name": "Mu Andromedae",
+        "x": -0.892,
+        "y": -0.085,
+        "mag": 3.86
+      },
+      {
+        "id": "nu_and",
+        "name": "Nu Andromedae",
+        "x": -0.59,
+        "y": 0.432,
+        "mag": 4.53
+      },
+      {
+        "id": "phi_and",
+        "name": "Phi Andromedae",
+        "x": -1.233,
+        "y": 1.767,
+        "mag": 4.26
+      },
+      {
+        "id": "51_and",
+        "name": "51 Andromedae",
+        "x": -2.2,
+        "y": 2.223,
+        "mag": 3.59
+      },
+      {
+        "id": "pi_and",
+        "name": "Pi Andromedae",
+        "x": -0.098,
+        "y": -1.098,
+        "mag": 4.34
+      },
+      {
+        "id": "iota_and",
+        "name": "Iota Andromedae",
+        "x": 2.135,
+        "y": 1.052,
+        "mag": 4.29
+      },
+      {
+        "id": "kappa_and",
+        "name": "Kappa Andromedae",
+        "x": 2.014,
+        "y": 1.259,
+        "mag": 4.15
+      },
+      {
+        "id": "lambda_and",
+        "name": "Lambda Andromedae",
+        "x": 2.05,
+        "y": 1.721,
+        "mag": 3.81
+      },
+      {
+        "id": "omicron_and",
+        "name": "Omicron Andromedae",
+        "x": 3.6,
+        "y": 1.173,
+        "mag": 3.62
+      }
+    ],
+    "connections": [
+      {
+        "from": "almach",
+        "to": "mirach"
+      },
+      {
+        "from": "mirach",
+        "to": "delta_and"
+      },
+      {
+        "from": "delta_and",
+        "to": "alpheratz"
+      },
+      {
+        "from": "mirach",
+        "to": "mu_and"
+      },
+      {
+        "from": "mu_and",
+        "to": "nu_and"
+      },
+      {
+        "from": "nu_and",
+        "to": "phi_and"
+      },
+      {
+        "from": "phi_and",
+        "to": "51_and"
+      },
+      {
+        "from": "delta_and",
+        "to": "pi_and"
+      },
+      {
+        "from": "pi_and",
+        "to": "iota_and"
+      },
+      {
+        "from": "iota_and",
+        "to": "omicron_and"
+      },
+      {
+        "from": "iota_and",
+        "to": "kappa_and"
+      },
+      {
+        "from": "kappa_and",
+        "to": "lambda_and"
+      },
+      {
+        "from": "delta_and",
+        "to": "epsilon_and"
+      },
+      {
+        "from": "epsilon_and",
+        "to": "zeta_and"
+      }
+    ]
+  },
+  "taurus": {
+    "name": "Taurus",
+    "portal": {
+      "width": 8,
+      "height": 6
+    },
+    "gridBox": {
+      "width": 8,
+      "height": 6,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "aldebaran",
+        "name": "Aldebaran",
+        "x": 0.431,
+        "y": -0.851,
+        "mag": 0.87
+      },
+      {
+        "id": "theta2_tauri",
+        "name": "Theta2 Tauri",
+        "x": 0.915,
+        "y": -1.021,
+        "mag": 3.4
+      },
+      {
+        "id": "gamma_tauri",
+        "name": "Gamma Tauri",
+        "x": 1.509,
+        "y": -1.076,
+        "mag": 3.65
+      },
+      {
+        "id": "delta1_tauri",
+        "name": "Delta1 Tauri",
+        "x": 1.283,
+        "y": -0.551,
+        "mag": 3.77
+      },
+      {
+        "id": "delta3_tauri",
+        "name": "Delta3 Tauri",
+        "x": 1.112,
+        "y": -0.449,
+        "mag": 4.3
+      },
+      {
+        "id": "epsilon_tauri",
+        "name": "Epsilon Tauri",
+        "x": 0.9,
+        "y": -0.108,
+        "mag": 3.53
+      },
+      {
+        "id": "tau_tauri",
+        "name": "Tau Tauri",
+        "x": 0.013,
+        "y": 0.924,
+        "mag": 4.27
+      },
+      {
+        "id": "elnath",
+        "name": "Elnath",
+        "x": -2.706,
+        "y": 2.624,
+        "mag": 1.65
+      },
+      {
+        "id": "zeta_tauri",
+        "name": "Zeta Tauri",
+        "x": -3.6,
+        "y": 0.58,
+        "mag": 2.97
+      }
+    ],
+    "connections": [
+      {
+        "from": "zeta_tauri",
+        "to": "aldebaran"
+      },
+      {
+        "from": "aldebaran",
+        "to": "theta2_tauri"
+      },
+      {
+        "from": "theta2_tauri",
+        "to": "gamma_tauri"
+      },
+      {
+        "from": "gamma_tauri",
+        "to": "delta1_tauri"
+      },
+      {
+        "from": "delta1_tauri",
+        "to": "delta3_tauri"
+      },
+      {
+        "from": "delta3_tauri",
+        "to": "epsilon_tauri"
+      },
+      {
+        "from": "epsilon_tauri",
+        "to": "tau_tauri"
+      },
+      {
+        "from": "tau_tauri",
+        "to": "elnath"
+      }
+    ]
+  },
+  "pleiades": {
+    "name": "Pleiades",
+    "portal": {
+      "width": 8,
+      "height": 5
+    },
+    "gridBox": {
+      "width": 8,
+      "height": 5,
+      "depth": 5,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "alcyone",
+        "name": "Alcyone",
+        "x": -1.292,
+        "y": -0.722,
+        "mag": 2.85
+      },
+      {
+        "id": "atlas",
+        "name": "Atlas",
+        "x": -3.569,
+        "y": -1.022,
+        "mag": 3.62
+      },
+      {
+        "id": "pleione",
+        "name": "Pleione",
+        "x": -3.6,
+        "y": -0.527,
+        "mag": 5.05
+      },
+      {
+        "id": "electra",
+        "name": "Electra",
+        "x": 2.248,
+        "y": -0.671,
+        "mag": 3.72
+      },
+      {
+        "id": "maia",
+        "name": "Maia",
+        "x": 0.955,
+        "y": 0.839,
+        "mag": 3.87
+      },
+      {
+        "id": "merope",
+        "name": "Merope",
+        "x": 0.28,
+        "y": -1.655,
+        "mag": 4.14
+      },
+      {
+        "id": "taygeta",
+        "name": "Taygeta",
+        "x": 1.791,
+        "y": 1.432,
+        "mag": 4.3
+      },
+      {
+        "id": "celaeno",
+        "name": "Celaeno",
+        "x": 2.342,
+        "y": 0.376,
+        "mag": 5.45
+      },
+      {
+        "id": "asterope",
+        "name": "Asterope",
+        "x": 0.844,
+        "y": 1.949,
+        "mag": 5.76
+      }
+    ],
+    "connections": [
+      {
+        "from": "alcyone",
+        "to": "maia"
+      },
+      {
+        "from": "maia",
+        "to": "taygeta"
+      },
+      {
+        "from": "taygeta",
+        "to": "celaeno"
+      },
+      {
+        "from": "celaeno",
+        "to": "electra"
+      },
+      {
+        "from": "electra",
+        "to": "merope"
+      },
+      {
+        "from": "merope",
+        "to": "alcyone"
+      },
+      {
+        "from": "alcyone",
+        "to": "atlas"
+      }
+    ]
+  }
+};
+
+const PX = 96;                 // svg user-units per inch (screen); export sets real inches
+const $ = id => document.getElementById(id);
+
+// -- populate the picker --
+const sel = $('c');
+Object.keys(DATA).forEach(id => {
+  const o = document.createElement('option');
+  o.value = id; o.textContent = DATA[id].name;
+  sel.appendChild(o);
+});
+sel.value = DATA.andromeda ? 'andromeda' : Object.keys(DATA)[0];
+
+// s(k): perspective scale of ring k of N, back ring lands at `bs`. Derived from a one-point
+// pinhole so spacing compresses toward the back on its own - which is the whole illusion.
+function ringScale(k, N, bs){ return bs / (bs + (1 - bs) * (k / N)); }
+
+const state = () => ({
+  c: sel.value,
+  ipu: +$('ipu').value,
+  margin: +$('margin').value,
+  steps: +$('steps').value,
+  back: +$('back').value / 100,
+  dot: +$('dot').value,
+  nRings: $('nRings').checked, nStars: $('nStars').checked,
+  gRings: $('gRings').checked, gWalls: $('gWalls').checked,
+  gFigure: $('gFigure').checked, gNums: $('gNums').checked, gScale: $('gScale').checked,
+});
+
+let LAST = null; // {svgW_in, svgH_in, markup} for export
+
+function build(){
+  const s = state();
+  const d = DATA[s.c];
+  const W = d.portal.width, H = d.portal.height, cell = d.gridBox.cellSize;
+  const cols = Math.round(W / cell), rows = Math.round(H / cell);
+
+  // physical board
+  const gridW = W * s.ipu, gridH = H * s.ipu;
+  const boardW = gridW + 2 * s.margin, boardH = gridH + 2 * s.margin;
+
+  // world (centred, y up) -> board inches (y down), at ring scale sc
+  const bx = (x, sc) => s.margin + (x * sc + W / 2) * s.ipu;
+  const by = (y, sc) => s.margin + (H / 2 - y * sc) * s.ipu;
+  // -> svg user units
+  const U = v => v * PX;
+
+  const N = s.steps, bs = s.back;
+  const isPerim = (i, j) => i === 0 || i === cols || j === 0 || j === rows;
+
+  const parts = [];
+  const line = (x1,y1,x2,y2,cls) =>
+    `<line x1="${U(x1).toFixed(2)}" y1="${U(y1).toFixed(2)}" x2="${U(x2).toFixed(2)}" y2="${U(y2).toFixed(2)}" class="${cls}"/>`;
+
+  // ---- reference: depth grid rings (concentric rectangles, compressing inward) ----
+  if (s.gRings){
+    for (let k = 0; k <= N; k++){
+      const sc = ringScale(k, N, bs);
+      const L = bx(-W/2, sc), R = bx(W/2, sc), T = by(H/2, sc), B = by(-H/2, sc);
+      const cls = (k === 0 || k === N) ? 'g-strong' : 'g-soft';
+      parts.push(`<rect x="${U(L).toFixed(2)}" y="${U(T).toFixed(2)}" width="${U(R-L).toFixed(2)}" height="${U(B-T).toFixed(2)}" class="${cls}"/>`);
+    }
+  }
+  // ---- reference: tunnel wall lines (front perimeter corner -> back, radial) ----
+  if (s.gWalls){
+    for (let i = 0; i <= cols; i++) for (let j = 0; j <= rows; j++){
+      if (!isPerim(i,j)) continue;
+      const x = i*cell - W/2, y = j*cell - H/2;
+      parts.push(line(bx(x,1), by(y,1), bx(x,bs), by(y,bs), 'g-soft'));
+    }
+  }
+
+  // ---- reference: constellation figure lines ----
+  if (s.gFigure){
+    const by_id = {}; d.stars.forEach(st => by_id[st.id] = st);
+    d.connections.forEach(cn => {
+      const a = by_id[cn.from], b = by_id[cn.to]; if (!a||!b) return;
+      parts.push(line(bx(a.x,1), by(a.y,1), bx(b.x,1), by(b.y,1), 'figure'));
+    });
+  }
+
+  // ---- NAILS: collect unique grid-corner points ----
+  const nail = [];               // {x,y} in inches
+  const seen = new Set();
+  const addRingNails = (sc) => {
+    for (let i = 0; i <= cols; i++) for (let j = 0; j <= rows; j++){
+      if (!isPerim(i,j)) continue; // only intersections of tunnel walls with ring rectangles
+      const x = i*cell - W/2, y = j*cell - H/2;
+      const px = bx(x,sc), py = by(y,sc);
+      const key = px.toFixed(3)+','+py.toFixed(3);
+      if (seen.has(key)) continue; seen.add(key);
+      nail.push({x:px, y:py});
+    }
+  };
+  if (s.nRings){ for (let k=0;k<=N;k++) addRingNails(ringScale(k,N,bs)); }
+
+  const r = U(s.dot/2);
+  const nailMarks = nail.map(p =>
+    `<circle cx="${U(p.x).toFixed(2)}" cy="${U(p.y).toFixed(2)}" r="${r.toFixed(2)}" class="nail"/>`).join('');
+
+  // ---- STARS (front plane) ----
+  let starMarks = '';
+  const mags = d.stars.map(st => st.mag);
+  const magMin = Math.min(...mags), magMax = Math.max(...mags);
+  const starR = st => {
+    const t = magMax === magMin ? .5 : (magMax - st.mag)/(magMax - magMin); // brighter=bigger
+    return U(0.05 + t * 0.055);
+  };
+  if (s.nStars){
+    d.stars.forEach((st, i) => {
+      const cx = U(bx(st.x,1)), cy = U(by(st.y,1)), rr = starR(st);
+      starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${rr.toFixed(2)}" class="star"/>`
+        + `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${(r*0.6).toFixed(2)}" class="star-core"/>`;
+      if (s.gNums){
+        starMarks += `<text x="${(cx+rr+3).toFixed(2)}" y="${(cy-rr-2).toFixed(2)}" class="num">${i+1}</text>`;
+      }
+    });
+  }
+
+  // ---- registration: 1-inch scale bar + corner crop marks ----
+  let reg = '';
+  if (s.gScale){
+    const m = 0.28;                          // inset from board edge, inches
+    const cm = 0.22;                         // crop mark arm length
+    [[m,m],[boardW-m,m],[m,boardH-m],[boardW-m,boardH-m]].forEach(([x,y])=>{
+      reg += line(x-cm,y,x+cm,y,'reg') + line(x,y-cm,x,y+cm,'reg');
+    });
+    const sbx = m, sby = boardH - m;
+    reg += line(sbx,sby,sbx+1,sby,'regbar')
+        + line(sbx,sby-0.06,sbx,sby+0.06,'regbar')
+        + line(sbx+1,sby-0.06,sbx+1,sby+0.06,'regbar')
+        + `<text x="${U(sbx+0.5).toFixed(2)}" y="${U(sby-0.12).toFixed(2)}" class="reglabel">1 inch</text>`;
+  }
+
+  const svgW = U(boardW), svgH = U(boardH);
+  const markup =
+`<svg xmlns="http://www.w3.org/2000/svg" width="${boardW}in" height="${boardH}in" viewBox="0 0 ${svgW.toFixed(2)} ${svgH.toFixed(2)}">
+  <style>
+    rect{fill:none}
+    .g-soft{stroke:#dcdcdc; stroke-width:1}
+    .g-strong{stroke:#9a9a9a; stroke-width:1.4}
+    .figure{stroke:#b9b9b9; stroke-width:1.3; stroke-dasharray:5 4}
+    .nail{fill:#000}
+    .star{fill:none; stroke:#000; stroke-width:2}
+    .star-core{fill:#000}
+    .num{font:600 11px system-ui,Arial; fill:#000}
+    .reg{stroke:#000; stroke-width:1}
+    .regbar{stroke:#000; stroke-width:1.4}
+    .reglabel{font:11px system-ui,Arial; fill:#000; text-anchor:middle}
+    .frame{fill:none; stroke:#000; stroke-width:1.4}
+  </style>
+  <rect x="0.7" y="0.7" width="${(svgW-1.4).toFixed(2)}" height="${(svgH-1.4).toFixed(2)}" class="frame"/>
+  ${parts.join('\n  ')}
+  ${reg}
+  ${nailMarks}
+  ${starMarks}
+</svg>`;
+
+  $('svgwrap').innerHTML = markup;
+  const svg = $('svgwrap').querySelector('svg');
+  svg.style.width = Math.min(boardW * PX, 1000) + 'px';   // fit-ish on screen
+  svg.style.height = 'auto';
+  LAST = { boardW, boardH, markup };
+
+  // ---- readouts ----
+  const frontSp = cell * s.ipu;
+  const backSp  = cell * s.ipu * bs;
+  const orient = W > H ? 'landscape' : (H > W ? 'portrait' : 'square');
+  $('board').innerHTML =
+    `Recommended wood: <span class="big">${boardW.toFixed(2)}&Prime; &times; ${boardH.toFixed(2)}&Prime;</span><br>`+
+    `Grid area: <b>${gridW.toFixed(2)}&Prime; &times; ${gridH.toFixed(2)}&Prime;</b> &nbsp;(${orient})<br>`+
+    `Grid: <b>${cols} &times; ${rows}</b> cells &middot; front spacing <b>${frontSp.toFixed(2)}&Prime;</b>, back <b>${backSp.toFixed(2)}&Prime;</b><br>`+
+    `Nails: <b>${nail.length}</b>${s.nStars?` + <b>${d.stars.length}</b> stars`:''}`;
+
+  const warn = $('warn');
+  if (backSp < 0.18 && s.nRings){
+    warn.textContent = `Back nail spacing is ${backSp.toFixed(2)}″ — tight for drilling. Raise "Back size" or inches-per-unit, or reduce ring steps.`;
+    warn.classList.add('on');
+  } else warn.classList.remove('on');
+
+  // star key
+  $('keylist').innerHTML = d.stars.map((st,i)=>`<div><span class="n">${i+1}</span>${st.name}</div>`).join('');
+}
+
+/* ---- exports (work from a local file) ---- */
+function download(blob, name){
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(()=>{ a.remove(); URL.revokeObjectURL(url); }, 400);
+}
+function baseName(){ return DATA[sel.value].name.toLowerCase().replace(/\s+/g,'-') + '-nail-template'; }
+
+$('svg').onclick = () => {
+  if (!LAST) return;
+  download(new Blob([LAST.markup], {type:'image/svg+xml'}), baseName()+'.svg');
+};
+$('png').onclick = () => {
+  if (!LAST) return;
+  const DPI = 300;
+  const cw = Math.round(LAST.boardW * DPI), ch = Math.round(LAST.boardH * DPI);
+  const img = new Image();
+  const svgBlob = new Blob([LAST.markup], {type:'image/svg+xml'});
+  const url = URL.createObjectURL(svgBlob);
+  img.onload = () => {
+    const cv = document.createElement('canvas'); cv.width = cw; cv.height = ch;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0,0,cw,ch);
+    ctx.drawImage(img, 0, 0, cw, ch);
+    URL.revokeObjectURL(url);
+    cv.toBlob(b => download(b, baseName()+'-300dpi.png'), 'image/png');
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); alert('PNG render failed; try Save SVG instead.'); };
+  img.src = url;
+};
+$('print').onclick = () => window.print();
+
+// wire controls
+['c','ipu','margin','steps','back','dot','nRings','nStars',
+ 'gRings','gWalls','gFigure','gNums','gScale'].forEach(id => {
+  $(id).addEventListener('input', build);
+  $(id).addEventListener('change', build);
+});
+$('steps').addEventListener('input', () => $('stepsV').textContent = $('steps').value);
+$('back').addEventListener('input', () => $('backV').textContent = $('back').value + '%');
+
+build();
+</script>
+</body>
+</html>
