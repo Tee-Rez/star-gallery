@@ -509,100 +509,116 @@ const DATA = {
       {
         "id": "aldebaran",
         "name": "Aldebaran",
-        "x": 0.431,
-        "y": -0.851,
+        "x": -0.756,
+        "y": 0.168,
         "mag": 0.87
       },
       {
         "id": "theta2_tauri",
         "name": "Theta2 Tauri",
-        "x": 0.915,
-        "y": -1.021,
+        "x": -0.428,
+        "y": 0.042,
         "mag": 3.4
       },
       {
         "id": "gamma_tauri",
         "name": "Gamma Tauri",
-        "x": 1.509,
-        "y": -1.076,
+        "x": -0.025,
+        "y": -0.006,
         "mag": 3.65
       },
       {
         "id": "delta1_tauri",
         "name": "Delta1 Tauri",
-        "x": 1.283,
-        "y": -0.551,
+        "x": -0.166,
+        "y": 0.356,
         "mag": 3.77
-      },
-      {
-        "id": "delta3_tauri",
-        "name": "Delta3 Tauri",
-        "x": 1.112,
-        "y": -0.449,
-        "mag": 4.3
       },
       {
         "id": "epsilon_tauri",
         "name": "Epsilon Tauri",
-        "x": 0.9,
-        "y": -0.108,
+        "x": -0.419,
+        "y": 0.669,
         "mag": 3.53
       },
       {
         "id": "tau_tauri",
         "name": "Tau Tauri",
-        "x": 0.013,
-        "y": 0.924,
+        "x": -1.011,
+        "y": 1.406,
         "mag": 4.27
       },
       {
         "id": "elnath",
         "name": "Elnath",
-        "x": -2.706,
-        "y": 2.624,
+        "x": -2.92,
+        "y": 2.7,
         "mag": 1.65
       },
       {
         "id": "zeta_tauri",
         "name": "Zeta Tauri",
-        "x": -3.6,
-        "y": 0.58,
+        "x": -3.59,
+        "y": 1.264,
         "mag": 2.97
+      },
+      {
+        "id": "lambda_tauri",
+        "name": "Lambda Tauri",
+        "x": 0.86,
+        "y": -0.592,
+        "mag": 3.41
+      },
+      {
+        "id": "mu_tauri",
+        "name": "Mu Tauri",
+        "x": 0.175,
+        "y": -1.285,
+        "mag": 4.27
+      },
+      {
+        "id": "nu_tauri",
+        "name": "Nu Tauri",
+        "x": 0.768,
+        "y": -1.842,
+        "mag": 3.91
+      },
+      {
+        "id": "five_tauri",
+        "name": "5 Tauri",
+        "x": 2.26,
+        "y": -0.461,
+        "mag": 4.14
+      },
+      {
+        "id": "xi_tauri",
+        "name": "Xi Tauri",
+        "x": 2.478,
+        "y": -1.076,
+        "mag": 3.73
+      },
+      {
+        "id": "omicron_tauri",
+        "name": "Omicron Tauri",
+        "x": 2.603,
+        "y": -1.21,
+        "mag": 3.61
       }
     ],
     "connections": [
-      {
-        "from": "zeta_tauri",
-        "to": "aldebaran"
-      },
-      {
-        "from": "aldebaran",
-        "to": "theta2_tauri"
-      },
-      {
-        "from": "theta2_tauri",
-        "to": "gamma_tauri"
-      },
-      {
-        "from": "gamma_tauri",
-        "to": "delta1_tauri"
-      },
-      {
-        "from": "delta1_tauri",
-        "to": "delta3_tauri"
-      },
-      {
-        "from": "delta3_tauri",
-        "to": "epsilon_tauri"
-      },
-      {
-        "from": "epsilon_tauri",
-        "to": "tau_tauri"
-      },
-      {
-        "from": "tau_tauri",
-        "to": "elnath"
-      }
+      { "from": "zeta_tauri", "to": "aldebaran" },
+      { "from": "aldebaran", "to": "theta2_tauri" },
+      { "from": "theta2_tauri", "to": "gamma_tauri" },
+      { "from": "gamma_tauri", "to": "delta1_tauri" },
+      { "from": "delta1_tauri", "to": "epsilon_tauri" },
+      { "from": "epsilon_tauri", "to": "tau_tauri" },
+      { "from": "tau_tauri", "to": "elnath" },
+      { "from": "gamma_tauri", "to": "lambda_tauri" },
+      { "from": "lambda_tauri", "to": "mu_tauri" },
+      { "from": "mu_tauri", "to": "nu_tauri" },
+      { "from": "lambda_tauri", "to": "five_tauri" },
+      { "from": "five_tauri", "to": "xi_tauri" },
+      { "from": "xi_tauri", "to": "omicron_tauri" }
     ]
   },
   "pleiades": {
