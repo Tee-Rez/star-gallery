@@ -21,6 +21,16 @@
       "stars": 15,
       "season": "Autumn",
       "hemisphere": "Northern"
+    },
+    {
+      "id": "taurus",
+      "name": "Taurus",
+      "displayName": "Taurus the Bull",
+      "description": "The Bull of Heaven, older than the Greeks who renamed it. Orange Aldebaran is the eye, the Hyades V is the face, and two long horns run out to Elnath and Zeta Tauri. Step into the Pleiades - the Seven Sisters - and explore each of them in turn.",
+      "path": "app/?c=taurus",
+      "stars": 9,
+      "season": "Winter",
+      "hemisphere": "Northern"
     }
   ]
 }
