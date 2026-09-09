@@ -97,10 +97,7 @@
     <input type="range" id="back" min="15" max="80" step="1" value="42"><span class="val" id="backV">42%</span></label>
 
   <h2>Nails</h2>
-  <label class="chk"><input type="checkbox" id="nFront" checked> Front grid corners</label>
-  <label class="chk"><input type="checkbox" id="nBack" checked> Back grid corners</label>
   <label class="chk"><input type="checkbox" id="nRings"> Every ring&rsquo;s corners</label>
-  <label class="chk"><input type="checkbox" id="nPerim"> Perimeter only (frame)</label>
   <label class="chk"><input type="checkbox" id="nStars" checked> Star points</label>
   <label class="row"><span class="k">Nail dot &oslash; (in)</span>
     <input type="number" id="dot" min="0.02" max="0.2" step="0.01" value="0.06"></label>
@@ -108,9 +105,8 @@
   <h2>Reference guides <span style="text-transform:none;letter-spacing:0;color:#9aa2b0">(not drilled)</span></h2>
   <label class="chk"><input type="checkbox" id="gRings" checked> Depth grid lines</label>
   <label class="chk"><input type="checkbox" id="gWalls" checked> Tunnel wall lines</label>
-  <label class="chk"><input type="checkbox" id="gFace"> Full front-face grid</label>
   <label class="chk"><input type="checkbox" id="gFigure" checked> Constellation figure</label>
-  <label class="chk"><input type="checkbox" id="gNums" checked> Number the stars</label>
+  <label class="chk"><input type="checkbox" id="gNums"> Number the stars</label>
   <label class="chk"><input type="checkbox" id="gScale" checked> Scale bar &amp; corner marks</label>
 
   <div class="btns">
@@ -742,9 +738,8 @@ const state = () => ({
   steps: +$('steps').value,
   back: +$('back').value / 100,
   dot: +$('dot').value,
-  nFront: $('nFront').checked, nBack: $('nBack').checked, nRings: $('nRings').checked,
-  nPerim: $('nPerim').checked, nStars: $('nStars').checked,
-  gRings: $('gRings').checked, gWalls: $('gWalls').checked, gFace: $('gFace').checked,
+  nRings: $('nRings').checked, nStars: $('nStars').checked,
+  gRings: $('gRings').checked, gWalls: $('gWalls').checked,
   gFigure: $('gFigure').checked, gNums: $('gNums').checked, gScale: $('gScale').checked,
 });
 
@@ -782,14 +777,6 @@ function build(){
       parts.push(`<rect x="${U(L).toFixed(2)}" y="${U(T).toFixed(2)}" width="${U(R-L).toFixed(2)}" height="${U(B-T).toFixed(2)}" class="${cls}"/>`);
     }
   }
-  // full front-face lattice (optional, busy)
-  if (s.gFace){
-    const sc = 1;
-    for (let i = 0; i <= cols; i++){ const x = i*cell - W/2;
-      parts.push(line(bx(x,sc), by(H/2,sc), bx(x,sc), by(-H/2,sc), 'g-soft')); }
-    for (let j = 0; j <= rows; j++){ const y = j*cell - H/2;
-      parts.push(line(bx(-W/2,sc), by(y,sc), bx(W/2,sc), by(y,sc), 'g-soft')); }
-  }
   // ---- reference: tunnel wall lines (front perimeter corner -> back, radial) ----
   if (s.gWalls){
     for (let i = 0; i <= cols; i++) for (let j = 0; j <= rows; j++){
@@ -813,7 +800,7 @@ function build(){
   const seen = new Set();
   const addRingNails = (sc) => {
     for (let i = 0; i <= cols; i++) for (let j = 0; j <= rows; j++){
-      if (s.nPerim && !isPerim(i,j)) continue;
+      if (!isPerim(i,j)) continue; // only intersections of tunnel walls with ring rectangles
       const x = i*cell - W/2, y = j*cell - H/2;
       const px = bx(x,sc), py = by(y,sc);
       const key = px.toFixed(3)+','+py.toFixed(3);
@@ -822,7 +809,6 @@ function build(){
     }
   };
   if (s.nRings){ for (let k=0;k<=N;k++) addRingNails(ringScale(k,N,bs)); }
-  else { if (s.nFront) addRingNails(1); if (s.nBack) addRingNails(bs); }
 
   const r = U(s.dot/2);
   const nailMarks = nail.map(p =>
@@ -903,8 +889,8 @@ function build(){
     `Nails: <b>${nail.length}</b>${s.nStars?` + <b>${d.stars.length}</b> stars`:''}`;
 
   const warn = $('warn');
-  if (backSp < 0.18 && (s.nBack || s.nRings)){
-    warn.textContent = `Back nail spacing is ${backSp.toFixed(2)}″ — tight for drilling. Raise "Back size" or inches-per-unit, or turn off back-grid nails.`;
+  if (backSp < 0.18 && s.nRings){
+    warn.textContent = `Back nail spacing is ${backSp.toFixed(2)}″ — tight for drilling. Raise "Back size" or inches-per-unit, or reduce ring steps.`;
     warn.classList.add('on');
   } else warn.classList.remove('on');
 
@@ -946,8 +932,8 @@ $('png').onclick = () => {
 $('print').onclick = () => window.print();
 
 // wire controls
-['c','ipu','margin','steps','back','dot','nFront','nBack','nRings','nPerim','nStars',
- 'gRings','gWalls','gFace','gFigure','gNums','gScale'].forEach(id => {
+['c','ipu','margin','steps','back','dot','nRings','nStars',
+ 'gRings','gWalls','gFigure','gNums','gScale'].forEach(id => {
   $(id).addEventListener('input', build);
   $(id).addEventListener('change', build);
 });
