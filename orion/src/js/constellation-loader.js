@@ -2905,8 +2905,11 @@ const constellationLoaderComponent = {
       }
 
       const entity = document.createElement('a-entity')
-      // Angular size varies hugely; floor it so a small object stays tappable.
-      const radius = Math.max(0.28, Math.min(0.9, (obj.size || 1) * 0.32))
+      // One size for every deep-sky marker, everywhere. Angular size used to drive this,
+      // but the Pleiades' 2 degrees produced a ring four times a bright star's radius, with
+      // a hitbox that outranked every star beneath it. The ring is only a signpost - tapping
+      // it zooms into the object - so it need not represent the object's true extent.
+      const radius = 0.22
       // "Once visited, the ring dims" - seeded here so it survives a reload, and kept
       // in step during the session by deep-sky-layer.dimMarker().
       entity.setAttribute('deep-sky-marker', {
@@ -3328,7 +3331,7 @@ const constellationLoaderComponent = {
       const hit = marker.querySelector('a-sphere.cantap')
       const comp = marker.components['deep-sky-marker']
       if (!hit || !comp) return
-      const base = Math.max(comp.data.radius, 0.35)
+      const base = Math.max(comp.data.radius * 1.5, 0.25)
       hit.setAttribute('radius', base * Math.min(Math.max(distance / 10, 1), 2))
     })
   },

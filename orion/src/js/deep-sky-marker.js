@@ -91,7 +91,9 @@ const deepSkyMarkerComponent = {
       this.el.appendChild(hit)
       this.hitEl = hit
     }
-    hit.setAttribute('radius', Math.max(this.data.radius, 0.35))
+    // Track the ring rather than imposing a floor: a fixed 0.35 would override a smaller
+    // ring and put the tap target straight back over its neighbours.
+    hit.setAttribute('radius', Math.max(this.data.radius * 1.5, 0.25))
 
     // build() can re-run on update() (a non-'visited' data change), so guard against attaching
     // the click listener twice onto the same (or a freshly-created) hit sphere.
