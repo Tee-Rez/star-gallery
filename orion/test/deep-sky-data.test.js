@@ -9,7 +9,7 @@ function test(name, fn) {
   }
 }
 
-const IDS = ['orion', 'andromeda']
+const IDS = ['orion', 'andromeda', 'taurus']
 const DATA = {}
 IDS.forEach((id) => { DATA[id] = require('../src/data/constellations/' + id + '.json') })
 
@@ -23,14 +23,14 @@ test('every deep-sky object declares a layer', () => {
   })
 })
 
-test('exactly the two in-scope objects are in the layer', () => {
+test('exactly the expected objects are in the layer', () => {
   const inLayer = []
   IDS.forEach((id) => {
     (DATA[id].deepSkyObjects || []).forEach((o) => {
       if (o.layer !== 'none') inLayer.push(id + '/' + o.id)
     })
   })
-  assert.deepStrictEqual(inLayer.sort(), ['andromeda/m31', 'orion/m42'])
+  assert.deepStrictEqual(inLayer.sort(), ['andromeda/m31', 'orion/m42', 'taurus/m45'])
 })
 
 test('M42 is a nebula and M31 a galaxy', () => {

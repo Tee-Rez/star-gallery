@@ -1622,6 +1622,811 @@ const constellationLoaderComponent = {
           }
         ]
       },
+      'taurus': {
+        "metadata": {
+          "name": "Taurus",
+          "displayName": "Taurus the Bull",
+          "description": "Taurus is a large, bright constellation of the northern winter sky. The V-shaped Hyades cluster forms the bull’s face with orange Aldebaran as its eye, and two long horns run out to Elnath and Zeta Tauri. It contains the Pleiades, the brightest open cluster in the sky, and the Crab Nebula, the remnant of a star seen to explode in 1054.",
+          "mythology": "Babylonian astronomy knew this figure as GU4.AN.NA, the Bull of Heaven, sent by Ishtar to kill Gilgamesh and destroyed by Enkidu, who threw its hindquarters into the sky. Greek writers told it as Zeus in the form of a white bull carrying off Europa, or as Io transformed into a heifer; Acusilaus named it the Cretan Bull. To the early Hebrews it was the first constellation of the zodiac, marked by the letter Aleph.",
+          "season": "winter",
+          "hemisphere": "northern",
+          "abbreviation": "Tau"
+        },
+        "portal": {
+          "width": 8,
+          "height": 6,
+          "borderColor": "#00ff00",
+          "doorHeight": 6,
+          "doorDuration": 4000,
+          "lineDrawDuration": 1000,
+          "lineDelay": 100,
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 0.1
+          }
+        },
+        "display": {
+          "gridWidth": 8,
+          "gridHeight": 6,
+          "gridSize": 0.5,
+          "gridColor": "#00ff00",
+          "distanceScale": 0.0009,
+          "zDepthScale": 0.7,
+          "scale": {
+            "x": 0.5,
+            "y": 0.5,
+            "z": 0.5
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": -1.5
+          }
+        },
+        "gridBox": {
+          "width": 8,
+          "height": 6,
+          "depth": 6,
+          "cellSize": 0.5,
+          "color": "#00ff00",
+          "opacity": 0.6,
+          "wallZ": -1.6
+        },
+        "stars": [
+          {
+            "id": "aldebaran",
+            "name": "Aldebaran",
+            "designation": "α Tauri",
+            "isMajor": true,
+            "position2D": {
+              "x": 0.431,
+              "y": -0.851
+            },
+            "distance": 65,
+            "magnitude": 0.87,
+            "spectralClass": "K5III",
+            "color": "#ffb066",
+            "size": 0.16,
+            "stellarType": "orange_giant",
+            "physics": {
+              "massSolar": 1.03,
+              "radiusSolar": 45.1,
+              "tempKelvin": 3900,
+              "note": "Primary component, alpha Tauri A; companion alpha Tauri B is a faint M dwarf"
+            },
+            "info": {
+              "basic": "Aldebaran is the bull’s eye, and its name says what it does: al-dabaran, \"the follower\", because it rises behind the Pleiades and chases them across the sky all night. It looks like the brightest member of the Hyades cluster, but it is not a member at all.",
+              "scientific": {
+                "class": "K5 III orange giant",
+                "temperature": "About 3,900 K",
+                "mass": "Roughly the Sun’s mass",
+                "radius": "About 45 times the Sun’s radius",
+                "feature": "Not a Hyades member — it lies 65 light-years away, less than half the cluster’s 153, and merely falls along the same line of sight"
+              }
+            }
+          },
+          {
+            "id": "theta2_tauri",
+            "name": "Theta2 Tauri",
+            "designation": "θ² Tauri (Chamukuy)",
+            "isMajor": true,
+            "position2D": {
+              "x": 0.915,
+              "y": -1.021
+            },
+            "distance": 149,
+            "magnitude": 3.4,
+            "spectralClass": "A7III",
+            "color": "#ffffff",
+            "size": 0.085,
+            "stellarType": "white_giant",
+            "physics": {
+              "massSolar": 2.86,
+              "radiusSolar": 4.4,
+              "tempKelvin": 7800,
+              "note": "Component Aa (Chamukuy); brighter of the theta Tauri pair"
+            },
+            "info": {
+              "basic": "Theta-2 Tauri, or Chamukuy, sits in the Hyades V. It has a near twin, Theta-1, so close beside it that the pair reads as a single point to the unaided eye.",
+              "scientific": {
+                "class": "A7 III white giant",
+                "temperature": "About 7,800 K",
+                "mass": "Roughly 2.9 times the Sun",
+                "radius": "About 4.4 times the Sun",
+                "feature": "The brightest true member of the Hyades cluster"
+              }
+            }
+          },
+          {
+            "id": "gamma_tauri",
+            "name": "Gamma Tauri",
+            "designation": "γ Tauri (Prima Hyadum)",
+            "isMajor": true,
+            "position2D": {
+              "x": 1.509,
+              "y": -1.076
+            },
+            "distance": 154,
+            "magnitude": 3.65,
+            "spectralClass": "G8III",
+            "color": "#fff0c8",
+            "size": 0.08,
+            "stellarType": "yellow_giant",
+            "physics": {
+              "massSolar": 2.7,
+              "radiusSolar": 11.94,
+              "tempKelvin": 4844,
+              "note": "Primary; apex/nose of the Hyades V, red clump giant"
+            },
+            "info": {
+              "basic": "Gamma Tauri, Prima Hyadum — \"the first of the Hyades\" — marks the point of the V where the bull’s face narrows toward the muzzle.",
+              "scientific": {
+                "class": "G8 III yellow giant",
+                "temperature": "About 4,840 K",
+                "mass": "Roughly 2.7 times the Sun",
+                "radius": "About 12 times the Sun",
+                "feature": "A confirmed Hyades member at 154 light-years"
+              }
+            }
+          },
+          {
+            "id": "delta1_tauri",
+            "name": "Delta1 Tauri",
+            "designation": "δ¹ Tauri (Secunda Hyadum)",
+            "isMajor": true,
+            "position2D": {
+              "x": 1.283,
+              "y": -0.551
+            },
+            "distance": 153,
+            "magnitude": 3.77,
+            "spectralClass": "G8III",
+            "color": "#fff0c8",
+            "size": 0.078,
+            "stellarType": "yellow_giant",
+            "physics": {
+              "massSolar": 2.75,
+              "radiusSolar": 14.9,
+              "tempKelvin": 4819,
+              "note": "Component Aa (Secunda Hyadum), the visible evolved giant of a spectroscopic binary"
+            },
+            "info": {
+              "basic": "Delta-1 Tauri, Secunda Hyadum, \"the second of the Hyades\" — the companion name to Gamma, following it across the sky.",
+              "scientific": {
+                "class": "G8 III yellow giant",
+                "temperature": "About 4,820 K",
+                "mass": "Roughly 2.8 times the Sun",
+                "radius": "About 15 times the Sun",
+                "feature": "A Hyades member; one of the cluster’s several evolved giants"
+              }
+            }
+          },
+          {
+            "id": "delta3_tauri",
+            "name": "Delta3 Tauri",
+            "designation": "δ³ Tauri (68 Tauri)",
+            "isMajor": false,
+            "position2D": {
+              "x": 1.112,
+              "y": -0.449
+            },
+            "distance": 148,
+            "magnitude": 4.3,
+            "spectralClass": "A2IV-Vs",
+            "color": "#ffffff",
+            "size": 0.055,
+            "stellarType": "white_subgiant",
+            "physics": {
+              "massSolar": 2.27,
+              "radiusSolar": 2.4,
+              "tempKelvin": 9025,
+              "note": "Primary component; Am chemically peculiar blue straggler"
+            },
+            "info": {
+              "basic": "Delta-3 Tauri, catalogued as 68 Tauri, is a fainter member of the cluster’s upper arm.",
+              "scientific": {
+                "class": "A2 IV subgiant",
+                "temperature": "About 9,000 K",
+                "mass": "Roughly 2.3 times the Sun",
+                "radius": "About 2.4 times the Sun",
+                "feature": "A chemically peculiar Am star, with an unusual surface composition"
+              }
+            }
+          },
+          {
+            "id": "epsilon_tauri",
+            "name": "Epsilon Tauri",
+            "designation": "ε Tauri (Ain)",
+            "isMajor": true,
+            "position2D": {
+              "x": 0.9,
+              "y": -0.108
+            },
+            "distance": 155,
+            "magnitude": 3.53,
+            "spectralClass": "K0III",
+            "color": "#ffb877",
+            "size": 0.085,
+            "stellarType": "orange_giant",
+            "physics": {
+              "massSolar": 2.458,
+              "radiusSolar": 12.46,
+              "tempKelvin": 4880,
+              "note": "Primary (Ain), the northern eye of the bull; hosts exoplanet Epsilon Tauri b (Amateru)"
+            },
+            "info": {
+              "basic": "Epsilon Tauri carries the name Ain, Arabic for \"eye\" — the bull’s second eye, opposite Aldebaran across the face.",
+              "scientific": {
+                "class": "K0 III orange giant",
+                "temperature": "About 4,880 K",
+                "mass": "Roughly 2.5 times the Sun",
+                "radius": "About 12 times the Sun",
+                "feature": "Hosts a confirmed giant planet — one of the few known in an open cluster"
+              }
+            }
+          },
+          {
+            "id": "tau_tauri",
+            "name": "Tau Tauri",
+            "designation": "τ Tauri",
+            "isMajor": false,
+            "position2D": {
+              "x": 0.013,
+              "y": 0.924
+            },
+            "distance": 400,
+            "magnitude": 4.27,
+            "spectralClass": "B3V",
+            "color": "#a8bcff",
+            "size": 0.055,
+            "stellarType": "blue_white_main_sequence",
+            "info": {
+              "basic": "Tau Tauri lies along the line running out to the northern horn tip, well beyond the Hyades and unrelated to them.",
+              "scientific": {
+                "class": "B3 V blue-white main sequence",
+                "temperature": "About 17,000 K",
+                "distance": "Around 400 light-years — far behind the Hyades",
+                "feature": "Mass and radius are not published for this star, so its tone is estimated from its spectral class rather than measured"
+              }
+            }
+          },
+          {
+            "id": "elnath",
+            "name": "Elnath",
+            "designation": "β Tauri",
+            "isMajor": true,
+            "position2D": {
+              "x": -2.706,
+              "y": 2.624
+            },
+            "distance": 131,
+            "magnitude": 1.65,
+            "spectralClass": "B7III",
+            "color": "#bbccff",
+            "size": 0.13,
+            "stellarType": "blue_white_giant",
+            "physics": {
+              "massSolar": 5,
+              "radiusSolar": 4.79,
+              "tempKelvin": 13600,
+              "note": "Primary; mercury-manganese peculiar star; also catalogued as Gamma Aurigae, shared between Taurus and Auriga"
+            },
+            "info": {
+              "basic": "Elnath is the tip of the northern horn. Its name is Arabic, al-nath, \"the butting one\" — the horn doing the goring. It sits on the border with Auriga and was once counted as a star of both figures.",
+              "scientific": {
+                "class": "B7 III blue-white giant",
+                "temperature": "About 13,600 K",
+                "mass": "Roughly 5 times the Sun",
+                "radius": "About 4.8 times the Sun",
+                "feature": "The second-brightest star in Taurus, and shared historically with Auriga as Gamma Aurigae"
+              }
+            }
+          },
+          {
+            "id": "zeta_tauri",
+            "name": "Zeta Tauri",
+            "designation": "ζ Tauri (Tianguan)",
+            "isMajor": true,
+            "position2D": {
+              "x": -3.6,
+              "y": 0.58
+            },
+            "distance": 417,
+            "magnitude": 2.97,
+            "spectralClass": "B4IIIp",
+            "color": "#a8bcff",
+            "size": 0.085,
+            "stellarType": "blue_white_giant",
+            "physics": {
+              "massSolar": 11.2,
+              "radiusSolar": 5.5,
+              "tempKelvin": 15500,
+              "note": "Component A, primary of a single-lined spectroscopic binary; Be shell star"
+            },
+            "info": {
+              "basic": "Zeta Tauri is the tip of the southern horn, and the signpost for the Crab Nebula — the wreck of a star that exploded here in 1054.",
+              "scientific": {
+                "class": "B4 III peculiar blue-white giant",
+                "temperature": "About 15,500 K",
+                "mass": "Roughly 11 times the Sun",
+                "radius": "About 5.5 times the Sun",
+                "feature": "A Be shell star, spinning fast enough to fling out a disc of its own gas"
+              }
+            }
+          }
+        ],
+        "connections": [
+          {
+            "from": "zeta_tauri",
+            "to": "aldebaran",
+            "type": "horn"
+          },
+          {
+            "from": "aldebaran",
+            "to": "theta2_tauri",
+            "type": "face"
+          },
+          {
+            "from": "theta2_tauri",
+            "to": "gamma_tauri",
+            "type": "face"
+          },
+          {
+            "from": "gamma_tauri",
+            "to": "delta1_tauri",
+            "type": "face"
+          },
+          {
+            "from": "delta1_tauri",
+            "to": "delta3_tauri",
+            "type": "face"
+          },
+          {
+            "from": "delta3_tauri",
+            "to": "epsilon_tauri",
+            "type": "face"
+          },
+          {
+            "from": "epsilon_tauri",
+            "to": "tau_tauri",
+            "type": "horn"
+          },
+          {
+            "from": "tau_tauri",
+            "to": "elnath",
+            "type": "horn"
+          }
+        ],
+        "deepSkyObjects": [
+          {
+            "id": "m45",
+            "name": "Pleiades",
+            "designation": "M45, the Seven Sisters",
+            "type": "open_cluster",
+            "layer": "cluster",
+            "position2D": {
+              "x": 3.57,
+              "y": 1.441
+            },
+            "distance": 444,
+            "magnitude": 1.6,
+            "size": 2,
+            "description": "The brightest open cluster in the sky, and the one almost every culture on Earth has named.",
+            "stars": [
+              {
+                "id": "alcyone",
+                "name": "Alcyone",
+                "designation": "η Tauri (25 Tauri)",
+                "isMajor": true,
+                "position2D": {
+                  "x": -1.292,
+                  "y": -0.722
+                },
+                "distance": 440,
+                "magnitude": 2.87,
+                "spectralClass": "B7IIIe",
+                "color": "#bbccff",
+                "size": 0.09,
+                "stellarType": "blue_white_giant",
+                "physics": {
+                  "massSolar": 6,
+                  "radiusSolar": 9.28,
+                  "tempKelvin": 12258,
+                  "note": "5.9-6.1 Msun midpoint; equatorial/polar radius 10.56/8.0 Rsun (rapid rotator, oblate), mean used"
+                },
+                "info": {
+                  "basic": "Alcyone is the brightest of the Seven Sisters and the one the others gather around.",
+                  "scientific": {
+                    "class": "B7 III blue-white giant",
+                    "temperature": "About 12,300 K",
+                    "mass": "Roughly 6 times the Sun",
+                    "feature": "A rapid rotator with a disc of ejected gas"
+                  }
+                }
+              },
+              {
+                "id": "electra",
+                "name": "Electra",
+                "designation": "17 Tauri",
+                "isMajor": true,
+                "position2D": {
+                  "x": 2.247,
+                  "y": -0.671
+                },
+                "distance": 444,
+                "magnitude": 3.7,
+                "spectralClass": "B6IIIe",
+                "color": "#bbccff",
+                "size": 0.08,
+                "stellarType": "blue_white_giant",
+                "physics": {
+                  "massSolar": 4.65,
+                  "radiusSolar": 6.06,
+                  "tempKelvin": 13484,
+                  "note": "4.6-4.7 Msun midpoint"
+                },
+                "info": {
+                  "basic": "Electra, one of the seven sisters, and in some tellings the Lost Pleiad who veiled herself in grief over the fall of Troy.",
+                  "scientific": {
+                    "class": "B6 III blue-white giant",
+                    "temperature": "About 13,500 K",
+                    "mass": "Roughly 4.7 times the Sun",
+                    "feature": "Spins near its break-up speed, flattening it noticeably"
+                  }
+                }
+              },
+              {
+                "id": "maia",
+                "name": "Maia",
+                "designation": "20 Tauri",
+                "isMajor": true,
+                "position2D": {
+                  "x": 0.956,
+                  "y": 0.839
+                },
+                "distance": 444,
+                "magnitude": 3.87,
+                "spectralClass": "B8III",
+                "color": "#bbccff",
+                "size": 0.075,
+                "stellarType": "blue_white_giant",
+                "physics": {
+                  "massSolar": 4.74,
+                  "radiusSolar": 6.61,
+                  "tempKelvin": 12550,
+                  "note": "Primary; illuminates the Maia Nebula (NGC 1432)"
+                },
+                "info": {
+                  "basic": "Maia, eldest of the sisters and in Greek myth the mother of Hermes.",
+                  "scientific": {
+                    "class": "B8 III blue-white giant",
+                    "temperature": "About 12,600 K",
+                    "mass": "Roughly 4.7 times the Sun",
+                    "feature": "Lends its name to the Maia nebulosity the cluster is drifting through"
+                  }
+                }
+              },
+              {
+                "id": "merope",
+                "name": "Merope",
+                "designation": "23 Tauri",
+                "isMajor": true,
+                "position2D": {
+                  "x": 0.28,
+                  "y": -1.655
+                },
+                "distance": 460,
+                "magnitude": 4.18,
+                "spectralClass": "B6IVe",
+                "color": "#a8bcff",
+                "size": 0.062,
+                "stellarType": "blue_white_subgiant",
+                "physics": {
+                  "massSolar": 4.25,
+                  "radiusSolar": 4.79,
+                  "tempKelvin": 14550,
+                  "note": "Primary; illuminates the Merope Nebula (NGC 1435)"
+                },
+                "info": {
+                  "basic": "Merope is the sister who married a mortal and, ashamed, hides her face — the other candidate for the Lost Pleiad.",
+                  "scientific": {
+                    "class": "B6 IV blue-white subgiant",
+                    "temperature": "About 14,600 K",
+                    "mass": "Roughly 4.3 times the Sun",
+                    "feature": "Wrapped in the brightest of the cluster’s reflection nebulae"
+                  }
+                }
+              },
+              {
+                "id": "taygeta",
+                "name": "Taygeta",
+                "designation": "19 Tauri",
+                "isMajor": false,
+                "position2D": {
+                  "x": 1.791,
+                  "y": 1.432
+                },
+                "distance": 410,
+                "magnitude": 4.3,
+                "spectralClass": "B6IV",
+                "color": "#a8bcff",
+                "size": 0.056,
+                "stellarType": "blue_white_subgiant",
+                "physics": {
+                  "massSolar": 4.41,
+                  "radiusSolar": 4.36,
+                  "tempKelvin": 13696,
+                  "note": "Component Aa (19 Tauri Aa, Taygeta); Ab is a fainter companion, mass 3.2 Msun"
+                },
+                "info": {
+                  "basic": "Taygeta, a sister of the Pleiades and in myth a mother of Lacedaemon, founder of Sparta.",
+                  "scientific": {
+                    "class": "B6 IV blue-white subgiant",
+                    "temperature": "About 13,700 K",
+                    "mass": "Roughly 4.4 times the Sun",
+                    "feature": "A spectroscopic binary"
+                  }
+                }
+              },
+              {
+                "id": "celaeno",
+                "name": "Celaeno",
+                "designation": "16 Tauri",
+                "isMajor": false,
+                "position2D": {
+                  "x": 2.342,
+                  "y": 0.376
+                },
+                "distance": 442,
+                "magnitude": 5.45,
+                "spectralClass": "B7V",
+                "color": "#a8bcff",
+                "size": 0.05,
+                "stellarType": "blue_white_main_sequence",
+                "physics": {
+                  "massSolar": 4,
+                  "radiusSolar": 2.34,
+                  "tempKelvin": 12800,
+                  "note": "Primary"
+                },
+                "info": {
+                  "basic": "Celaeno is faint enough that it hovers at the edge of naked-eye visibility, and is sometimes itself called the Lost Pleiad.",
+                  "scientific": {
+                    "class": "B7 V blue-white main sequence",
+                    "temperature": "About 12,800 K",
+                    "mass": "Roughly 4 times the Sun",
+                    "feature": "At magnitude 5.4, visible only in a dark sky"
+                  }
+                }
+              },
+              {
+                "id": "asterope",
+                "name": "Asterope",
+                "designation": "21 Tauri (Sterope)",
+                "isMajor": false,
+                "position2D": {
+                  "x": 0.844,
+                  "y": 1.949
+                },
+                "distance": 431,
+                "magnitude": 5.76,
+                "spectralClass": "B8V",
+                "color": "#a8bcff",
+                "size": 0.05,
+                "stellarType": "blue_white_main_sequence",
+                "info": {
+                  "basic": "Asterope, also called Sterope, is a close double — two stars the eye reads as one faint point.",
+                  "scientific": {
+                    "class": "B8 V blue-white main sequence",
+                    "distance": "About 431 light-years",
+                    "feature": "Mass and radius are not published, so its tone is estimated from its spectral class rather than measured"
+                  }
+                }
+              },
+              {
+                "id": "atlas",
+                "name": "Atlas",
+                "designation": "27 Tauri",
+                "isMajor": true,
+                "position2D": {
+                  "x": -3.569,
+                  "y": -1.022
+                },
+                "distance": 444,
+                "magnitude": 3.63,
+                "spectralClass": "B8III",
+                "color": "#bbccff",
+                "size": 0.08,
+                "stellarType": "blue_white_giant",
+                "physics": {
+                  "massSolar": 5.04,
+                  "radiusSolar": 7.145,
+                  "tempKelvin": 12525,
+                  "note": "Component Aa1 (primary); equatorial/polar radius 7.81/6.48 Rsun (rapid rotator), mean used"
+                },
+                "info": {
+                  "basic": "Atlas is not a sister but their father, the Titan condemned to hold up the sky — fitting company for stars fixed in it.",
+                  "scientific": {
+                    "class": "B8 III blue-white giant",
+                    "temperature": "About 12,500 K",
+                    "mass": "Roughly 5 times the Sun",
+                    "feature": "A triple system"
+                  }
+                }
+              },
+              {
+                "id": "pleione",
+                "name": "Pleione",
+                "designation": "28 Tauri",
+                "isMajor": false,
+                "position2D": {
+                  "x": -3.6,
+                  "y": -0.527
+                },
+                "distance": 450,
+                "magnitude": 5.05,
+                "spectralClass": "B8Vne",
+                "color": "#a8bcff",
+                "size": 0.05,
+                "stellarType": "blue_white_main_sequence",
+                "physics": {
+                  "massSolar": 2.888,
+                  "radiusSolar": 4.17,
+                  "tempKelvin": 11058,
+                  "note": "Primary; Be shell star, variable between about 4.77 and 5.50 mag, 5.05 used as representative"
+                },
+                "info": {
+                  "basic": "Pleione is the mother of the sisters, and the cluster takes its name from her. She sits so close to Atlas that the two look like one star to most eyes.",
+                  "scientific": {
+                    "class": "B8 V shell star",
+                    "temperature": "About 11,100 K",
+                    "mass": "Roughly 2.9 times the Sun",
+                    "feature": "Throws off shells of gas periodically, changing brightness as it does"
+                  }
+                }
+              }
+            ],
+            "connections": [
+              {
+                "from": "atlas",
+                "to": "pleione",
+                "type": "body"
+              },
+              {
+                "from": "atlas",
+                "to": "alcyone",
+                "type": "body"
+              },
+              {
+                "from": "alcyone",
+                "to": "merope",
+                "type": "body"
+              },
+              {
+                "from": "merope",
+                "to": "electra",
+                "type": "body"
+              },
+              {
+                "from": "electra",
+                "to": "celaeno",
+                "type": "body"
+              },
+              {
+                "from": "celaeno",
+                "to": "taygeta",
+                "type": "body"
+              },
+              {
+                "from": "taygeta",
+                "to": "maia",
+                "type": "body"
+              },
+              {
+                "from": "maia",
+                "to": "alcyone",
+                "type": "body"
+              },
+              {
+                "from": "maia",
+                "to": "asterope",
+                "type": "body"
+              }
+            ],
+            "info": {
+              "basic": "The Seven Sisters — daughters of Atlas and Pleione in Greek myth, and half-sisters of the Hyades. Nearly every culture that recorded them counted seven, yet most people see only six, and the \"Lost Pleiad\" stories exist across the world to explain the missing one. Japan calls the cluster Subaru, \"to cluster together\"; Māori call it Matariki; pre-Islamic Arabia knew it as al-Thurayyā. Seven dots on the Nebra sky disc, buried in Germany around 1600 BC, are thought to be these stars.",
+              "scientific": {
+                "type": "Open cluster of over 1,000 stars, about 25% of them brown dwarfs",
+                "distance": "About 444 light-years (Gaia DR3), settling a long dispute after Hipparcos measured a closer 385",
+                "age": "Between 75 and 150 million years — lithium dating suggests about 115 million",
+                "feature": "The blue haze around the brightest sisters is not left over from their birth: it is an unrelated dust cloud the cluster is passing through at about 18 km/s",
+                "future": "Gravitational tugs from the galaxy will disperse it in roughly 250 million years"
+              }
+            },
+            "sources": "Wikipedia, Pleiades; Hesiod, Works and Days; Homer, Iliad; MUL.APIN (by 627 BC); Riccioli, Astronomia Reformata (1665)"
+          },
+          {
+            "id": "m1",
+            "name": "Crab Nebula",
+            "designation": "M1, NGC 1952",
+            "type": "supernova_remnant",
+            "layer": "none",
+            "position2D": {
+              "x": -3.372,
+              "y": 0.809
+            },
+            "distance": 6500,
+            "magnitude": 8.4,
+            "size": 0.1,
+            "description": "The wreckage of a star seen to explode on 4 July 1054, recorded by Chinese astronomers as a guest star bright enough to see in daylight. Not in the explorable layer: a supernova remnant is a filamentary web, which the gas-cloud generator does not honestly represent."
+          }
+        ],
+        "journey": [
+          {
+            "id": "aldebaran",
+            "title": "The Follower",
+            "view": "2d",
+            "centerStarName": "Aldebaran",
+            "targetStarNames": [
+              "Aldebaran"
+            ],
+            "story": "Aldebaran is the bull’s eye, and Arab astronomers named it for what it does rather than what it is: al-dabaran, \"the follower\". It rises behind the Pleiades and pursues them across the sky all night without ever catching them. Ptolemy listed it among his original forty-eight constellations’ brightest stars, and to the early Hebrews Taurus was the first constellation of the zodiac, represented by Aleph, the first letter. The eye is a deception, though. Aldebaran looks like the brightest member of the Hyades cluster spread around it, but it is not a member at all — it sits 65 light-years away, less than half the cluster’s distance, and merely happens to fall along the same line of sight.",
+            "sources": "Wikipedia, Taurus (constellation); Wikipedia, Hyades (star cluster)"
+          },
+          {
+            "id": "hyades",
+            "title": "The Rainy Sisters",
+            "view": "2d",
+            "centerStarName": "Gamma Tauri",
+            "targetStarNames": [
+              "Gamma Tauri",
+              "Delta1 Tauri",
+              "Delta3 Tauri",
+              "Epsilon Tauri",
+              "Theta2 Tauri"
+            ],
+            "story": "The V that forms the bull’s face is the Hyades, the nearest open cluster to us and one of the best studied. In Greek myth they were five daughters of Atlas and half-sisters of the Pleiades; when their brother Hyas died they wept without stopping and were set in the sky, where their rising came to mean rain. England kept the same association under a plainer name, calling them the April Rainers in the folk song Green Grow the Rushes, O. Homer put them on the shield of Achilles in Book 18 of the Iliad. The names of the two brightest carry the order they were seen in: Gamma is Prima Hyadum, the first of the Hyades, and Delta is Secunda Hyadum, the second.",
+            "sources": "Wikipedia, Hyades (star cluster); Homer, Iliad, Book 18"
+          },
+          {
+            "id": "bull_of_heaven",
+            "title": "The Bull of Heaven",
+            "view": "2d",
+            "centerStarName": "Aldebaran",
+            "targetStarNames": [
+              "Aldebaran",
+              "Gamma Tauri",
+              "Elnath"
+            ],
+            "story": "This is one of the oldest figures in the sky, and the stories agree it is a bull even when they agree on nothing else. Babylonian astronomy called it GU4.AN.NA, the Bull of Heaven; in the Epic of Gilgamesh, Ishtar sends that bull to kill Gilgamesh for refusing her, and Enkidu tears off its hindquarters and hurls them into the sky — which is why the figure has no back half. Greek writers made it Zeus, who took the form of a white bull to carry off the Phoenician princess Europa, or else Io, whom Zeus turned into a heifer to hide her from Hera; Acusilaus identified it instead with the Cretan Bull of Heracles. In Egypt the constellation vanished into the Sun’s glare as spring began, and that sacrifice was read as the renewal of the land.",
+            "sources": "Wikipedia, Taurus (constellation); Epic of Gilgamesh; Acusilaus"
+          },
+          {
+            "id": "horns",
+            "title": "The Butting One",
+            "view": "2d",
+            "centerStarName": "Elnath",
+            "targetStarNames": [
+              "Elnath",
+              "Zeta Tauri"
+            ],
+            "story": "Two stars eight degrees apart tip the horns. The northern one is Elnath, from the Arabic al-nath, \"the butting one\" — named for the act, not the animal. It stands on the border with Auriga and was long counted as a star of both figures, carrying the second designation Gamma Aurigae until modern boundaries made constellations exclusive and Taurus kept it. The southern tip is Zeta Tauri, a star spinning fast enough to fling a disc of its own gas into space. It is also a signpost: the wreck of an exploded star lies just off it.",
+            "sources": "Wikipedia, Taurus (constellation)"
+          },
+          {
+            "id": "guest_star",
+            "title": "The Guest Star of 1054",
+            "view": "2d",
+            "centerStarName": "Zeta Tauri",
+            "targetStarNames": [
+              "Zeta Tauri"
+            ],
+            "story": "On 4 July 1054 a star appeared beside the southern horn and reached magnitude −4 — bright enough to be seen in broad daylight. Chinese historical texts recorded it as a guest star. It was not only watched from China: a painting in a New Mexico canyon and pottery from the same period appear to depict the event. Then it faded, and nobody knew what had been there until John Bevis found a small smudge in the same place in 1731. That smudge is the Crab Nebula, the expanding wreckage of the star that exploded, now magnitude 8.4 and needing a telescope. It is one of the very few objects in the sky whose exact birthday is written down.",
+            "sources": "Wikipedia, Taurus (constellation); Chinese historical records of SN 1054"
+          }
+        ]
+      },
     }
 
     return constellations[constellationName] || null
