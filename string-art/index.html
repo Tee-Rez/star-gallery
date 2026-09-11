@@ -127,10 +127,11 @@
 
 <script>
 /* ------------------------------------------------------------------ *
- * Self-contained. Constellation geometry embedded below, pulled from the
- * AR build's data files (orion / andromeda / taurus / pleiades). To add a
- * constellation later, drop another entry into DATA with the same shape,
- * or ask Claude to regenerate this block from the AR data.
+ * Self-contained. Constellation geometry embedded below. 57 constellations:
+ * the 4 AR-app figures (Orion, Andromeda, Taurus, Pleiades) plus 53 others
+ * generated from the constellation brain via tools/gen-all-constellations.mjs.
+ * 31 constellations (Gemini, Hydra, Scorpius, etc.) span too much sky for a
+ * flat board and are omitted — gnomonic projection distorts past ~75 degrees.
  * ------------------------------------------------------------------ */
 const DATA = {
   "orion": {
@@ -606,19 +607,58 @@ const DATA = {
       }
     ],
     "connections": [
-      { "from": "zeta_tauri", "to": "aldebaran" },
-      { "from": "aldebaran", "to": "theta2_tauri" },
-      { "from": "theta2_tauri", "to": "gamma_tauri" },
-      { "from": "gamma_tauri", "to": "delta1_tauri" },
-      { "from": "delta1_tauri", "to": "epsilon_tauri" },
-      { "from": "epsilon_tauri", "to": "tau_tauri" },
-      { "from": "tau_tauri", "to": "elnath" },
-      { "from": "gamma_tauri", "to": "lambda_tauri" },
-      { "from": "lambda_tauri", "to": "mu_tauri" },
-      { "from": "mu_tauri", "to": "nu_tauri" },
-      { "from": "lambda_tauri", "to": "five_tauri" },
-      { "from": "five_tauri", "to": "xi_tauri" },
-      { "from": "xi_tauri", "to": "omicron_tauri" }
+      {
+        "from": "zeta_tauri",
+        "to": "aldebaran"
+      },
+      {
+        "from": "aldebaran",
+        "to": "theta2_tauri"
+      },
+      {
+        "from": "theta2_tauri",
+        "to": "gamma_tauri"
+      },
+      {
+        "from": "gamma_tauri",
+        "to": "delta1_tauri"
+      },
+      {
+        "from": "delta1_tauri",
+        "to": "epsilon_tauri"
+      },
+      {
+        "from": "epsilon_tauri",
+        "to": "tau_tauri"
+      },
+      {
+        "from": "tau_tauri",
+        "to": "elnath"
+      },
+      {
+        "from": "gamma_tauri",
+        "to": "lambda_tauri"
+      },
+      {
+        "from": "lambda_tauri",
+        "to": "mu_tauri"
+      },
+      {
+        "from": "mu_tauri",
+        "to": "nu_tauri"
+      },
+      {
+        "from": "lambda_tauri",
+        "to": "five_tauri"
+      },
+      {
+        "from": "five_tauri",
+        "to": "xi_tauri"
+      },
+      {
+        "from": "xi_tauri",
+        "to": "omicron_tauri"
+      }
     ]
   },
   "pleiades": {
@@ -726,6 +766,4370 @@ const DATA = {
       {
         "from": "alcyone",
         "to": "atlas"
+      }
+    ]
+  },
+  "antlia": {
+    "name": "Antlia",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip51172",
+        "name": "HIP 51172",
+        "x": -5.4,
+        "y": 0.73,
+        "mag": 4.25
+      },
+      {
+        "id": "hip48926",
+        "name": "HIP 48926",
+        "x": 5.4,
+        "y": -0.73,
+        "mag": 5.222
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip51172",
+        "to": "hip48926"
+      }
+    ]
+  },
+  "apus": {
+    "name": "Apus",
+    "portal": {
+      "width": 5,
+      "height": 8
+    },
+    "gridBox": {
+      "width": 5,
+      "height": 8,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip72370",
+        "name": "HIP 72370",
+        "x": 2.207,
+        "y": 1.339,
+        "mag": 3.798
+      },
+      {
+        "id": "hip81065",
+        "name": "HIP 81065",
+        "x": -1.088,
+        "y": 2.2,
+        "mag": 3.854
+      },
+      {
+        "id": "hip81852",
+        "name": "HIP 81852",
+        "x": -1.136,
+        "y": -3.6,
+        "mag": 4.24
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip72370",
+        "to": "hip81065"
+      },
+      {
+        "from": "hip81065",
+        "to": "hip81852"
+      }
+    ]
+  },
+  "ara": {
+    "name": "Ara",
+    "portal": {
+      "width": 4,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 4,
+      "depth": 4,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip88714",
+        "name": "HIP 88714",
+        "x": 1.29,
+        "y": -1.8,
+        "mag": 3.66
+      },
+      {
+        "id": "hip85792",
+        "name": "HIP 85792",
+        "x": -1.754,
+        "y": -0.082,
+        "mag": 2.95
+      },
+      {
+        "id": "hip83081",
+        "name": "HIP 83081",
+        "x": 0.725,
+        "y": 0.818,
+        "mag": 3.076
+      },
+      {
+        "id": "hip82363",
+        "name": "HIP 82363",
+        "x": 0.485,
+        "y": -1.625,
+        "mag": 3.744
+      },
+      {
+        "id": "hip85727",
+        "name": "HIP 85727",
+        "x": -1.111,
+        "y": 0.055,
+        "mag": 3.62
+      },
+      {
+        "id": "hip85267",
+        "name": "HIP 85267",
+        "x": 0.215,
+        "y": 0.982,
+        "mag": 3.34
+      },
+      {
+        "id": "hip85258",
+        "name": "HIP 85258",
+        "x": 0.252,
+        "y": 1.015,
+        "mag": 2.85
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip88714",
+        "to": "hip85792"
+      },
+      {
+        "from": "hip85792",
+        "to": "hip83081"
+      },
+      {
+        "from": "hip83081",
+        "to": "hip82363"
+      },
+      {
+        "from": "hip82363",
+        "to": "hip85727"
+      },
+      {
+        "from": "hip85727",
+        "to": "hip85267"
+      },
+      {
+        "from": "hip85267",
+        "to": "hip85258"
+      },
+      {
+        "from": "hip85258",
+        "to": "hip88714"
+      }
+    ]
+  },
+  "auriga": {
+    "name": "Auriga",
+    "portal": {
+      "width": 4,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 4,
+      "depth": 4,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "mahasim",
+        "name": "Mahasim",
+        "x": -1.628,
+        "y": 0.38,
+        "mag": 2.62
+      },
+      {
+        "id": "menkalinan",
+        "name": "Menkalinan",
+        "x": -1.221,
+        "y": 0.295,
+        "mag": 1.9
+      },
+      {
+        "id": "capella",
+        "name": "Capella",
+        "x": 0.438,
+        "y": 1.772,
+        "mag": 0.08
+      },
+      {
+        "id": "saclateni",
+        "name": "Saclateni",
+        "x": 0.128,
+        "y": -0.834,
+        "mag": 3.75
+      },
+      {
+        "id": "hassaleh",
+        "name": "Hassaleh",
+        "x": 1.8,
+        "y": 0.131,
+        "mag": 2.69
+      },
+      {
+        "id": "elnath",
+        "name": "Elnath",
+        "x": 0.689,
+        "y": -1.195,
+        "mag": 1.65
+      }
+    ],
+    "connections": [
+      {
+        "from": "mahasim",
+        "to": "menkalinan"
+      },
+      {
+        "from": "menkalinan",
+        "to": "capella"
+      },
+      {
+        "from": "capella",
+        "to": "saclateni"
+      },
+      {
+        "from": "saclateni",
+        "to": "hassaleh"
+      },
+      {
+        "from": "elnath",
+        "to": "hassaleh"
+      },
+      {
+        "from": "elnath",
+        "to": "mahasim"
+      }
+    ]
+  },
+  "caelum": {
+    "name": "Caelum",
+    "portal": {
+      "width": 7,
+      "height": 9
+    },
+    "gridBox": {
+      "width": 7,
+      "height": 9,
+      "depth": 7,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip21060",
+        "name": "HIP 21060",
+        "x": 3.122,
+        "y": -4.05,
+        "mag": 5.059
+      },
+      {
+        "id": "hip21770",
+        "name": "HIP 21770",
+        "x": -0.356,
+        "y": 0.993,
+        "mag": 4.45
+      },
+      {
+        "id": "hip21861",
+        "name": "HIP 21861",
+        "x": -1.24,
+        "y": 1.027,
+        "mag": 5.05
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip21060",
+        "to": "hip21770"
+      },
+      {
+        "from": "hip21770",
+        "to": "hip21861"
+      }
+    ]
+  },
+  "camelopardalis": {
+    "name": "Camelopardalis",
+    "portal": {
+      "width": 9,
+      "height": 7
+    },
+    "gridBox": {
+      "width": 9,
+      "height": 7,
+      "depth": 7,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip16228",
+        "name": "HIP 16228",
+        "x": 2.67,
+        "y": -3.15,
+        "mag": 4.22
+      },
+      {
+        "id": "hip18505",
+        "name": "HIP 18505",
+        "x": -1.124,
+        "y": -3.139,
+        "mag": 5.04
+      },
+      {
+        "id": "hip22783",
+        "name": "HIP 22783",
+        "x": -4.017,
+        "y": 2.363,
+        "mag": 4.29
+      },
+      {
+        "id": "hip17959",
+        "name": "HIP 17959",
+        "x": 3.154,
+        "y": 1.04,
+        "mag": 4.604
+      },
+      {
+        "id": "hip25110",
+        "name": "HIP 25110",
+        "x": -0.799,
+        "y": 2.88,
+        "mag": 5
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip16228",
+        "to": "hip18505"
+      },
+      {
+        "from": "hip18505",
+        "to": "hip22783"
+      },
+      {
+        "from": "hip16228",
+        "to": "hip17959"
+      },
+      {
+        "from": "hip17959",
+        "to": "hip22783"
+      },
+      {
+        "from": "hip17959",
+        "to": "hip25110"
+      }
+    ]
+  },
+  "canes_venatici": {
+    "name": "Canes Venatici",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "chara",
+        "name": "Chara",
+        "x": -5.4,
+        "y": 0.551,
+        "mag": 4.25
+      },
+      {
+        "id": "cor_caroli",
+        "name": "Cor Caroli",
+        "x": 5.4,
+        "y": -0.551,
+        "mag": 2.88
+      }
+    ],
+    "connections": [
+      {
+        "from": "chara",
+        "to": "cor_caroli"
+      }
+    ]
+  },
+  "carina": {
+    "name": "Carina",
+    "portal": {
+      "width": 6,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 6,
+      "height": 4,
+      "depth": 5,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "miaplacidus",
+        "name": "Miaplacidus",
+        "x": -0.454,
+        "y": 0.561,
+        "mag": 1.69
+      },
+      {
+        "id": "hip50099",
+        "name": "HIP 50099",
+        "x": -0.019,
+        "y": -1.076,
+        "mag": 3.33
+      },
+      {
+        "id": "hip52419",
+        "name": "HIP 52419",
+        "x": 0.986,
+        "y": -0.813,
+        "mag": 2.76
+      },
+      {
+        "id": "hip52468",
+        "name": "HIP 52468",
+        "x": 1.254,
+        "y": -0.748,
+        "mag": 4.545
+      },
+      {
+        "id": "hip54463",
+        "name": "HIP 54463",
+        "x": 1.327,
+        "y": -0.814,
+        "mag": 3.83
+      },
+      {
+        "id": "hip53253",
+        "name": "HIP 53253",
+        "x": -0.66,
+        "y": 1.052,
+        "mag": 3.79
+      },
+      {
+        "id": "hip51232",
+        "name": "HIP 51232",
+        "x": -0.509,
+        "y": 1.126,
+        "mag": 3.81
+      },
+      {
+        "id": "hip50371",
+        "name": "HIP 50371",
+        "x": 0.982,
+        "y": -1.106,
+        "mag": 3.35
+      },
+      {
+        "id": "aspidiske",
+        "name": "Aspidiske",
+        "x": -1.421,
+        "y": -0.113,
+        "mag": 2.26
+      },
+      {
+        "id": "hip42568",
+        "name": "HIP 42568",
+        "x": 1.336,
+        "y": 0.179,
+        "mag": 4.313
+      },
+      {
+        "id": "avior",
+        "name": "Avior",
+        "x": -0.587,
+        "y": 1.049,
+        "mag": 1.86
+      },
+      {
+        "id": "canopus",
+        "name": "Canopus",
+        "x": -1.504,
+        "y": -1.33,
+        "mag": -0.74
+      },
+      {
+        "id": "hip45080",
+        "name": "HIP 45080",
+        "x": 0.008,
+        "y": 1.206,
+        "mag": 3.4
+      },
+      {
+        "id": "hip31685",
+        "name": "HIP 31685",
+        "x": 1.37,
+        "y": 1.795,
+        "mag": 3.17
+      },
+      {
+        "id": "naos",
+        "name": "Naos",
+        "x": -2.7,
+        "y": -1.411,
+        "mag": 2.25
+      }
+    ],
+    "connections": [
+      {
+        "from": "miaplacidus",
+        "to": "hip50099"
+      },
+      {
+        "from": "hip50099",
+        "to": "hip52419"
+      },
+      {
+        "from": "hip52419",
+        "to": "hip52468"
+      },
+      {
+        "from": "hip52468",
+        "to": "hip54463"
+      },
+      {
+        "from": "hip54463",
+        "to": "hip53253"
+      },
+      {
+        "from": "hip53253",
+        "to": "hip51232"
+      },
+      {
+        "from": "hip51232",
+        "to": "hip50371"
+      },
+      {
+        "from": "hip50371",
+        "to": "aspidiske"
+      },
+      {
+        "from": "hip42568",
+        "to": "avior"
+      },
+      {
+        "from": "avior",
+        "to": "canopus"
+      },
+      {
+        "from": "hip45080",
+        "to": "aspidiske"
+      },
+      {
+        "from": "hip45080",
+        "to": "hip42568"
+      },
+      {
+        "from": "canopus",
+        "to": "hip31685"
+      },
+      {
+        "from": "avior",
+        "to": "naos"
+      }
+    ]
+  },
+  "cassiopeia": {
+    "name": "Cassiopeia",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "segin",
+        "name": "Segin",
+        "x": -2.879,
+        "y": 0.19,
+        "mag": 3.37
+      },
+      {
+        "id": "ruchbah",
+        "name": "Ruchbah",
+        "x": 0.818,
+        "y": -1.276,
+        "mag": 2.68
+      },
+      {
+        "id": "hip4427",
+        "name": "HIP 4427",
+        "x": 4.954,
+        "y": 1.606,
+        "mag": 2.39
+      },
+      {
+        "id": "schedar",
+        "name": "Schedar",
+        "x": -5.4,
+        "y": 0.745,
+        "mag": 2.23
+      },
+      {
+        "id": "caph",
+        "name": "Caph",
+        "x": 2.375,
+        "y": -1.022,
+        "mag": 2.27
+      }
+    ],
+    "connections": [
+      {
+        "from": "segin",
+        "to": "ruchbah"
+      },
+      {
+        "from": "ruchbah",
+        "to": "hip4427"
+      },
+      {
+        "from": "hip4427",
+        "to": "schedar"
+      },
+      {
+        "from": "schedar",
+        "to": "caph"
+      }
+    ]
+  },
+  "centaurus": {
+    "name": "Centaurus",
+    "portal": {
+      "width": 6,
+      "height": 11
+    },
+    "gridBox": {
+      "width": 6,
+      "height": 11,
+      "depth": 8,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "rigil_kentaurus",
+        "name": "Rigil Kentaurus",
+        "x": -1.337,
+        "y": 0.121,
+        "mag": 0.01
+      },
+      {
+        "id": "hadar",
+        "name": "Hadar",
+        "x": 1.61,
+        "y": -0.568,
+        "mag": 0.58
+      },
+      {
+        "id": "hip66657",
+        "name": "HIP 66657",
+        "x": 1.913,
+        "y": 0.038,
+        "mag": 2.3
+      },
+      {
+        "id": "hip68002",
+        "name": "HIP 68002",
+        "x": -1.493,
+        "y": -3.408,
+        "mag": 2.55
+      },
+      {
+        "id": "hip68282",
+        "name": "HIP 68282",
+        "x": 1.023,
+        "y": -4.07,
+        "mag": 3.87
+      },
+      {
+        "id": "hip67472",
+        "name": "HIP 67472",
+        "x": -2.611,
+        "y": 0.564,
+        "mag": 3.43
+      },
+      {
+        "id": "hip67464",
+        "name": "HIP 67464",
+        "x": -2.631,
+        "y": 0.662,
+        "mag": 3.386
+      },
+      {
+        "id": "hip65936",
+        "name": "HIP 65936",
+        "x": -1.49,
+        "y": -4.95,
+        "mag": 3.88
+      },
+      {
+        "id": "hip65109",
+        "name": "HIP 65109",
+        "x": -0.577,
+        "y": 2.411,
+        "mag": 2.73
+      },
+      {
+        "id": "menkent",
+        "name": "Menkent",
+        "x": 2.436,
+        "y": 1.608,
+        "mag": 2.05
+      },
+      {
+        "id": "hip71352",
+        "name": "HIP 71352",
+        "x": -0.185,
+        "y": 2.016,
+        "mag": 2.31
+      },
+      {
+        "id": "hip73334",
+        "name": "HIP 73334",
+        "x": 0.751,
+        "y": 1.932,
+        "mag": 3.11
+      },
+      {
+        "id": "hip61932",
+        "name": "HIP 61932",
+        "x": -0.45,
+        "y": -3.612,
+        "mag": 2.17
+      },
+      {
+        "id": "hip60823",
+        "name": "HIP 60823",
+        "x": 0.75,
+        "y": 1.35,
+        "mag": 3.91
+      },
+      {
+        "id": "hip59196",
+        "name": "HIP 59196",
+        "x": -1.764,
+        "y": 0.619,
+        "mag": 2.52
+      },
+      {
+        "id": "hip56480",
+        "name": "HIP 56480",
+        "x": 1.734,
+        "y": 0.255,
+        "mag": 4.607
+      },
+      {
+        "id": "hip56561",
+        "name": "HIP 56561",
+        "x": 1.038,
+        "y": 0.306,
+        "mag": 3.14
+      }
+    ],
+    "connections": [
+      {
+        "from": "rigil_kentaurus",
+        "to": "hadar"
+      },
+      {
+        "from": "hadar",
+        "to": "hip66657"
+      },
+      {
+        "from": "hip66657",
+        "to": "hip68002"
+      },
+      {
+        "from": "hip68002",
+        "to": "hip68282"
+      },
+      {
+        "from": "hip68282",
+        "to": "hip67472"
+      },
+      {
+        "from": "hip67472",
+        "to": "hip67464"
+      },
+      {
+        "from": "hip67464",
+        "to": "hip65936"
+      },
+      {
+        "from": "hip65936",
+        "to": "hip65109"
+      },
+      {
+        "from": "hip67464",
+        "to": "menkent"
+      },
+      {
+        "from": "hip67472",
+        "to": "hip71352"
+      },
+      {
+        "from": "hip71352",
+        "to": "hip73334"
+      },
+      {
+        "from": "hip68002",
+        "to": "hip61932"
+      },
+      {
+        "from": "hip61932",
+        "to": "hip60823"
+      },
+      {
+        "from": "hip60823",
+        "to": "hip59196"
+      },
+      {
+        "from": "hip59196",
+        "to": "hip56480"
+      },
+      {
+        "from": "hip56480",
+        "to": "hip56561"
+      }
+    ]
+  },
+  "cepheus": {
+    "name": "Cepheus",
+    "portal": {
+      "width": 4,
+      "height": 8
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 8,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip109492",
+        "name": "HIP 109492",
+        "x": -1.291,
+        "y": -3.6,
+        "mag": 3.35
+      },
+      {
+        "id": "hip112724",
+        "name": "HIP 112724",
+        "x": 1.72,
+        "y": 2.795,
+        "mag": 3.54
+      },
+      {
+        "id": "alfirk",
+        "name": "Alfirk",
+        "x": -1.739,
+        "y": 1.971,
+        "mag": 3.23
+      },
+      {
+        "id": "alderamin",
+        "name": "Alderamin",
+        "x": 0.621,
+        "y": -3.094,
+        "mag": 2.46
+      },
+      {
+        "id": "errai",
+        "name": "Errai",
+        "x": 0.656,
+        "y": 1.639,
+        "mag": 5
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip109492",
+        "to": "hip112724"
+      },
+      {
+        "from": "hip112724",
+        "to": "alfirk"
+      },
+      {
+        "from": "alfirk",
+        "to": "alderamin"
+      },
+      {
+        "from": "alderamin",
+        "to": "hip109492"
+      },
+      {
+        "from": "hip112724",
+        "to": "errai"
+      },
+      {
+        "from": "errai",
+        "to": "alfirk"
+      }
+    ]
+  },
+  "chamaeleon": {
+    "name": "Chamaeleon",
+    "portal": {
+      "width": 4,
+      "height": 12
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 12,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip40702",
+        "name": "HIP 40702",
+        "x": 0.445,
+        "y": -5.4,
+        "mag": 4.047
+      },
+      {
+        "id": "hip51839",
+        "name": "HIP 51839",
+        "x": 0.845,
+        "y": 2.816,
+        "mag": 4.12
+      },
+      {
+        "id": "hip60000",
+        "name": "HIP 60000",
+        "x": -1.276,
+        "y": 2.437,
+        "mag": 4.229
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip40702",
+        "to": "hip51839"
+      },
+      {
+        "from": "hip51839",
+        "to": "hip60000"
+      }
+    ]
+  },
+  "circinus": {
+    "name": "Circinus",
+    "portal": {
+      "width": 7,
+      "height": 11
+    },
+    "gridBox": {
+      "width": 7,
+      "height": 11,
+      "depth": 8,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip71908",
+        "name": "HIP 71908",
+        "x": -0.454,
+        "y": -4.84,
+        "mag": 3.19
+      },
+      {
+        "id": "hip75323",
+        "name": "HIP 75323",
+        "x": -2.694,
+        "y": 2.401,
+        "mag": 5
+      },
+      {
+        "id": "hip74824",
+        "name": "HIP 74824",
+        "x": 3.15,
+        "y": 2.137,
+        "mag": 4.057
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip71908",
+        "to": "hip75323"
+      },
+      {
+        "from": "hip71908",
+        "to": "hip74824"
+      }
+    ]
+  },
+  "coma_berenices": {
+    "name": "Coma Berenices",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "diadem",
+        "name": "Diadem",
+        "x": 3.029,
+        "y": -0.681,
+        "mag": 4.32
+      },
+      {
+        "id": "hip64394",
+        "name": "HIP 64394",
+        "x": 0.756,
+        "y": -0.247,
+        "mag": 4.25
+      },
+      {
+        "id": "hip60742",
+        "name": "HIP 60742",
+        "x": -5.4,
+        "y": 1.345,
+        "mag": 4.34
+      }
+    ],
+    "connections": [
+      {
+        "from": "diadem",
+        "to": "hip64394"
+      },
+      {
+        "from": "hip64394",
+        "to": "hip60742"
+      }
+    ]
+  },
+  "corona_australis": {
+    "name": "Corona Australis",
+    "portal": {
+      "width": 11,
+      "height": 7
+    },
+    "gridBox": {
+      "width": 11,
+      "height": 7,
+      "depth": 8,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip91875",
+        "name": "HIP 91875",
+        "x": -3.281,
+        "y": 0.765,
+        "mag": 5.111
+      },
+      {
+        "id": "hip92989",
+        "name": "HIP 92989",
+        "x": 4.888,
+        "y": -3.104,
+        "mag": 5.38
+      },
+      {
+        "id": "hip93174",
+        "name": "HIP 93174",
+        "x": 4.288,
+        "y": -0.452,
+        "mag": 4.85
+      },
+      {
+        "id": "hip93825",
+        "name": "HIP 93825",
+        "x": -1.522,
+        "y": 2.115,
+        "mag": 4.21
+      },
+      {
+        "id": "meridiana",
+        "name": "Meridiana",
+        "x": -3.684,
+        "y": 0.344,
+        "mag": 4.09
+      },
+      {
+        "id": "hip94160",
+        "name": "HIP 94160",
+        "x": -3.824,
+        "y": -0.203,
+        "mag": 4.095
+      },
+      {
+        "id": "hip94005",
+        "name": "HIP 94005",
+        "x": -2.718,
+        "y": 1.014,
+        "mag": 4.571
+      },
+      {
+        "id": "hip93542",
+        "name": "HIP 93542",
+        "x": 0.996,
+        "y": 1.834,
+        "mag": 4.725
+      },
+      {
+        "id": "hip92953",
+        "name": "HIP 92953",
+        "x": 3.87,
+        "y": -3.15,
+        "mag": 5.346
+      },
+      {
+        "id": "hip90887",
+        "name": "HIP 90887",
+        "x": 4.348,
+        "y": -1.86,
+        "mag": 5.155
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip91875",
+        "to": "hip92989"
+      },
+      {
+        "from": "hip92989",
+        "to": "hip93174"
+      },
+      {
+        "from": "hip93174",
+        "to": "hip93825"
+      },
+      {
+        "from": "hip93825",
+        "to": "meridiana"
+      },
+      {
+        "from": "meridiana",
+        "to": "hip94160"
+      },
+      {
+        "from": "hip94160",
+        "to": "hip94005"
+      },
+      {
+        "from": "hip94005",
+        "to": "hip93542"
+      },
+      {
+        "from": "hip93542",
+        "to": "hip92953"
+      },
+      {
+        "from": "hip91875",
+        "to": "hip90887"
+      }
+    ]
+  },
+  "crux": {
+    "name": "Crux",
+    "portal": {
+      "width": 5,
+      "height": 6
+    },
+    "gridBox": {
+      "width": 5,
+      "height": 6,
+      "depth": 5,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "gacrux",
+        "name": "Gacrux",
+        "x": -2.25,
+        "y": 0.134,
+        "mag": 1.64
+      },
+      {
+        "id": "acrux",
+        "name": "Acrux",
+        "x": -0.284,
+        "y": 1.262,
+        "mag": 5
+      },
+      {
+        "id": "mimosa",
+        "name": "Mimosa",
+        "x": 1.526,
+        "y": 0.896,
+        "mag": 1.25
+      },
+      {
+        "id": "imai",
+        "name": "Imai",
+        "x": 1.031,
+        "y": -2.686,
+        "mag": 2.75
+      }
+    ],
+    "connections": [
+      {
+        "from": "gacrux",
+        "to": "acrux"
+      },
+      {
+        "from": "mimosa",
+        "to": "imai"
+      }
+    ]
+  },
+  "cygnus": {
+    "name": "Cygnus",
+    "portal": {
+      "width": 4,
+      "height": 5
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 5,
+      "depth": 4,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip94779",
+        "name": "HIP 94779",
+        "x": -0.395,
+        "y": 1.362,
+        "mag": 3.76
+      },
+      {
+        "id": "hip95853",
+        "name": "HIP 95853",
+        "x": 0.185,
+        "y": -0.085,
+        "mag": 3.755
+      },
+      {
+        "id": "fawaris",
+        "name": "Fawaris",
+        "x": 0.422,
+        "y": 2.25,
+        "mag": 2.87
+      },
+      {
+        "id": "sadr",
+        "name": "Sadr",
+        "x": -0.081,
+        "y": -0.264,
+        "mag": 2.23
+      },
+      {
+        "id": "deneb",
+        "name": "Deneb",
+        "x": 0.685,
+        "y": 0.202,
+        "mag": 1.25
+      },
+      {
+        "id": "aljanah",
+        "name": "Aljanah",
+        "x": 0.096,
+        "y": -0.356,
+        "mag": 2.48
+      },
+      {
+        "id": "hip104732",
+        "name": "HIP 104732",
+        "x": -0.178,
+        "y": -0.407,
+        "mag": 3.21
+      },
+      {
+        "id": "hip107310",
+        "name": "HIP 107310",
+        "x": -1.78,
+        "y": 0.794,
+        "mag": 5
+      },
+      {
+        "id": "hip98110",
+        "name": "HIP 98110",
+        "x": 0.036,
+        "y": -0.343,
+        "mag": 3.88
+      },
+      {
+        "id": "albireo",
+        "name": "Albireo",
+        "x": 0.126,
+        "y": -0.453,
+        "mag": 3.08
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip94779",
+        "to": "hip95853"
+      },
+      {
+        "from": "hip95853",
+        "to": "fawaris"
+      },
+      {
+        "from": "fawaris",
+        "to": "sadr"
+      },
+      {
+        "from": "sadr",
+        "to": "deneb"
+      },
+      {
+        "from": "sadr",
+        "to": "aljanah"
+      },
+      {
+        "from": "aljanah",
+        "to": "hip104732"
+      },
+      {
+        "from": "hip104732",
+        "to": "hip107310"
+      },
+      {
+        "from": "sadr",
+        "to": "hip98110"
+      },
+      {
+        "from": "hip98110",
+        "to": "albireo"
+      }
+    ]
+  },
+  "dorado": {
+    "name": "Dorado",
+    "portal": {
+      "width": 4,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 4,
+      "depth": 4,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip27100",
+        "name": "HIP 27100",
+        "x": 1.116,
+        "y": -1.757,
+        "mag": 4.36
+      },
+      {
+        "id": "hip27890",
+        "name": "HIP 27890",
+        "x": -0.055,
+        "y": 0.669,
+        "mag": 4.66
+      },
+      {
+        "id": "hip26069",
+        "name": "HIP 26069",
+        "x": -1.416,
+        "y": -0.185,
+        "mag": 3.76
+      },
+      {
+        "id": "hip21281",
+        "name": "HIP 21281",
+        "x": 1.8,
+        "y": 0.116,
+        "mag": 3.28
+      },
+      {
+        "id": "hip19893",
+        "name": "HIP 19893",
+        "x": -1.274,
+        "y": 0.968,
+        "mag": 4.2
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip27100",
+        "to": "hip27890"
+      },
+      {
+        "from": "hip27890",
+        "to": "hip26069"
+      },
+      {
+        "from": "hip26069",
+        "to": "hip27100"
+      },
+      {
+        "from": "hip26069",
+        "to": "hip21281"
+      },
+      {
+        "from": "hip21281",
+        "to": "hip19893"
+      }
+    ]
+  },
+  "draco": {
+    "name": "Draco",
+    "portal": {
+      "width": 5,
+      "height": 8
+    },
+    "gridBox": {
+      "width": 5,
+      "height": 8,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "grumium",
+        "name": "Grumium",
+        "x": 1.873,
+        "y": -0.792,
+        "mag": 3.75
+      },
+      {
+        "id": "eltanin",
+        "name": "Eltanin",
+        "x": 0.21,
+        "y": -1.995,
+        "mag": 2.23
+      },
+      {
+        "id": "rastaban",
+        "name": "Rastaban",
+        "x": 0.918,
+        "y": -1.795,
+        "mag": 2.81
+      },
+      {
+        "id": "hip85829",
+        "name": "HIP 85829",
+        "x": -0.316,
+        "y": -1.667,
+        "mag": 5
+      },
+      {
+        "id": "altais",
+        "name": "Altais",
+        "x": -0.101,
+        "y": -0.706,
+        "mag": 3.07
+      },
+      {
+        "id": "hip97433",
+        "name": "HIP 97433",
+        "x": -0.718,
+        "y": 2.415,
+        "mag": 3.91
+      },
+      {
+        "id": "hip94648",
+        "name": "HIP 94648",
+        "x": -0.875,
+        "y": 0.068,
+        "mag": 4.45
+      },
+      {
+        "id": "hip89937",
+        "name": "HIP 89937",
+        "x": 0.297,
+        "y": -0.304,
+        "mag": 3.58
+      },
+      {
+        "id": "aldhibah",
+        "name": "Aldhibah",
+        "x": -0.897,
+        "y": -0.624,
+        "mag": 3.17
+      },
+      {
+        "id": "athebyne",
+        "name": "Athebyne",
+        "x": -2.25,
+        "y": 1.718,
+        "mag": 2.74
+      },
+      {
+        "id": "hip78527",
+        "name": "HIP 78527",
+        "x": -1.35,
+        "y": 3.583,
+        "mag": 4
+      },
+      {
+        "id": "edasich",
+        "name": "Edasich",
+        "x": 0.651,
+        "y": -1.287,
+        "mag": 3.29
+      },
+      {
+        "id": "thuban",
+        "name": "Thuban",
+        "x": 2.024,
+        "y": 0.935,
+        "mag": 3.68
+      },
+      {
+        "id": "hip61281",
+        "name": "HIP 61281",
+        "x": -1.082,
+        "y": -0.103,
+        "mag": 3.89
+      },
+      {
+        "id": "giausar",
+        "name": "Giausar",
+        "x": 1.414,
+        "y": 1.817,
+        "mag": 3.85
+      }
+    ],
+    "connections": [
+      {
+        "from": "grumium",
+        "to": "eltanin"
+      },
+      {
+        "from": "eltanin",
+        "to": "rastaban"
+      },
+      {
+        "from": "rastaban",
+        "to": "hip85829"
+      },
+      {
+        "from": "hip85829",
+        "to": "grumium"
+      },
+      {
+        "from": "grumium",
+        "to": "altais"
+      },
+      {
+        "from": "altais",
+        "to": "hip97433"
+      },
+      {
+        "from": "hip97433",
+        "to": "hip94648"
+      },
+      {
+        "from": "hip94648",
+        "to": "hip89937"
+      },
+      {
+        "from": "hip89937",
+        "to": "aldhibah"
+      },
+      {
+        "from": "aldhibah",
+        "to": "athebyne"
+      },
+      {
+        "from": "athebyne",
+        "to": "hip78527"
+      },
+      {
+        "from": "hip78527",
+        "to": "edasich"
+      },
+      {
+        "from": "edasich",
+        "to": "thuban"
+      },
+      {
+        "from": "thuban",
+        "to": "hip61281"
+      },
+      {
+        "from": "hip61281",
+        "to": "giausar"
+      }
+    ]
+  },
+  "fornax": {
+    "name": "Fornax",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip13147",
+        "name": "HIP 13147",
+        "x": -5.4,
+        "y": -0.714,
+        "mag": 4.46
+      },
+      {
+        "id": "dalim",
+        "name": "Dalim",
+        "x": 5.4,
+        "y": 0.714,
+        "mag": 3.98
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip13147",
+        "to": "dalim"
+      }
+    ]
+  },
+  "grus": {
+    "name": "Grus",
+    "portal": {
+      "width": 6,
+      "height": 11
+    },
+    "gridBox": {
+      "width": 6,
+      "height": 11,
+      "depth": 8,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip114131",
+        "name": "HIP 114131",
+        "x": 0.762,
+        "y": 2.7,
+        "mag": 4.332
+      },
+      {
+        "id": "hip110997",
+        "name": "HIP 110997",
+        "x": -0.881,
+        "y": -4.338,
+        "mag": 3.97
+      },
+      {
+        "id": "alnair",
+        "name": "Alnair",
+        "x": 2.441,
+        "y": -2.759,
+        "mag": 1.71
+      },
+      {
+        "id": "tiaki",
+        "name": "Tiaki",
+        "x": 0.037,
+        "y": 2.467,
+        "mag": 2.11
+      },
+      {
+        "id": "hip114421",
+        "name": "HIP 114421",
+        "x": -1.786,
+        "y": 2.095,
+        "mag": 3.877
+      },
+      {
+        "id": "hip113638",
+        "name": "HIP 113638",
+        "x": 2.555,
+        "y": -0.835,
+        "mag": 4.115
+      },
+      {
+        "id": "hip112623",
+        "name": "HIP 112623",
+        "x": -2.645,
+        "y": -0.089,
+        "mag": 3.466
+      },
+      {
+        "id": "hip109111",
+        "name": "HIP 109111",
+        "x": 1.272,
+        "y": -4.95,
+        "mag": 4.458
+      },
+      {
+        "id": "aldhanab",
+        "name": "Aldhanab",
+        "x": -1.388,
+        "y": 3.229,
+        "mag": 3.01
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip114131",
+        "to": "hip110997"
+      },
+      {
+        "from": "hip110997",
+        "to": "alnair"
+      },
+      {
+        "from": "alnair",
+        "to": "tiaki"
+      },
+      {
+        "from": "tiaki",
+        "to": "hip114421"
+      },
+      {
+        "from": "hip114421",
+        "to": "hip114131"
+      },
+      {
+        "from": "tiaki",
+        "to": "hip113638"
+      },
+      {
+        "from": "tiaki",
+        "to": "hip112623"
+      },
+      {
+        "from": "alnair",
+        "to": "hip109111"
+      },
+      {
+        "from": "hip109111",
+        "to": "aldhanab"
+      }
+    ]
+  },
+  "hercules": {
+    "name": "Hercules",
+    "portal": {
+      "width": 8,
+      "height": 7
+    },
+    "gridBox": {
+      "width": 8,
+      "height": 7,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip86414",
+        "name": "HIP 86414",
+        "x": -0.744,
+        "y": -0.656,
+        "mag": 3.8
+      },
+      {
+        "id": "hip87808",
+        "name": "HIP 87808",
+        "x": 1.64,
+        "y": -0.109,
+        "mag": 3.88
+      },
+      {
+        "id": "hip85112",
+        "name": "HIP 85112",
+        "x": -0.209,
+        "y": 2.49,
+        "mag": 4.17
+      },
+      {
+        "id": "hip84606",
+        "name": "HIP 84606",
+        "x": -1.731,
+        "y": 0.176,
+        "mag": 4.65
+      },
+      {
+        "id": "hip84380",
+        "name": "HIP 84380",
+        "x": -1.206,
+        "y": -0.771,
+        "mag": 3.18
+      },
+      {
+        "id": "hip81833",
+        "name": "HIP 81833",
+        "x": 1.101,
+        "y": -0.731,
+        "mag": 3.5
+      },
+      {
+        "id": "hip81126",
+        "name": "HIP 81126",
+        "x": 0.139,
+        "y": 2.016,
+        "mag": 4.196
+      },
+      {
+        "id": "hip79992",
+        "name": "HIP 79992",
+        "x": 0.399,
+        "y": -0.821,
+        "mag": 3.87
+      },
+      {
+        "id": "hip77760",
+        "name": "HIP 77760",
+        "x": 0.975,
+        "y": -0.642,
+        "mag": 4.62
+      },
+      {
+        "id": "hip81693",
+        "name": "HIP 81693",
+        "x": 1.901,
+        "y": -0.384,
+        "mag": 2.8
+      },
+      {
+        "id": "kornephoros",
+        "name": "Kornephoros",
+        "x": -3.584,
+        "y": 3.15,
+        "mag": 2.77
+      },
+      {
+        "id": "hip80170",
+        "name": "HIP 80170",
+        "x": -0.448,
+        "y": -2.361,
+        "mag": 3.76
+      },
+      {
+        "id": "hip83207",
+        "name": "HIP 83207",
+        "x": 1.009,
+        "y": 3.096,
+        "mag": 3.92
+      },
+      {
+        "id": "maasym",
+        "name": "Maasym",
+        "x": 2.603,
+        "y": -0.045,
+        "mag": 4.41
+      },
+      {
+        "id": "sarin",
+        "name": "Sarin",
+        "x": -1.804,
+        "y": -1.274,
+        "mag": 3.13
+      },
+      {
+        "id": "hip86974",
+        "name": "HIP 86974",
+        "x": -2.117,
+        "y": 2.864,
+        "mag": 3.42
+      },
+      {
+        "id": "hip87933",
+        "name": "HIP 87933",
+        "x": 1.71,
+        "y": -0.9,
+        "mag": 3.7
+      },
+      {
+        "id": "hip88794",
+        "name": "HIP 88794",
+        "x": -2.31,
+        "y": -0.071,
+        "mag": 3.827
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip86414",
+        "to": "hip87808"
+      },
+      {
+        "from": "hip87808",
+        "to": "hip85112"
+      },
+      {
+        "from": "hip85112",
+        "to": "hip84606"
+      },
+      {
+        "from": "hip84606",
+        "to": "hip84380"
+      },
+      {
+        "from": "hip84380",
+        "to": "hip81833"
+      },
+      {
+        "from": "hip81833",
+        "to": "hip81126"
+      },
+      {
+        "from": "hip81126",
+        "to": "hip79992"
+      },
+      {
+        "from": "hip79992",
+        "to": "hip77760"
+      },
+      {
+        "from": "hip81833",
+        "to": "hip81693"
+      },
+      {
+        "from": "hip81693",
+        "to": "kornephoros"
+      },
+      {
+        "from": "kornephoros",
+        "to": "hip80170"
+      },
+      {
+        "from": "hip81693",
+        "to": "hip83207"
+      },
+      {
+        "from": "hip83207",
+        "to": "maasym"
+      },
+      {
+        "from": "maasym",
+        "to": "sarin"
+      },
+      {
+        "from": "hip86974",
+        "to": "hip87933"
+      },
+      {
+        "from": "hip87933",
+        "to": "hip88794"
+      },
+      {
+        "from": "hip83207",
+        "to": "hip84380"
+      },
+      {
+        "from": "hip86974",
+        "to": "maasym"
+      }
+    ]
+  },
+  "horologium": {
+    "name": "Horologium",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip19747",
+        "name": "HIP 19747",
+        "x": 5.4,
+        "y": 0.534,
+        "mag": 3.86
+      },
+      {
+        "id": "hip12484",
+        "name": "HIP 12484",
+        "x": -3.56,
+        "y": -0.5,
+        "mag": 5.21
+      },
+      {
+        "id": "hip14240",
+        "name": "HIP 14240",
+        "x": -1.149,
+        "y": 0.021,
+        "mag": 5.122
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip19747",
+        "to": "hip12484"
+      },
+      {
+        "from": "hip12484",
+        "to": "hip14240"
+      }
+    ]
+  },
+  "hydrus": {
+    "name": "Hydrus",
+    "portal": {
+      "width": 5,
+      "height": 8
+    },
+    "gridBox": {
+      "width": 5,
+      "height": 8,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip2021",
+        "name": "HIP 2021",
+        "x": -1.762,
+        "y": -1.096,
+        "mag": 2.79
+      },
+      {
+        "id": "hip17678",
+        "name": "HIP 17678",
+        "x": -2.128,
+        "y": -1.452,
+        "mag": 3.26
+      },
+      {
+        "id": "hip12394",
+        "name": "HIP 12394",
+        "x": 2.228,
+        "y": -3.017,
+        "mag": 4.096
+      },
+      {
+        "id": "hip11001",
+        "name": "HIP 11001",
+        "x": 1.663,
+        "y": 1.989,
+        "mag": 4.09
+      },
+      {
+        "id": "hip9236",
+        "name": "HIP 9236",
+        "x": 0.143,
+        "y": 3.6,
+        "mag": 2.84
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip2021",
+        "to": "hip17678"
+      },
+      {
+        "from": "hip17678",
+        "to": "hip12394"
+      },
+      {
+        "from": "hip12394",
+        "to": "hip11001"
+      },
+      {
+        "from": "hip11001",
+        "to": "hip9236"
+      }
+    ]
+  },
+  "indus": {
+    "name": "Indus",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip105319",
+        "name": "HIP 105319",
+        "x": 2.298,
+        "y": 0.731,
+        "mag": 4.483
+      },
+      {
+        "id": "hip101772",
+        "name": "HIP 101772",
+        "x": -5.4,
+        "y": -1.301,
+        "mag": 3.11
+      },
+      {
+        "id": "hip103227",
+        "name": "HIP 103227",
+        "x": 1.918,
+        "y": 0.29,
+        "mag": 3.65
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip105319",
+        "to": "hip101772"
+      },
+      {
+        "from": "hip101772",
+        "to": "hip103227"
+      },
+      {
+        "from": "hip103227",
+        "to": "hip105319"
+      }
+    ]
+  },
+  "lacerta": {
+    "name": "Lacerta",
+    "portal": {
+      "width": 4,
+      "height": 12
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 12,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip109937",
+        "name": "HIP 109937",
+        "x": 0.623,
+        "y": 5.4,
+        "mag": 4.15
+      },
+      {
+        "id": "hip111104",
+        "name": "HIP 111104",
+        "x": -0.907,
+        "y": -0.692,
+        "mag": 4.511
+      },
+      {
+        "id": "hip111022",
+        "name": "HIP 111022",
+        "x": -0.5,
+        "y": -0.665,
+        "mag": 4.37
+      },
+      {
+        "id": "hip110609",
+        "name": "HIP 110609",
+        "x": 1.033,
+        "y": -0.291,
+        "mag": 4.58
+      },
+      {
+        "id": "hip110538",
+        "name": "HIP 110538",
+        "x": 1.169,
+        "y": 0.017,
+        "mag": 4.44
+      },
+      {
+        "id": "hip111169",
+        "name": "HIP 111169",
+        "x": -0.966,
+        "y": -0.304,
+        "mag": 3.77
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip109937",
+        "to": "hip111104"
+      },
+      {
+        "from": "hip111104",
+        "to": "hip111022"
+      },
+      {
+        "from": "hip111022",
+        "to": "hip110609"
+      },
+      {
+        "from": "hip110609",
+        "to": "hip110538"
+      },
+      {
+        "from": "hip110538",
+        "to": "hip111169"
+      },
+      {
+        "from": "hip111169",
+        "to": "hip111022"
+      }
+    ]
+  },
+  "leo_minor": {
+    "name": "Leo Minor",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "praecipua",
+        "name": "Praecipua",
+        "x": 0.043,
+        "y": -0.79,
+        "mag": 3.83
+      },
+      {
+        "id": "hip51233",
+        "name": "HIP 51233",
+        "x": 0.341,
+        "y": -0.559,
+        "mag": 4.21
+      },
+      {
+        "id": "hip49593",
+        "name": "HIP 49593",
+        "x": -5.4,
+        "y": 1.2,
+        "mag": 4.49
+      },
+      {
+        "id": "hip46952",
+        "name": "HIP 46952",
+        "x": 4.302,
+        "y": 0.699,
+        "mag": 4.6
+      }
+    ],
+    "connections": [
+      {
+        "from": "praecipua",
+        "to": "hip51233"
+      },
+      {
+        "from": "hip51233",
+        "to": "hip49593"
+      },
+      {
+        "from": "hip49593",
+        "to": "hip46952"
+      },
+      {
+        "from": "hip49593",
+        "to": "praecipua"
+      }
+    ]
+  },
+  "lupus": {
+    "name": "Lupus",
+    "portal": {
+      "width": 4,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 4,
+      "depth": 4,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip77634",
+        "name": "HIP 77634",
+        "x": -1.459,
+        "y": -1.8,
+        "mag": 3.946
+      },
+      {
+        "id": "hip78970",
+        "name": "HIP 78970",
+        "x": -0.338,
+        "y": 1.411,
+        "mag": 5.7
+      },
+      {
+        "id": "hip78384",
+        "name": "HIP 78384",
+        "x": 1.659,
+        "y": -0.122,
+        "mag": 3.41
+      },
+      {
+        "id": "hip76297",
+        "name": "HIP 76297",
+        "x": 1.496,
+        "y": -0.066,
+        "mag": 2.765
+      },
+      {
+        "id": "hip75141",
+        "name": "HIP 75141",
+        "x": -1.438,
+        "y": 0.262,
+        "mag": 3.19
+      },
+      {
+        "id": "hip75177",
+        "name": "HIP 75177",
+        "x": -1.737,
+        "y": 0.144,
+        "mag": 3.546
+      },
+      {
+        "id": "hip73273",
+        "name": "HIP 73273",
+        "x": -1.379,
+        "y": -0.571,
+        "mag": 2.68
+      },
+      {
+        "id": "hip76552",
+        "name": "HIP 76552",
+        "x": 0.961,
+        "y": 0.807,
+        "mag": 4.33
+      },
+      {
+        "id": "hip74395",
+        "name": "HIP 74395",
+        "x": 0.806,
+        "y": 0.439,
+        "mag": 3.41
+      },
+      {
+        "id": "hip71860",
+        "name": "HIP 71860",
+        "x": 0.982,
+        "y": -0.951,
+        "mag": 2.286
+      },
+      {
+        "id": "hip71536",
+        "name": "HIP 71536",
+        "x": -0.167,
+        "y": -1.343,
+        "mag": 4.05
+      },
+      {
+        "id": "hip70576",
+        "name": "HIP 70576",
+        "x": -0.092,
+        "y": 1.063,
+        "mag": 4.35
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip77634",
+        "to": "hip78970"
+      },
+      {
+        "from": "hip78970",
+        "to": "hip78384"
+      },
+      {
+        "from": "hip78384",
+        "to": "hip77634"
+      },
+      {
+        "from": "hip78384",
+        "to": "hip76297"
+      },
+      {
+        "from": "hip76297",
+        "to": "hip75141"
+      },
+      {
+        "from": "hip75141",
+        "to": "hip75177"
+      },
+      {
+        "from": "hip75141",
+        "to": "hip73273"
+      },
+      {
+        "from": "hip76297",
+        "to": "hip76552"
+      },
+      {
+        "from": "hip76552",
+        "to": "hip74395"
+      },
+      {
+        "from": "hip74395",
+        "to": "hip71860"
+      },
+      {
+        "from": "hip74395",
+        "to": "hip71536"
+      },
+      {
+        "from": "hip71860",
+        "to": "hip70576"
+      },
+      {
+        "from": "hip71860",
+        "to": "hip73273"
+      }
+    ]
+  },
+  "lynx": {
+    "name": "Lynx",
+    "portal": {
+      "width": 7,
+      "height": 6
+    },
+    "gridBox": {
+      "width": 7,
+      "height": 6,
+      "depth": 5,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip45860",
+        "name": "HIP 45860",
+        "x": 2.394,
+        "y": -2.357,
+        "mag": 3.14
+      },
+      {
+        "id": "hip45688",
+        "name": "HIP 45688",
+        "x": 3.15,
+        "y": -0.684,
+        "mag": 3.92
+      },
+      {
+        "id": "hip44700",
+        "name": "HIP 44700",
+        "x": -3.013,
+        "y": 1.083,
+        "mag": 4.539
+      },
+      {
+        "id": "hip44248",
+        "name": "HIP 44248",
+        "x": -1.05,
+        "y": -2.307,
+        "mag": 3.96
+      },
+      {
+        "id": "alsciaukat",
+        "name": "Alsciaukat",
+        "x": 1.029,
+        "y": 2.673,
+        "mag": 4.25
+      },
+      {
+        "id": "hip36145",
+        "name": "HIP 36145",
+        "x": -1.915,
+        "y": 1.136,
+        "mag": 4.61
+      },
+      {
+        "id": "hip33449",
+        "name": "HIP 33449",
+        "x": -1.244,
+        "y": -0.713,
+        "mag": 4.35
+      },
+      {
+        "id": "hip30060",
+        "name": "HIP 30060",
+        "x": 1.263,
+        "y": 0.934,
+        "mag": 4.434
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip45860",
+        "to": "hip45688"
+      },
+      {
+        "from": "hip45688",
+        "to": "hip44700"
+      },
+      {
+        "from": "hip44700",
+        "to": "hip44248"
+      },
+      {
+        "from": "hip44248",
+        "to": "alsciaukat"
+      },
+      {
+        "from": "alsciaukat",
+        "to": "hip36145"
+      },
+      {
+        "from": "hip36145",
+        "to": "hip33449"
+      },
+      {
+        "from": "hip33449",
+        "to": "hip30060"
+      }
+    ]
+  },
+  "lyra": {
+    "name": "Lyra",
+    "portal": {
+      "width": 7,
+      "height": 10
+    },
+    "gridBox": {
+      "width": 7,
+      "height": 10,
+      "depth": 8,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "vega",
+        "name": "Vega",
+        "x": -2.756,
+        "y": 0.548,
+        "mag": 0.03
+      },
+      {
+        "id": "hip91971",
+        "name": "HIP 91971",
+        "x": 1.566,
+        "y": 4.472,
+        "mag": 4.36
+      },
+      {
+        "id": "sheliak",
+        "name": "Sheliak",
+        "x": 3.15,
+        "y": 0.064,
+        "mag": 3.42
+      },
+      {
+        "id": "sulafat",
+        "name": "Sulafat",
+        "x": -1.922,
+        "y": -1.418,
+        "mag": 3.25
+      },
+      {
+        "id": "hip92791",
+        "name": "HIP 92791",
+        "x": 0.7,
+        "y": -1.648,
+        "mag": 4.3
+      }
+    ],
+    "connections": [
+      {
+        "from": "vega",
+        "to": "hip91971"
+      },
+      {
+        "from": "hip91971",
+        "to": "sheliak"
+      },
+      {
+        "from": "sheliak",
+        "to": "sulafat"
+      },
+      {
+        "from": "sulafat",
+        "to": "hip92791"
+      },
+      {
+        "from": "hip92791",
+        "to": "hip91971"
+      }
+    ]
+  },
+  "mensa": {
+    "name": "Mensa",
+    "portal": {
+      "width": 4,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 4,
+      "depth": 4,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip25918",
+        "name": "HIP 25918",
+        "x": 1.8,
+        "y": -1.745,
+        "mag": 5.2
+      },
+      {
+        "id": "hip21949",
+        "name": "HIP 21949",
+        "x": -1.8,
+        "y": 1.745,
+        "mag": 5.511
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip25918",
+        "to": "hip21949"
+      }
+    ]
+  },
+  "microscopium": {
+    "name": "Microscopium",
+    "portal": {
+      "width": 10,
+      "height": 7
+    },
+    "gridBox": {
+      "width": 10,
+      "height": 7,
+      "depth": 8,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip105140",
+        "name": "HIP 105140",
+        "x": 0.254,
+        "y": 0.723,
+        "mag": 4.708
+      },
+      {
+        "id": "hip103738",
+        "name": "HIP 103738",
+        "x": -4.477,
+        "y": -3.15,
+        "mag": 4.654
+      },
+      {
+        "id": "hip102831",
+        "name": "HIP 102831",
+        "x": 1.347,
+        "y": 0.298,
+        "mag": 4.89
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip105140",
+        "to": "hip103738"
+      },
+      {
+        "from": "hip103738",
+        "to": "hip102831"
+      }
+    ]
+  },
+  "musca": {
+    "name": "Musca",
+    "portal": {
+      "width": 4,
+      "height": 8
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 8,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip62322",
+        "name": "HIP 62322",
+        "x": -1.8,
+        "y": -3.472,
+        "mag": 5
+      },
+      {
+        "id": "hip57363",
+        "name": "HIP 57363",
+        "x": 0.338,
+        "y": 1.66,
+        "mag": 3.65
+      },
+      {
+        "id": "hip61199",
+        "name": "HIP 61199",
+        "x": 1.787,
+        "y": 0.102,
+        "mag": 3.88
+      },
+      {
+        "id": "hip61585",
+        "name": "HIP 61585",
+        "x": -0.506,
+        "y": 1.329,
+        "mag": 2.649
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip62322",
+        "to": "hip57363"
+      },
+      {
+        "from": "hip57363",
+        "to": "hip61199"
+      },
+      {
+        "from": "hip61199",
+        "to": "hip61585"
+      },
+      {
+        "from": "hip61585",
+        "to": "hip62322"
+      }
+    ]
+  },
+  "norma": {
+    "name": "Norma",
+    "portal": {
+      "width": 7,
+      "height": 9
+    },
+    "gridBox": {
+      "width": 7,
+      "height": 9,
+      "depth": 7,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip79509",
+        "name": "HIP 79509",
+        "x": 0.485,
+        "y": -4.05,
+        "mag": 4.94
+      },
+      {
+        "id": "hip80000",
+        "name": "HIP 80000",
+        "x": 3.109,
+        "y": -0.242,
+        "mag": 4.02
+      },
+      {
+        "id": "hip80582",
+        "name": "HIP 80582",
+        "x": -1.281,
+        "y": 2.025,
+        "mag": 4.521
+      },
+      {
+        "id": "hip78639",
+        "name": "HIP 78639",
+        "x": -1.966,
+        "y": 1.473,
+        "mag": 4.643
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip79509",
+        "to": "hip80000"
+      },
+      {
+        "from": "hip80000",
+        "to": "hip80582"
+      },
+      {
+        "from": "hip80582",
+        "to": "hip78639"
+      },
+      {
+        "from": "hip78639",
+        "to": "hip80000"
+      },
+      {
+        "from": "hip78639",
+        "to": "hip79509"
+      }
+    ]
+  },
+  "octans": {
+    "name": "Octans",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip107089",
+        "name": "HIP 107089",
+        "x": -5.4,
+        "y": 0.207,
+        "mag": 3.728
+      },
+      {
+        "id": "hip112405",
+        "name": "HIP 112405",
+        "x": 3.825,
+        "y": -1.052,
+        "mag": 4.128
+      },
+      {
+        "id": "hip70638",
+        "name": "HIP 70638",
+        "x": 1.506,
+        "y": 0.839,
+        "mag": 4.304
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip107089",
+        "to": "hip112405"
+      },
+      {
+        "from": "hip112405",
+        "to": "hip70638"
+      },
+      {
+        "from": "hip70638",
+        "to": "hip107089"
+      }
+    ]
+  },
+  "pavo": {
+    "name": "Pavo",
+    "portal": {
+      "width": 5,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 5,
+      "height": 4,
+      "depth": 4,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "peacock",
+        "name": "Peacock",
+        "x": 2.25,
+        "y": -1.424,
+        "mag": 1.92
+      },
+      {
+        "id": "hip105858",
+        "name": "HIP 105858",
+        "x": -0.921,
+        "y": 1.28,
+        "mag": 4.22
+      },
+      {
+        "id": "hip102395",
+        "name": "HIP 102395",
+        "x": -0.653,
+        "y": -1.796,
+        "mag": 3.408
+      },
+      {
+        "id": "hip99240",
+        "name": "HIP 99240",
+        "x": 0.032,
+        "y": 1.476,
+        "mag": 3.56
+      },
+      {
+        "id": "hip98495",
+        "name": "HIP 98495",
+        "x": 1.056,
+        "y": -0.742,
+        "mag": 3.94
+      },
+      {
+        "id": "hip91792",
+        "name": "HIP 91792",
+        "x": 0.685,
+        "y": -1.31,
+        "mag": 4.003
+      },
+      {
+        "id": "hip93015",
+        "name": "HIP 93015",
+        "x": -1.236,
+        "y": 0.821,
+        "mag": 4.4
+      },
+      {
+        "id": "hip92609",
+        "name": "HIP 92609",
+        "x": 0.58,
+        "y": 1.709,
+        "mag": 4.207
+      },
+      {
+        "id": "hip90098",
+        "name": "HIP 90098",
+        "x": 1.976,
+        "y": 0.443,
+        "mag": 4.367
+      },
+      {
+        "id": "hip88866",
+        "name": "HIP 88866",
+        "x": -1.854,
+        "y": 0.208,
+        "mag": 4.328
+      },
+      {
+        "id": "hip86929",
+        "name": "HIP 86929",
+        "x": -1.715,
+        "y": -0.837,
+        "mag": 3.581
+      }
+    ],
+    "connections": [
+      {
+        "from": "peacock",
+        "to": "hip105858"
+      },
+      {
+        "from": "hip105858",
+        "to": "hip102395"
+      },
+      {
+        "from": "hip102395",
+        "to": "hip99240"
+      },
+      {
+        "from": "hip99240",
+        "to": "peacock"
+      },
+      {
+        "from": "hip99240",
+        "to": "hip98495"
+      },
+      {
+        "from": "hip98495",
+        "to": "hip91792"
+      },
+      {
+        "from": "hip91792",
+        "to": "hip93015"
+      },
+      {
+        "from": "hip93015",
+        "to": "hip99240"
+      },
+      {
+        "from": "hip93015",
+        "to": "hip92609"
+      },
+      {
+        "from": "hip92609",
+        "to": "hip90098"
+      },
+      {
+        "from": "hip90098",
+        "to": "hip88866"
+      },
+      {
+        "from": "hip88866",
+        "to": "hip92609"
+      },
+      {
+        "from": "hip88866",
+        "to": "hip86929"
+      }
+    ]
+  },
+  "perseus": {
+    "name": "Perseus",
+    "portal": {
+      "width": 4,
+      "height": 8
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 8,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "atik",
+        "name": "Atik",
+        "x": -0.874,
+        "y": 3.519,
+        "mag": 3.91
+      },
+      {
+        "id": "hip18246",
+        "name": "HIP 18246",
+        "x": 1.522,
+        "y": -0.801,
+        "mag": 2.85
+      },
+      {
+        "id": "menkib",
+        "name": "Menkib",
+        "x": -0.369,
+        "y": -1.186,
+        "mag": 4.06
+      },
+      {
+        "id": "hip18532",
+        "name": "HIP 18532",
+        "x": 0.037,
+        "y": -1.052,
+        "mag": 2.89
+      },
+      {
+        "id": "hip17358",
+        "name": "HIP 17358",
+        "x": -0.869,
+        "y": 1.541,
+        "mag": 3.01
+      },
+      {
+        "id": "mirfak",
+        "name": "Mirfak",
+        "x": 1.099,
+        "y": 0.993,
+        "mag": 1.79
+      },
+      {
+        "id": "hip14328",
+        "name": "HIP 14328",
+        "x": 0.609,
+        "y": -0.409,
+        "mag": 2.93
+      },
+      {
+        "id": "miram",
+        "name": "Miram",
+        "x": -0.9,
+        "y": 0.75,
+        "mag": 3.79
+      },
+      {
+        "id": "algol",
+        "name": "Algol",
+        "x": -0.15,
+        "y": -1.01,
+        "mag": 2.12
+      },
+      {
+        "id": "hip14354",
+        "name": "HIP 14354",
+        "x": 0.836,
+        "y": -0.878,
+        "mag": 3.39
+      },
+      {
+        "id": "hip13254",
+        "name": "HIP 13254",
+        "x": -1.8,
+        "y": 1.144,
+        "mag": 5
+      }
+    ],
+    "connections": [
+      {
+        "from": "atik",
+        "to": "hip18246"
+      },
+      {
+        "from": "hip18246",
+        "to": "menkib"
+      },
+      {
+        "from": "menkib",
+        "to": "hip18532"
+      },
+      {
+        "from": "hip18532",
+        "to": "hip17358"
+      },
+      {
+        "from": "hip17358",
+        "to": "mirfak"
+      },
+      {
+        "from": "mirfak",
+        "to": "hip14328"
+      },
+      {
+        "from": "hip14328",
+        "to": "miram"
+      },
+      {
+        "from": "mirfak",
+        "to": "algol"
+      },
+      {
+        "from": "algol",
+        "to": "hip14354"
+      },
+      {
+        "from": "hip14354",
+        "to": "hip13254"
+      }
+    ]
+  },
+  "phoenix": {
+    "name": "Phoenix",
+    "portal": {
+      "width": 4,
+      "height": 9
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 9,
+      "depth": 7,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "wurren",
+        "name": "Wurren",
+        "x": -1.004,
+        "y": 0.242,
+        "mag": 4.01
+      },
+      {
+        "id": "hip5165",
+        "name": "HIP 5165",
+        "x": -0.493,
+        "y": 0.945,
+        "mag": 3.3
+      },
+      {
+        "id": "hip2072",
+        "name": "HIP 2072",
+        "x": -0.694,
+        "y": -3.783,
+        "mag": 3.94
+      },
+      {
+        "id": "hip7083",
+        "name": "HIP 7083",
+        "x": -0.473,
+        "y": 0.844,
+        "mag": 3.935
+      },
+      {
+        "id": "hip8837",
+        "name": "HIP 8837",
+        "x": 0.546,
+        "y": 0.949,
+        "mag": 4.41
+      },
+      {
+        "id": "hip6867",
+        "name": "HIP 6867",
+        "x": 0.653,
+        "y": 1.062,
+        "mag": 3.42
+      },
+      {
+        "id": "ankaa",
+        "name": "Ankaa",
+        "x": -0.679,
+        "y": -4.035,
+        "mag": 2.38
+      },
+      {
+        "id": "hip765",
+        "name": "HIP 765",
+        "x": 1.8,
+        "y": -0.031,
+        "mag": 3.87
+      }
+    ],
+    "connections": [
+      {
+        "from": "wurren",
+        "to": "hip5165"
+      },
+      {
+        "from": "hip5165",
+        "to": "hip2072"
+      },
+      {
+        "from": "hip2072",
+        "to": "wurren"
+      },
+      {
+        "from": "hip5165",
+        "to": "hip7083"
+      },
+      {
+        "from": "hip7083",
+        "to": "hip8837"
+      },
+      {
+        "from": "hip8837",
+        "to": "hip5165"
+      },
+      {
+        "from": "hip5165",
+        "to": "hip6867"
+      },
+      {
+        "from": "hip6867",
+        "to": "hip2072"
+      },
+      {
+        "from": "hip2072",
+        "to": "ankaa"
+      },
+      {
+        "from": "ankaa",
+        "to": "hip765"
+      },
+      {
+        "from": "hip765",
+        "to": "hip2072"
+      }
+    ]
+  },
+  "pictor": {
+    "name": "Pictor",
+    "portal": {
+      "width": 11,
+      "height": 12
+    },
+    "gridBox": {
+      "width": 11,
+      "height": 12,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip32607",
+        "name": "HIP 32607",
+        "x": -4.95,
+        "y": -5.232,
+        "mag": 3.23
+      },
+      {
+        "id": "hip27530",
+        "name": "HIP 27530",
+        "x": 0.295,
+        "y": 2.334,
+        "mag": 4.494
+      },
+      {
+        "id": "hip27321",
+        "name": "HIP 27321",
+        "x": 3.979,
+        "y": 2.017,
+        "mag": 3.86
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip32607",
+        "to": "hip27530"
+      },
+      {
+        "from": "hip27530",
+        "to": "hip27321"
+      }
+    ]
+  },
+  "puppis": {
+    "name": "Puppis",
+    "portal": {
+      "width": 10,
+      "height": 9
+    },
+    "gridBox": {
+      "width": 10,
+      "height": 9,
+      "depth": 8,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "tureis",
+        "name": "Tureis",
+        "x": 0.847,
+        "y": 2.54,
+        "mag": 2.81
+      },
+      {
+        "id": "hip38146",
+        "name": "HIP 38146",
+        "x": -4.481,
+        "y": 0.194,
+        "mag": 5.313
+      },
+      {
+        "id": "hip35264",
+        "name": "HIP 35264",
+        "x": 0.676,
+        "y": 1.585,
+        "mag": 2.7
+      },
+      {
+        "id": "hip31685",
+        "name": "HIP 31685",
+        "x": -2.192,
+        "y": -3.275,
+        "mag": 3.17
+      },
+      {
+        "id": "hip32768",
+        "name": "HIP 32768",
+        "x": 1.218,
+        "y": 0.506,
+        "mag": 2.93
+      },
+      {
+        "id": "hip36377",
+        "name": "HIP 36377",
+        "x": -1.448,
+        "y": -4.05,
+        "mag": 3.25
+      },
+      {
+        "id": "naos",
+        "name": "Naos",
+        "x": 2.419,
+        "y": 0.137,
+        "mag": 2.25
+      }
+    ],
+    "connections": [
+      {
+        "from": "tureis",
+        "to": "hip38146"
+      },
+      {
+        "from": "hip38146",
+        "to": "hip35264"
+      },
+      {
+        "from": "hip35264",
+        "to": "hip31685"
+      },
+      {
+        "from": "hip31685",
+        "to": "hip32768"
+      },
+      {
+        "from": "hip32768",
+        "to": "hip36377"
+      },
+      {
+        "from": "hip36377",
+        "to": "naos"
+      },
+      {
+        "from": "naos",
+        "to": "tureis"
+      }
+    ]
+  },
+  "pyxis": {
+    "name": "Pyxis",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip42515",
+        "name": "HIP 42515",
+        "x": 2.436,
+        "y": -0.167,
+        "mag": 3.954
+      },
+      {
+        "id": "hip42828",
+        "name": "HIP 42828",
+        "x": 0.422,
+        "y": 0.78,
+        "mag": 3.68
+      },
+      {
+        "id": "hip43409",
+        "name": "HIP 43409",
+        "x": -5.4,
+        "y": -1.589,
+        "mag": 4.01
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip42515",
+        "to": "hip42828"
+      },
+      {
+        "from": "hip42828",
+        "to": "hip43409"
+      }
+    ]
+  },
+  "reticulum": {
+    "name": "Reticulum",
+    "portal": {
+      "width": 4,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 4,
+      "depth": 4,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip19780",
+        "name": "HIP 19780",
+        "x": 0.431,
+        "y": 0.968,
+        "mag": 3.36
+      },
+      {
+        "id": "hip19921",
+        "name": "HIP 19921",
+        "x": -0.491,
+        "y": 1.176,
+        "mag": 4.44
+      },
+      {
+        "id": "hip18597",
+        "name": "HIP 18597",
+        "x": -1.788,
+        "y": -1.8,
+        "mag": 4.57
+      },
+      {
+        "id": "hip17440",
+        "name": "HIP 17440",
+        "x": 1.686,
+        "y": -0.641,
+        "mag": 3.833
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip19780",
+        "to": "hip19921"
+      },
+      {
+        "from": "hip19921",
+        "to": "hip18597"
+      },
+      {
+        "from": "hip18597",
+        "to": "hip17440"
+      },
+      {
+        "from": "hip17440",
+        "to": "hip19780"
+      }
+    ]
+  },
+  "sculptor": {
+    "name": "Sculptor",
+    "portal": {
+      "width": 12,
+      "height": 7
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 7,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip116231",
+        "name": "HIP 116231",
+        "x": 1.716,
+        "y": 0.142,
+        "mag": 4.37
+      },
+      {
+        "id": "hip4577",
+        "name": "HIP 4577",
+        "x": 0.451,
+        "y": 1.029,
+        "mag": 4.27
+      },
+      {
+        "id": "hip115102",
+        "name": "HIP 115102",
+        "x": -5.349,
+        "y": -3.15,
+        "mag": 4.406
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip116231",
+        "to": "hip4577"
+      },
+      {
+        "from": "hip4577",
+        "to": "hip115102"
+      },
+      {
+        "from": "hip115102",
+        "to": "hip116231"
+      }
+    ]
+  },
+  "sextans": {
+    "name": "Sextans",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip51437",
+        "name": "HIP 51437",
+        "x": 5.4,
+        "y": -0.037,
+        "mag": 5.1
+      },
+      {
+        "id": "hip49641",
+        "name": "HIP 49641",
+        "x": -5.4,
+        "y": 0.037,
+        "mag": 4.49
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip51437",
+        "to": "hip49641"
+      }
+    ]
+  },
+  "telescopium": {
+    "name": "Telescopium",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip90568",
+        "name": "HIP 90568",
+        "x": -5.4,
+        "y": -0.956,
+        "mag": 4.11
+      },
+      {
+        "id": "hip90422",
+        "name": "HIP 90422",
+        "x": 5.4,
+        "y": 0.956,
+        "mag": 3.463
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip90568",
+        "to": "hip90422"
+      }
+    ]
+  },
+  "triangulum": {
+    "name": "Triangulum",
+    "portal": {
+      "width": 11,
+      "height": 5
+    },
+    "gridBox": {
+      "width": 11,
+      "height": 5,
+      "depth": 8,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip10670",
+        "name": "HIP 10670",
+        "x": -0.881,
+        "y": -0.523,
+        "mag": 4
+      },
+      {
+        "id": "hip10064",
+        "name": "HIP 10064",
+        "x": 4.895,
+        "y": 2.25,
+        "mag": 3
+      },
+      {
+        "id": "mothallah",
+        "name": "Mothallah",
+        "x": -1.54,
+        "y": -0.577,
+        "mag": 3.42
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip10670",
+        "to": "hip10064"
+      },
+      {
+        "from": "hip10064",
+        "to": "mothallah"
+      },
+      {
+        "from": "mothallah",
+        "to": "hip10670"
+      }
+    ]
+  },
+  "triangulum_australe": {
+    "name": "Triangulum Australe",
+    "portal": {
+      "width": 4,
+      "height": 12
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 12,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "atria",
+        "name": "Atria",
+        "x": -1.598,
+        "y": 1.916,
+        "mag": 1.88
+      },
+      {
+        "id": "hip74946",
+        "name": "HIP 74946",
+        "x": 0.058,
+        "y": -5.4,
+        "mag": 2.89
+      },
+      {
+        "id": "hip77952",
+        "name": "HIP 77952",
+        "x": 1.588,
+        "y": 3.036,
+        "mag": 2.85
+      }
+    ],
+    "connections": [
+      {
+        "from": "atria",
+        "to": "hip74946"
+      },
+      {
+        "from": "hip74946",
+        "to": "hip77952"
+      },
+      {
+        "from": "hip77952",
+        "to": "atria"
+      }
+    ]
+  },
+  "tucana": {
+    "name": "Tucana",
+    "portal": {
+      "width": 8,
+      "height": 7
+    },
+    "gridBox": {
+      "width": 8,
+      "height": 7,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip110130",
+        "name": "HIP 110130",
+        "x": 2.727,
+        "y": 1.385,
+        "mag": 2.82
+      },
+      {
+        "id": "hip114996",
+        "name": "HIP 114996",
+        "x": -3.587,
+        "y": 0.496,
+        "mag": 3.98
+      },
+      {
+        "id": "hip1599",
+        "name": "HIP 1599",
+        "x": -1.873,
+        "y": -3.15,
+        "mag": 4.23
+      },
+      {
+        "id": "hip2484",
+        "name": "HIP 2484",
+        "x": 2.473,
+        "y": 1.137,
+        "mag": 4.289
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip110130",
+        "to": "hip114996"
+      },
+      {
+        "from": "hip114996",
+        "to": "hip1599"
+      },
+      {
+        "from": "hip114996",
+        "to": "hip2484"
+      }
+    ]
+  },
+  "ursa_major": {
+    "name": "Ursa Major",
+    "portal": {
+      "width": 4,
+      "height": 6
+    },
+    "gridBox": {
+      "width": 4,
+      "height": 6,
+      "depth": 5,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "alkaid",
+        "name": "Alkaid",
+        "x": -1.607,
+        "y": 1.44,
+        "mag": 1.86
+      },
+      {
+        "id": "mizar",
+        "name": "Mizar",
+        "x": -0.94,
+        "y": 1.723,
+        "mag": 5
+      },
+      {
+        "id": "alioth",
+        "name": "Alioth",
+        "x": -1.256,
+        "y": 0.081,
+        "mag": 1.77
+      },
+      {
+        "id": "megrez",
+        "name": "Megrez",
+        "x": 1.223,
+        "y": 1.064,
+        "mag": 3.32
+      },
+      {
+        "id": "dubhe",
+        "name": "Dubhe",
+        "x": 0.92,
+        "y": -0.035,
+        "mag": 1.79
+      },
+      {
+        "id": "merak",
+        "name": "Merak",
+        "x": 1.328,
+        "y": 0.449,
+        "mag": 2.37
+      },
+      {
+        "id": "phecda",
+        "name": "Phecda",
+        "x": 1.266,
+        "y": -0.141,
+        "mag": 2.44
+      },
+      {
+        "id": "taiyangshou",
+        "name": "Taiyangshou",
+        "x": 0.069,
+        "y": 2.7,
+        "mag": 3.72
+      },
+      {
+        "id": "hip54539",
+        "name": "HIP 54539",
+        "x": -0.591,
+        "y": -1.199,
+        "mag": 3.01
+      },
+      {
+        "id": "tania_borealis",
+        "name": "Tania Borealis",
+        "x": 0.376,
+        "y": -1.333,
+        "mag": 3.45
+      },
+      {
+        "id": "tania_australis",
+        "name": "Tania Australis",
+        "x": -1.797,
+        "y": -0.541,
+        "mag": 3.05
+      },
+      {
+        "id": "hip48402",
+        "name": "HIP 48402",
+        "x": 0.226,
+        "y": -0.846,
+        "mag": 4.557
+      },
+      {
+        "id": "hip46853",
+        "name": "HIP 46853",
+        "x": -1.444,
+        "y": -0.012,
+        "mag": 3.18
+      },
+      {
+        "id": "alkaphrah",
+        "name": "Alkaphrah",
+        "x": -0.406,
+        "y": -1.116,
+        "mag": 3.55
+      },
+      {
+        "id": "talitha",
+        "name": "Talitha",
+        "x": 1.181,
+        "y": -0.67,
+        "mag": 3.14
+      },
+      {
+        "id": "hip48319",
+        "name": "HIP 48319",
+        "x": 0.476,
+        "y": -0.568,
+        "mag": 3.81
+      },
+      {
+        "id": "muscida",
+        "name": "Muscida",
+        "x": 1.118,
+        "y": 0.671,
+        "mag": 3.42
+      },
+      {
+        "id": "hip46733",
+        "name": "HIP 46733",
+        "x": -0.779,
+        "y": -0.146,
+        "mag": 3.67
+      }
+    ],
+    "connections": [
+      {
+        "from": "alkaid",
+        "to": "mizar"
+      },
+      {
+        "from": "mizar",
+        "to": "alioth"
+      },
+      {
+        "from": "alioth",
+        "to": "megrez"
+      },
+      {
+        "from": "megrez",
+        "to": "dubhe"
+      },
+      {
+        "from": "dubhe",
+        "to": "merak"
+      },
+      {
+        "from": "merak",
+        "to": "phecda"
+      },
+      {
+        "from": "phecda",
+        "to": "megrez"
+      },
+      {
+        "from": "phecda",
+        "to": "taiyangshou"
+      },
+      {
+        "from": "taiyangshou",
+        "to": "hip54539"
+      },
+      {
+        "from": "hip54539",
+        "to": "tania_borealis"
+      },
+      {
+        "from": "hip54539",
+        "to": "tania_australis"
+      },
+      {
+        "from": "merak",
+        "to": "hip48402"
+      },
+      {
+        "from": "hip48402",
+        "to": "hip46853"
+      },
+      {
+        "from": "hip46853",
+        "to": "alkaphrah"
+      },
+      {
+        "from": "hip46853",
+        "to": "talitha"
+      },
+      {
+        "from": "hip48402",
+        "to": "hip48319"
+      },
+      {
+        "from": "hip48319",
+        "to": "muscida"
+      },
+      {
+        "from": "muscida",
+        "to": "hip46733"
+      },
+      {
+        "from": "hip46733",
+        "to": "dubhe"
+      }
+    ]
+  },
+  "ursa_minor": {
+    "name": "Ursa Minor",
+    "portal": {
+      "width": 12,
+      "height": 11
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 11,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "polaris",
+        "name": "Polaris",
+        "x": -0.162,
+        "y": 1.55,
+        "mag": 2.02
+      },
+      {
+        "id": "yildun",
+        "name": "Yildun",
+        "x": -1.145,
+        "y": 1.097,
+        "mag": 4.34
+      },
+      {
+        "id": "hip82080",
+        "name": "HIP 82080",
+        "x": -1.965,
+        "y": 3.316,
+        "mag": 4.212
+      },
+      {
+        "id": "hip77055",
+        "name": "HIP 77055",
+        "x": 2.225,
+        "y": -2.222,
+        "mag": 4.274
+      },
+      {
+        "id": "hip79822",
+        "name": "HIP 79822",
+        "x": -4.987,
+        "y": 1.105,
+        "mag": 5
+      },
+      {
+        "id": "pherkad",
+        "name": "Pherkad",
+        "x": 0.674,
+        "y": -4.941,
+        "mag": 3
+      },
+      {
+        "id": "kochab",
+        "name": "Kochab",
+        "x": 5.4,
+        "y": 0.023,
+        "mag": 2.08
+      }
+    ],
+    "connections": [
+      {
+        "from": "polaris",
+        "to": "yildun"
+      },
+      {
+        "from": "yildun",
+        "to": "hip82080"
+      },
+      {
+        "from": "hip82080",
+        "to": "hip77055"
+      },
+      {
+        "from": "hip77055",
+        "to": "hip79822"
+      },
+      {
+        "from": "hip79822",
+        "to": "pherkad"
+      },
+      {
+        "from": "pherkad",
+        "to": "kochab"
+      },
+      {
+        "from": "kochab",
+        "to": "hip77055"
+      }
+    ]
+  },
+  "vela": {
+    "name": "Vela",
+    "portal": {
+      "width": 8,
+      "height": 5
+    },
+    "gridBox": {
+      "width": 8,
+      "height": 5,
+      "depth": 6,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip39953",
+        "name": "HIP 39953",
+        "x": 2.47,
+        "y": 0.2,
+        "mag": 1.83
+      },
+      {
+        "id": "hip42536",
+        "name": "HIP 42536",
+        "x": -0.839,
+        "y": 0.771,
+        "mag": 3.63
+      },
+      {
+        "id": "alsephina",
+        "name": "Alsephina",
+        "x": -2.606,
+        "y": -1.223,
+        "mag": 5
+      },
+      {
+        "id": "markeb",
+        "name": "Markeb",
+        "x": 2.736,
+        "y": -1.902,
+        "mag": 2.47
+      },
+      {
+        "id": "hip48774",
+        "name": "HIP 48774",
+        "x": -1.378,
+        "y": 0.392,
+        "mag": 3.45
+      },
+      {
+        "id": "hip52727",
+        "name": "HIP 52727",
+        "x": -1.395,
+        "y": 0.799,
+        "mag": 2.69
+      },
+      {
+        "id": "hip51986",
+        "name": "HIP 51986",
+        "x": 3.575,
+        "y": -2.25,
+        "mag": 3.84
+      },
+      {
+        "id": "hip50191",
+        "name": "HIP 50191",
+        "x": 3.171,
+        "y": 0.157,
+        "mag": 3.85
+      },
+      {
+        "id": "hip46651",
+        "name": "HIP 46651",
+        "x": -1.263,
+        "y": 1.582,
+        "mag": 3.6
+      },
+      {
+        "id": "suhail",
+        "name": "Suhail",
+        "x": -2.796,
+        "y": 0.365,
+        "mag": 2.21
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip39953",
+        "to": "hip42536"
+      },
+      {
+        "from": "hip42536",
+        "to": "alsephina"
+      },
+      {
+        "from": "alsephina",
+        "to": "markeb"
+      },
+      {
+        "from": "markeb",
+        "to": "hip48774"
+      },
+      {
+        "from": "hip48774",
+        "to": "hip52727"
+      },
+      {
+        "from": "hip52727",
+        "to": "hip51986"
+      },
+      {
+        "from": "hip51986",
+        "to": "hip50191"
+      },
+      {
+        "from": "hip50191",
+        "to": "hip46651"
+      },
+      {
+        "from": "hip46651",
+        "to": "suhail"
+      },
+      {
+        "from": "suhail",
+        "to": "hip39953"
+      }
+    ]
+  },
+  "volans": {
+    "name": "Volans",
+    "portal": {
+      "width": 7,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 7,
+      "height": 4,
+      "depth": 5,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "hip37504",
+        "name": "HIP 37504",
+        "x": -0.469,
+        "y": 0.834,
+        "mag": 3.944
+      },
+      {
+        "id": "hip34481",
+        "name": "HIP 34481",
+        "x": 2.542,
+        "y": -1.8,
+        "mag": 3.746
+      },
+      {
+        "id": "hip39794",
+        "name": "HIP 39794",
+        "x": -1.192,
+        "y": 1.124,
+        "mag": 4.398
+      },
+      {
+        "id": "hip35228",
+        "name": "HIP 35228",
+        "x": -0.691,
+        "y": 1.393,
+        "mag": 3.99
+      },
+      {
+        "id": "hip41312",
+        "name": "HIP 41312",
+        "x": 3.08,
+        "y": -0.646,
+        "mag": 3.759
+      },
+      {
+        "id": "hip44382",
+        "name": "HIP 44382",
+        "x": -3.143,
+        "y": -1.154,
+        "mag": 3.99
+      }
+    ],
+    "connections": [
+      {
+        "from": "hip37504",
+        "to": "hip34481"
+      },
+      {
+        "from": "hip34481",
+        "to": "hip39794"
+      },
+      {
+        "from": "hip39794",
+        "to": "hip37504"
+      },
+      {
+        "from": "hip39794",
+        "to": "hip35228"
+      },
+      {
+        "from": "hip39794",
+        "to": "hip41312"
+      },
+      {
+        "from": "hip41312",
+        "to": "hip44382"
+      },
+      {
+        "from": "hip44382",
+        "to": "hip39794"
+      }
+    ]
+  },
+  "vulpecula": {
+    "name": "Vulpecula",
+    "portal": {
+      "width": 12,
+      "height": 4
+    },
+    "gridBox": {
+      "width": 12,
+      "height": 4,
+      "depth": 9,
+      "cellSize": 0.5
+    },
+    "stars": [
+      {
+        "id": "anser",
+        "name": "Anser",
+        "x": 5.4,
+        "y": -0.237,
+        "mag": 4.45
+      },
+      {
+        "id": "hip98543",
+        "name": "HIP 98543",
+        "x": -5.4,
+        "y": 0.237,
+        "mag": 4.651
+      }
+    ],
+    "connections": [
+      {
+        "from": "anser",
+        "to": "hip98543"
       }
     ]
   }
