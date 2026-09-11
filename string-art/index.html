@@ -84,6 +84,14 @@
   <div class="readout" id="board"></div>
   <p class="warn" id="warn"></p>
 
+  <h2>My board</h2>
+  <label class="row"><span class="k">Width (in)</span>
+    <input type="number" id="brdW" min="4" max="96" step="0.125" placeholder="e.g. 24"></label>
+  <label class="row"><span class="k">Height (in)</span>
+    <input type="number" id="brdH" min="4" max="96" step="0.125" placeholder="e.g. 18"></label>
+  <button id="fitBtn" style="margin:6px 0 2px;width:100%">Fit to board</button>
+  <div class="readout" id="cutplan" style="display:none;margin-top:6px;font-size:11.5px"></div>
+
   <h2>Board scale</h2>
   <label class="row"><span class="k">Inches per grid unit</span>
     <input type="number" id="ipu" min="0.25" max="4" step="0.25" value="1"></label>
@@ -9533,6 +9541,67 @@ $('print').onclick = () => window.print();
 });
 $('steps').addEventListener('input', () => $('stepsV').textContent = $('steps').value);
 $('back').addEventListener('input', () => $('backV').textContent = $('back').value + '%');
+
+// ---- board fitter ----
+function fmt(v){ return v.toFixed(4).replace(/\.?0+$/, '') + '″'; }
+function updateCutPlan(){
+  const bW = parseFloat($('brdW').value), bH = parseFloat($('brdH').value);
+  const cp = $('cutplan');
+  if (!bW || !bH || bW < 1 || bH < 1){ cp.style.display='none'; return; }
+  const d = DATA[sel.value];
+  const pW = d.portal.width, pH = d.portal.height;
+  const m  = parseFloat($('margin').value) || 0.75;
+  // Maximum ipu that fits both dimensions
+  const ipuByW = (bW - 2*m) / pW;
+  const ipuByH = (bH - 2*m) / pH;
+  const bestIpu = Math.min(ipuByW, ipuByH);
+  if (bestIpu <= 0){ cp.style.display='none'; return; }
+  const cutW = +(pW * bestIpu + 2*m).toFixed(3);
+  const cutH = +(pH * bestIpu + 2*m).toFixed(3);
+  const trimW = +(bW - cutW).toFixed(3);
+  const trimH = +(bH - cutH).toFixed(3);
+  // Orientation flip check — would rotating the board fit bigger?
+  const ipuByW2 = (bW - 2*m) / pH;
+  const ipuByH2 = (bH - 2*m) / pW;
+  const bestIpu2 = Math.min(ipuByW2, ipuByH2);
+  const flipBetter = bestIpu2 > bestIpu + 0.001;
+  let html = `<b>Cut to:</b> <span class="big">${fmt(cutW)} &times; ${fmt(cutH)}</span><br>`;
+  if (trimW > 0.01 || trimH > 0.01){
+    const parts = [];
+    if (trimW > 0.01) parts.push(`trim <b>${fmt(trimW)}</b> from width`);
+    if (trimH > 0.01) parts.push(`trim <b>${fmt(trimH)}</b> from height`);
+    html += parts.join(', ') + '<br>';
+  } else {
+    html += 'Board fits perfectly — no trimming needed<br>';
+  }
+  html += `Scale: <b>${fmt(bestIpu)}</b> per grid unit`;
+  if (flipBetter) html += `<br><span style="color:var(--warn)">↻ Rotating the board 90° fits larger (${fmt(bestIpu2 * pW + 2*m)} &times; ${fmt(bestIpu2 * pH + 2*m)})</span>`;
+  cp.innerHTML = html;
+  cp.style.display = 'block';
+}
+
+$('fitBtn').onclick = () => {
+  const bW = parseFloat($('brdW').value), bH = parseFloat($('brdH').value);
+  if (!bW || !bH){ return; }
+  const d = DATA[sel.value];
+  const pW = d.portal.width, pH = d.portal.height;
+  const m  = parseFloat($('margin').value) || 0.75;
+  const ipuByW = (bW - 2*m) / pW;
+  const ipuByH = (bH - 2*m) / pH;
+  const bestIpu = Math.min(ipuByW, ipuByH);
+  if (bestIpu <= 0) return;
+  // Round to nearest 0.25 that still fits
+  const stepped = Math.floor(bestIpu * 4) / 4;
+  $('ipu').value = Math.max(0.25, stepped);
+  build();
+  updateCutPlan();
+};
+
+// Recompute cut plan whenever inputs that affect it change
+['brdW','brdH','margin','c'].forEach(id => {
+  $(id).addEventListener('input', updateCutPlan);
+  $(id).addEventListener('change', updateCutPlan);
+});
 
 build();
 </script>
