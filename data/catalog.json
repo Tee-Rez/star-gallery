@@ -8,7 +8,7 @@
       "displayName": "Orion the Hunter",
       "description": "Place the Hunter's constellation on a wall, tap the stars for their physical data, toggle 2D/3D depth, and take the sourced Lore journey through its brightest stars.",
       "path": "app/?c=orion",
-      "stars": 15,
+      "stars": 19,
       "season": "Winter",
       "hemisphere": "Both"
     },
@@ -18,7 +18,7 @@
       "displayName": "Andromeda the Chained Princess",
       "description": "The chained princess, running east from the Great Square of Pegasus. Her lore journey ends at the Little Cloud — the smudge al-Sufi recorded in 964 CE that turned out to be another galaxy.",
       "path": "app/?c=andromeda",
-      "stars": 15,
+      "stars": 6,
       "season": "Autumn",
       "hemisphere": "Northern"
     },
@@ -26,9 +26,9 @@
       "id": "taurus",
       "name": "Taurus",
       "displayName": "Taurus the Bull",
-      "description": "The Bull of Heaven, older than the Greeks who renamed it. Orange Aldebaran is the eye, the Hyades V is the face, two horns run out to Elnath and Zeta Tauri, and a shoulder and forelegs reach west. Step into the Pleiades - the Seven Sisters - and explore each of them in turn.",
+      "description": "The Bull of Heaven, older than the Greeks who renamed it. Orange Aldebaran is the eye, the Hyades V is the face, and two horns run out to Elnath and Tianguan. Step into the Pleiades - the Seven Sisters - and explore each of them in turn.",
       "path": "app/?c=taurus",
-      "stars": 14,
+      "stars": 12,
       "season": "Winter",
       "hemisphere": "Northern"
     }
