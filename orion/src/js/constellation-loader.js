@@ -20,7 +20,10 @@ const constellationLoaderComponent = {
         new URLSearchParams(window.location.search).get('constellation')
       if (requested && this.getEmbeddedConstellationData(requested)) {
         console.log('Constellation requested via URL:', requested)
-        this.data.constellationFile = requested
+        // this.data is rebuilt from the cached attribute on every A-Frame update, so a value set
+        // only on this.data is silently reverted: ?c=andromeda fell back to Orion whenever an
+        // update landed before the figure loaded. Writing the cache as well makes it stick.
+        this.setConstellationFile(requested)
       } else if (requested) {
         console.warn('Unknown constellation requested:', requested)
       }
@@ -177,6 +180,12 @@ const constellationLoaderComponent = {
     }
   },
 
+  // The one safe way to change constellationFile after init - see the note in init().
+  setConstellationFile(id) {
+    if (this.attrValue && typeof this.attrValue === 'object') this.attrValue.constellationFile = id
+    this.data.constellationFile = id
+  },
+
   getEmbeddedConstellationData(constellationName) {
     const constellations = {
       'orion': {
@@ -232,143 +241,14 @@ const constellationLoaderComponent = {
         },
         "stars": [
           {
-            "id": "betelgeuse",
-            "name": "Betelgeuse",
-            "designation": "α Orionis",
-            "isMajor": true,
-            "position2D": {
-              "x": -1.442,
-              "y": 0.979
-            },
-            "distance": 642.5,
-            "magnitude": 0.5,
-            "spectralClass": "M1-M2 Ia-ab",
-            "color": "#ff4400",
-            "size": 0.17,
-            "stellarType": "red_supergiant",
-            "physics": {
-              "massSolar": 16.5,
-              "radiusSolar": 700,
-              "tempKelvin": 3700,
-              "note": "Ranges 14-19 M, 640-764 R, 3600-3800 K; midpoints"
-            },
-            "info": {
-              "basic": "Betelgeuse, the celestial ruby of Orion's shoulder, marks the Hunter's right side.",
-              "scientific": {
-                "age": "8-14 million years old",
-                "mass": "14-19 times the Sun's mass",
-                "radius": "640-764 times the Sun's radius - if placed at our Sun's position, would extend beyond Jupiter's orbit",
-                "luminosity": "65,000 times brighter than the Sun",
-                "temperature": "3,600-3,800 K",
-                "fate": "Destined to explode as a supernova within ~100,000 years"
-              }
-            }
-          },
-          {
-            "id": "rigel",
-            "name": "Rigel",
-            "designation": "β Orionis",
-            "isMajor": true,
-            "position2D": {
-              "x": 0.883,
-              "y": -2.633
-            },
-            "distance": 860,
-            "magnitude": 0.13,
-            "spectralClass": "B8 Ia",
-            "color": "#4477ff",
-            "size": 0.15,
-            "stellarType": "blue_supergiant",
-            "physics": {
-              "massSolar": 21,
-              "radiusSolar": 74.1,
-              "tempKelvin": 12100
-            },
-            "info": {
-              "basic": "Rigel, the commanding blue sentinel at Orion's foot, outshines even Betelgeuse despite being designated Beta Orionis.",
-              "scientific": {
-                "age": "8 million years old - extremely young for such a bright star",
-                "mass": "21 times the Sun's mass",
-                "radius": "74.1 times the Sun's radius",
-                "luminosity": "120,000 times brighter than the Sun",
-                "temperature": "12,100 K",
-                "composition": "Part of a multiple star system with at least three stellar companions"
-              }
-            }
-          },
-          {
-            "id": "bellatrix",
-            "name": "Bellatrix",
-            "designation": "γ Orionis",
-            "isMajor": true,
-            "position2D": {
-              "x": 0.268,
-              "y": 0.727
-            },
-            "distance": 243,
-            "magnitude": 1.64,
-            "spectralClass": "B2 III",
-            "color": "#bbbbff",
-            "size": 0.1,
-            "stellarType": "blue_giant",
-            "physics": {
-              "massSolar": 7.7,
-              "radiusSolar": 5.75,
-              "tempKelvin": 21800
-            },
-            "info": {
-              "basic": "Bellatrix, the 'Female Warrior' star, stands proud at Orion's left shoulder, one of the nearest bright stars in Orion.",
-              "scientific": {
-                "age": "25.2 million years old",
-                "mass": "7.7 times the Sun's mass",
-                "radius": "5.75 times the Sun's radius",
-                "luminosity": "9,211 times brighter than the Sun",
-                "temperature": "21,800 K",
-                "distance": "243 light-years - one of the closest major stars in Orion"
-              }
-            }
-          },
-          {
-            "id": "saiph",
-            "name": "Saiph",
-            "designation": "κ Orionis",
-            "isMajor": true,
-            "position2D": {
-              "x": -1.035,
-              "y": -2.986
-            },
-            "distance": 721,
-            "magnitude": 2.09,
-            "spectralClass": "B0.5 Ia",
-            "color": "#ffffff",
-            "size": 0.09,
-            "stellarType": "blue_supergiant",
-            "physics": {
-              "massSolar": 18.3,
-              "radiusSolar": 13.5,
-              "tempKelvin": 25700,
-              "note": "Ranges 15.5-21.1 M, 13-14 R; midpoints"
-            },
-            "info": {
-              "basic": "Saiph, the often-overlooked guardian at Orion's right foot, nearly matches Rigel in stellar properties but appears dimmer from Earth.",
-              "scientific": {
-                "age": "11.1 million years old",
-                "mass": "15.5-21.1 times the Sun's mass",
-                "radius": "13-14 times the Sun's radius",
-                "luminosity": "60,300 times brighter than the Sun",
-                "temperature": "25,700 K",
-                "fate": "Destined to end its life in a spectacular supernova"
-              }
-            }
-          },
-          {
             "id": "alnitak",
+            "hip": 26727,
             "name": "Alnitak",
             "designation": "ζ Orionis",
             "isMajor": true,
             "position2D": {
-              "x": -0.625,
-              "y": -1.17
+              "x": -0.708,
+              "y": -2.035
             },
             "distance": 817,
             "magnitude": 1.77,
@@ -396,12 +276,13 @@ const constellationLoaderComponent = {
           },
           {
             "id": "alnilam",
+            "hip": 26311,
             "name": "Alnilam",
             "designation": "ε Orionis",
             "isMajor": true,
             "position2D": {
-              "x": -0.364,
-              "y": -0.999
+              "x": -0.423,
+              "y": -1.847
             },
             "distance": 1342,
             "magnitude": 1.69,
@@ -428,12 +309,13 @@ const constellationLoaderComponent = {
           },
           {
             "id": "mintaka",
+            "hip": 25930,
             "name": "Mintaka",
             "designation": "δ Orionis",
             "isMajor": true,
             "position2D": {
-              "x": -0.123,
-              "y": -0.792
+              "x": -0.159,
+              "y": -1.62
             },
             "distance": 916,
             "magnitude": 2.23,
@@ -460,13 +342,273 @@ const constellationLoaderComponent = {
             }
           },
           {
+            "id": "64_orionis",
+            "hip": 28691,
+            "name": "64 Orionis",
+            "designation": "64 Orionis",
+            "isMajor": false,
+            "position2D": {
+              "x": -2.056,
+              "y": 3.464
+            },
+            "distance": 714.9,
+            "magnitude": 5.13,
+            "spectralClass": "B6:III/V",
+            "color": "#a8bcff",
+            "size": 0.06,
+            "stellarType": "blue_white_giant",
+            "physics": {
+              "massSolar": 4.6,
+              "radiusSolar": 6.63,
+              "tempKelvin": 11260,
+              "note": "Catalogue values: typical for spectral type B6:III/V. Not hand-checked."
+            }
+          },
+          {
+            "id": "xi_orionis",
+            "hip": 29426,
+            "name": "Xi Orionis",
+            "designation": "ξ Orionis",
+            "isMajor": false,
+            "position2D": {
+              "x": -2.609,
+              "y": 2.061
+            },
+            "distance": 606,
+            "magnitude": 4.48,
+            "spectralClass": "B3V",
+            "color": "#a8bcff",
+            "size": 0.063,
+            "stellarType": "blue_white_main_sequence",
+            "physics": {
+              "massSolar": 4.38,
+              "radiusSolar": 6.45,
+              "tempKelvin": 14450,
+              "note": "Catalogue values: typical for spectral type B3V. Not hand-checked."
+            }
+          },
+          {
+            "id": "nu_orionis",
+            "hip": 29038,
+            "name": "Nu Orionis",
+            "designation": "ν Orionis",
+            "isMajor": false,
+            "position2D": {
+              "x": -2.333,
+              "y": 2.192
+            },
+            "distance": 514.4,
+            "magnitude": 4.397,
+            "spectralClass": "B4V",
+            "color": "#a8bcff",
+            "size": 0.065,
+            "stellarType": "blue_white_main_sequence",
+            "physics": {
+              "massSolar": 4.04,
+              "radiusSolar": 5.98,
+              "tempKelvin": 13600,
+              "note": "Catalogue values: typical for spectral type B4V. Not hand-checked."
+            }
+          },
+          {
+            "id": "chi1_orionis",
+            "hip": 27913,
+            "name": "Chi1 Orionis",
+            "designation": "χ Orionis",
+            "isMajor": false,
+            "position2D": {
+              "x": -1.501,
+              "y": 3.594
+            },
+            "distance": 28,
+            "magnitude": 4.38,
+            "spectralClass": "G0 V",
+            "color": "#fff4e8",
+            "size": 0.06,
+            "stellarType": "yellow_main_sequence",
+            "physics": {
+              "massSolar": 1.01,
+              "radiusSolar": 0.983,
+              "tempKelvin": 5883
+            },
+            "info": {
+              "basic": "Chi1 Orionis, a nearby solar-type star, provides insights into our Sun's possible future and past states.",
+              "scientific": {
+                "age": "300-400 million years old - much younger than our Sun",
+                "mass": "1.01 times the Sun's mass",
+                "radius": "0.983 times the Sun's radius",
+                "luminosity": "1.042 times the Sun's luminosity",
+                "temperature": "5,883 K",
+                "composition": "RS Canum Venaticorum variable in binary system"
+              }
+            }
+          },
+          {
+            "id": "mu_orionis",
+            "hip": 28614,
+            "name": "Mu Orionis",
+            "designation": "μ Orionis",
+            "isMajor": false,
+            "position2D": {
+              "x": -2.031,
+              "y": 0.881
+            },
+            "distance": 154.8,
+            "magnitude": 5,
+            "spectralClass": "A2   V",
+            "color": "#ffffff",
+            "size": 0.06,
+            "stellarType": "white_main_sequence",
+            "physics": {
+              "massSolar": 2.1,
+              "radiusSolar": 3.39,
+              "tempKelvin": 7760,
+              "note": "Catalogue values: Allende Prieto & Lambert 1999. Not hand-checked."
+            }
+          },
+          {
+            "id": "betelgeuse",
+            "hip": 27989,
+            "name": "Betelgeuse",
+            "designation": "α Orionis",
+            "isMajor": true,
+            "position2D": {
+              "x": -1.589,
+              "y": 0.311
+            },
+            "distance": 642.5,
+            "magnitude": 0.5,
+            "spectralClass": "M1-M2 Ia-ab",
+            "color": "#ff4400",
+            "size": 0.17,
+            "stellarType": "red_supergiant",
+            "physics": {
+              "massSolar": 16.5,
+              "radiusSolar": 700,
+              "tempKelvin": 3700,
+              "note": "Ranges 14-19 M, 640-764 R, 3600-3800 K; midpoints"
+            },
+            "info": {
+              "basic": "Betelgeuse, the celestial ruby of Orion's shoulder, marks the Hunter's right side.",
+              "scientific": {
+                "age": "8-14 million years old",
+                "mass": "14-19 times the Sun's mass",
+                "radius": "640-764 times the Sun's radius - if placed at our Sun's position, would extend beyond Jupiter's orbit",
+                "luminosity": "65,000 times brighter than the Sun",
+                "temperature": "3,600-3,800 K",
+                "fate": "Destined to explode as a supernova within ~100,000 years"
+              }
+            }
+          },
+          {
+            "id": "saiph",
+            "hip": 27366,
+            "name": "Saiph",
+            "designation": "κ Orionis",
+            "isMajor": true,
+            "position2D": {
+              "x": -1.166,
+              "y": -4.05
+            },
+            "distance": 721,
+            "magnitude": 2.09,
+            "spectralClass": "B0.5 Ia",
+            "color": "#ffffff",
+            "size": 0.09,
+            "stellarType": "blue_supergiant",
+            "physics": {
+              "massSolar": 18.3,
+              "radiusSolar": 13.5,
+              "tempKelvin": 25700,
+              "note": "Ranges 15.5-21.1 M, 13-14 R; midpoints"
+            },
+            "info": {
+              "basic": "Saiph, the often-overlooked guardian at Orion's right foot, nearly matches Rigel in stellar properties but appears dimmer from Earth.",
+              "scientific": {
+                "age": "11.1 million years old",
+                "mass": "15.5-21.1 times the Sun's mass",
+                "radius": "13-14 times the Sun's radius",
+                "luminosity": "60,300 times brighter than the Sun",
+                "temperature": "25,700 K",
+                "fate": "Destined to end its life in a spectacular supernova"
+              }
+            }
+          },
+          {
+            "id": "rigel",
+            "hip": 24436,
+            "name": "Rigel",
+            "designation": "β Orionis",
+            "isMajor": true,
+            "position2D": {
+              "x": 0.947,
+              "y": -3.655
+            },
+            "distance": 860,
+            "magnitude": 0.13,
+            "spectralClass": "B8 Ia",
+            "color": "#4477ff",
+            "size": 0.15,
+            "stellarType": "blue_supergiant",
+            "physics": {
+              "massSolar": 21,
+              "radiusSolar": 74.1,
+              "tempKelvin": 12100
+            },
+            "info": {
+              "basic": "Rigel, the commanding blue sentinel at Orion's foot, outshines even Betelgeuse despite being designated Beta Orionis.",
+              "scientific": {
+                "age": "8 million years old - extremely young for such a bright star",
+                "mass": "21 times the Sun's mass",
+                "radius": "74.1 times the Sun's radius",
+                "luminosity": "120,000 times brighter than the Sun",
+                "temperature": "12,100 K",
+                "composition": "Part of a multiple star system with at least three stellar companions"
+              }
+            }
+          },
+          {
+            "id": "bellatrix",
+            "hip": 25336,
+            "name": "Bellatrix",
+            "designation": "γ Orionis",
+            "isMajor": true,
+            "position2D": {
+              "x": 0.267,
+              "y": 0.038
+            },
+            "distance": 243,
+            "magnitude": 1.64,
+            "spectralClass": "B2 III",
+            "color": "#bbbbff",
+            "size": 0.1,
+            "stellarType": "blue_giant",
+            "physics": {
+              "massSolar": 7.7,
+              "radiusSolar": 5.75,
+              "tempKelvin": 21800
+            },
+            "info": {
+              "basic": "Bellatrix, the 'Female Warrior' star, stands proud at Orion's left shoulder, one of the nearest bright stars in Orion.",
+              "scientific": {
+                "age": "25.2 million years old",
+                "mass": "7.7 times the Sun's mass",
+                "radius": "5.75 times the Sun's radius",
+                "luminosity": "9,211 times brighter than the Sun",
+                "temperature": "21,800 K",
+                "distance": "243 light-years - one of the closest major stars in Orion"
+              }
+            }
+          },
+          {
             "id": "meissa",
+            "hip": 26207,
             "name": "Meissa",
             "designation": "λ Orionis",
             "isMajor": true,
             "position2D": {
-              "x": -0.299,
-              "y": 1.551
+              "x": -0.348,
+              "y": 0.929
             },
             "distance": 1055,
             "magnitude": 3.7,
@@ -494,12 +636,13 @@ const constellationLoaderComponent = {
           },
           {
             "id": "pi3_orionis",
-            "name": "Pi3 Orionis",
-            "designation": "π³ Orionis (Tabit)",
+            "hip": 22449,
+            "name": "Tabit",
+            "designation": "π³ Orionis",
             "isMajor": true,
             "position2D": {
-              "x": 2.293,
-              "y": 0.891
+              "x": 2.464,
+              "y": 0.215
             },
             "distance": 26,
             "magnitude": 3.65,
@@ -526,12 +669,13 @@ const constellationLoaderComponent = {
           },
           {
             "id": "pi4_orionis",
+            "hip": 22549,
             "name": "Pi4 Orionis",
-            "designation": "π⁴ Orionis",
+            "designation": "π4 Orionis",
             "isMajor": true,
             "position2D": {
-              "x": 2.216,
-              "y": 0.575
+              "x": 2.384,
+              "y": -0.128
             },
             "distance": 1050,
             "magnitude": 3.685,
@@ -558,160 +702,95 @@ const constellationLoaderComponent = {
             }
           },
           {
-            "id": "pi5_orionis",
-            "name": "Pi5 Orionis",
-            "designation": "π⁵ Orionis",
-            "isMajor": true,
+            "id": "5_orionis",
+            "hip": 22730,
+            "name": "5 Orionis",
+            "designation": "5 Orionis",
+            "isMajor": false,
             "position2D": {
-              "x": 2.045,
-              "y": -0.159
+              "x": 2.259,
+              "y": -0.909
             },
-            "distance": 1300,
-            "magnitude": 3.69,
-            "spectralClass": "B2 III",
-            "color": "#bbbbff",
+            "distance": 589.3,
+            "magnitude": 5.324,
+            "spectralClass": "M1 III",
+            "color": "#ff7744",
             "size": 0.06,
-            "stellarType": "blue_giant",
+            "stellarType": "red_giant",
             "physics": {
-              "massSolar": 12,
-              "radiusSolar": 12,
-              "tempKelvin": 14496
-            },
-            "info": {
-              "basic": "Pi5 Orionis, another sentinel of Orion's shield, constantly changes shape as its binary components orbit each other.",
-              "scientific": {
-                "age": "Multiple components with varying ages",
-                "mass": "Primary: 12 times the Sun's mass, Secondary: 5 times the Sun's mass",
-                "luminosity": "Primary: 11,262 times the Sun, Secondary: 525-741 times the Sun",
-                "composition": "Spectroscopic binary with 3.7-day orbital period",
-                "variability": "Ellipsoidal variable star - brightness varies by 0.05 magnitudes"
-              }
+              "massSolar": 1.5,
+              "radiusSolar": null,
+              "tempKelvin": 3500,
+              "note": "Catalogue values: typical for spectral type M1 III. Not hand-checked."
             }
           },
           {
-            "id": "chi1_orionis",
-            "name": "Chi1 Orionis",
-            "designation": "χ¹ Orionis",
+            "id": "pi6_orionis",
+            "hip": 23123,
+            "name": "Pi6 Orionis",
+            "designation": "π6 Orionis",
             "isMajor": false,
             "position2D": {
-              "x": -1.378,
-              "y": 4.05
+              "x": 1.934,
+              "y": -1.111
             },
-            "distance": 28,
-            "magnitude": 4.38,
-            "spectralClass": "G0 V",
-            "color": "#fff4e8",
-            "size": 0.06,
-            "stellarType": "yellow_main_sequence",
+            "distance": 936.9,
+            "magnitude": 4.459,
+            "spectralClass": "K0/1 III",
+            "color": "#ffb066",
+            "size": 0.064,
+            "stellarType": "orange_giant",
             "physics": {
-              "massSolar": 1.01,
-              "radiusSolar": 0.983,
-              "tempKelvin": 5883
-            },
-            "info": {
-              "basic": "Chi1 Orionis, a nearby solar-type star, provides insights into our Sun's possible future and past states.",
-              "scientific": {
-                "age": "300-400 million years old - much younger than our Sun",
-                "mass": "1.01 times the Sun's mass",
-                "radius": "0.983 times the Sun's radius",
-                "luminosity": "1.042 times the Sun's luminosity",
-                "temperature": "5,883 K",
-                "composition": "RS Canum Venaticorum variable in binary system"
-              }
+              "massSolar": 1.5,
+              "radiusSolar": 94.63,
+              "tempKelvin": 4200,
+              "note": "Catalogue values: typical for spectral type K0/1 III. Not hand-checked."
             }
           },
           {
-            "id": "chi2_orionis",
-            "name": "Chi2 Orionis",
-            "designation": "χ² Orionis",
+            "id": "pi2_orionis",
+            "hip": 22509,
+            "name": "Pi2 Orionis",
+            "designation": "π² Orionis",
             "isMajor": false,
             "position2D": {
-              "x": -1.921,
-              "y": 4.04
+              "x": 2.406,
+              "y": 0.702
             },
-            "distance": 1300,
-            "magnitude": 4.63,
-            "spectralClass": "B2 Ia",
-            "color": "#bbbbff",
-            "size": 0.06,
-            "stellarType": "blue_supergiant",
+            "distance": 224.3,
+            "magnitude": 4.35,
+            "spectralClass": "A0Vnp lambda Boo",
+            "color": "#ffffff",
+            "size": 0.066,
+            "stellarType": "white_main_sequence",
             "physics": {
-              "massSolar": 42.3,
-              "radiusSolar": 61.9,
-              "tempKelvin": 19000
-            },
-            "info": {
-              "basic": "Chi2 Orionis, a massive blue supergiant, pulsates rhythmically while wielding the cosmic club of Orion.",
-              "scientific": {
-                "age": "5 million years - extremely young",
-                "mass": "42.3 times the Sun's mass",
-                "luminosity": "446,000 times the Sun's luminosity",
-                "temperature": "19,000 K",
-                "variability": "Alpha Cygni variable with 2.8-day period"
-              }
+              "massSolar": 2.51,
+              "radiusSolar": 2.95,
+              "tempKelvin": 9330,
+              "note": "Catalogue values: Allende Prieto & Lambert 1999. Not hand-checked."
             }
           },
           {
-            "id": "c_orionis",
-            "name": "42 Orionis",
-            "designation": "c Orionis (42 Ori)",
+            "id": "pi1_orionis",
+            "hip": 22845,
+            "name": "Pi1 Orionis",
+            "designation": "π¹ Orionis",
             "isMajor": false,
             "position2D": {
-              "x": -0.318,
-              "y": -1.839
+              "x": 2.131,
+              "y": 1.01
             },
-            "distance": 900,
-            "magnitude": 4.59,
-            "spectralClass": "B1 V",
-            "color": "#9db4ff",
-            "size": 0.06,
-            "stellarType": "blue_white_main_sequence",
-            "physics": {
-              "massSolar": 12,
-              "radiusSolar": 7,
-              "tempKelvin": 25400,
-              "note": "Component Aa; Wikipedia, not in the Unity table"
-            },
-            "info": {
-              "basic": "42 Orionis, also called c Orionis, is a hot blue-white star at the top of Orion's Sword, just below the Belt. Its light illuminates the reflection nebula NGC 1977, nicknamed the Running Man Nebula.",
-              "scientific": {
-                "class": "B1V main-sequence star",
-                "temperature": "About 25,000 K",
-                "mass": "Roughly 11 times the Sun's mass",
-                "feature": "Marks the hilt of Orion's Sword, between the Belt and the Orion Nebula"
-              }
-            }
-          },
-          {
-            "id": "theta1_orionis",
-            "name": "Theta1 Orionis",
-            "designation": "θ¹ Orionis (Trapezium)",
-            "isMajor": false,
-            "position2D": {
-              "x": -0.311,
-              "y": -1.967
-            },
-            "distance": 1344,
-            "magnitude": 4,
-            "spectralClass": "O7 V",
+            "distance": 116.3,
+            "magnitude": 4.648,
+            "spectralClass": "A3VakB9.5mB9.5 lambda Boo",
             "color": "#ffffff",
             "size": 0.06,
-            "stellarType": "blue_main_sequence",
+            "stellarType": "white_main_sequence",
             "physics": {
-              "massSolar": 33.5,
-              "radiusSolar": 8.91,
-              "tempKelvin": 39000,
-              "note": "Component C1"
-            },
-            "info": {
-              "basic": "Theta1 Orionis, the famous Trapezium Cluster, illuminates the heart of the Great Orion Nebula with its young, massive stars.",
-              "scientific": {
-                "age": "Only about 1 million years old",
-                "mass": "Primary star: 33 times the Sun's mass",
-                "composition": "Contains multiple massive O and B-type stars arranged in trapezoid pattern",
-                "luminosity": "Primary: 204,000 times the Sun's luminosity",
-                "feature": "Central star cluster of the Orion Nebula (M42)"
-              }
+              "massSolar": 1.91,
+              "radiusSolar": 1.66,
+              "tempKelvin": 8710,
+              "note": "Catalogue values: Allende Prieto & Lambert 1999. Not hand-checked."
             }
           }
         ],
@@ -727,6 +806,31 @@ const constellationLoaderComponent = {
             "type": "belt"
           },
           {
+            "from": "64_orionis",
+            "to": "xi_orionis",
+            "type": "figure"
+          },
+          {
+            "from": "xi_orionis",
+            "to": "nu_orionis",
+            "type": "figure"
+          },
+          {
+            "from": "nu_orionis",
+            "to": "chi1_orionis",
+            "type": "figure"
+          },
+          {
+            "from": "xi_orionis",
+            "to": "mu_orionis",
+            "type": "figure"
+          },
+          {
+            "from": "mu_orionis",
+            "to": "betelgeuse",
+            "type": "figure"
+          },
+          {
             "from": "betelgeuse",
             "to": "alnitak",
             "type": "body"
@@ -737,13 +841,23 @@ const constellationLoaderComponent = {
             "type": "body"
           },
           {
-            "from": "bellatrix",
+            "from": "saiph",
+            "to": "rigel",
+            "type": "figure"
+          },
+          {
+            "from": "rigel",
             "to": "mintaka",
             "type": "body"
           },
           {
             "from": "mintaka",
-            "to": "rigel",
+            "to": "bellatrix",
+            "type": "body"
+          },
+          {
+            "from": "bellatrix",
+            "to": "meissa",
             "type": "body"
           },
           {
@@ -752,14 +866,9 @@ const constellationLoaderComponent = {
             "type": "body"
           },
           {
-            "from": "meissa",
-            "to": "bellatrix",
-            "type": "body"
-          },
-          {
             "from": "bellatrix",
-            "to": "pi4_orionis",
-            "type": "bow"
+            "to": "pi3_orionis",
+            "type": "figure"
           },
           {
             "from": "pi3_orionis",
@@ -768,28 +877,28 @@ const constellationLoaderComponent = {
           },
           {
             "from": "pi4_orionis",
-            "to": "pi5_orionis",
-            "type": "bow"
+            "to": "5_orionis",
+            "type": "figure"
           },
           {
-            "from": "betelgeuse",
-            "to": "chi2_orionis",
-            "type": "club"
+            "from": "5_orionis",
+            "to": "pi6_orionis",
+            "type": "figure"
           },
           {
-            "from": "chi2_orionis",
-            "to": "chi1_orionis",
-            "type": "club"
+            "from": "pi3_orionis",
+            "to": "pi2_orionis",
+            "type": "figure"
           },
           {
-            "from": "alnilam",
-            "to": "c_orionis",
-            "type": "sword"
+            "from": "pi2_orionis",
+            "to": "pi1_orionis",
+            "type": "figure"
           },
           {
-            "from": "c_orionis",
-            "to": "theta1_orionis",
-            "type": "sword"
+            "from": "nu_orionis",
+            "to": "mu_orionis",
+            "type": "figure"
           }
         ],
         "deepSkyObjects": [
@@ -800,8 +909,8 @@ const constellationLoaderComponent = {
             "type": "emission_nebula",
             "layer": "nebula",
             "position2D": {
-              "x": -0.312,
-              "y": -1.968
+              "x": -0.368,
+              "y": -2.917
             },
             "distance": 1344,
             "magnitude": 4,
@@ -835,8 +944,8 @@ const constellationLoaderComponent = {
             "type": "emission_nebula",
             "layer": "none",
             "position2D": {
-              "x": -0.325,
-              "y": -1.939
+              "x": -0.382,
+              "y": -2.885
             },
             "distance": 1300,
             "magnitude": 9,
@@ -955,12 +1064,13 @@ const constellationLoaderComponent = {
         "stars": [
           {
             "id": "alpheratz",
+            "hip": 677,
             "name": "Alpheratz",
             "designation": "α Andromedae",
             "isMajor": true,
             "position2D": {
-              "x": 1.199,
-              "y": -2.034
+              "x": 3.005,
+              "y": -1.972
             },
             "distance": 97,
             "magnitude": 2.07,
@@ -987,12 +1097,13 @@ const constellationLoaderComponent = {
           },
           {
             "id": "delta_and",
+            "hip": 3092,
             "name": "Delta Andromedae",
             "designation": "δ Andromedae",
             "isMajor": true,
             "position2D": {
-              "x": -0.211,
-              "y": -1.693
+              "x": 1.031,
+              "y": -1.599
             },
             "distance": 101,
             "magnitude": 3.27,
@@ -1017,71 +1128,14 @@ const constellationLoaderComponent = {
             }
           },
           {
-            "id": "epsilon_and",
-            "name": "Epsilon Andromedae",
-            "designation": "ε Andromedae",
-            "isMajor": false,
-            "position2D": {
-              "x": -0.18,
-              "y": -2.02
-            },
-            "distance": 169,
-            "magnitude": 4.34,
-            "spectralClass": "G5III",
-            "color": "#ffeec0",
-            "size": 0.055,
-            "stellarType": "yellow_giant",
-            "physics": {
-              "massSolar": 1.01,
-              "radiusSolar": 9.04,
-              "tempKelvin": 5082
-            },
-            "info": {
-              "basic": "Epsilon Andromedae carries the chain south from Delta toward the border with Pisces.",
-              "scientific": {
-                "class": "G5III yellow giant",
-                "temperature": "About 4,900 K",
-                "feature": "A yellow giant marking the southern chain of Andromeda"
-              }
-            }
-          },
-          {
-            "id": "zeta_and",
-            "name": "Zeta Andromedae",
-            "designation": "ζ Andromedae",
-            "isMajor": false,
-            "position2D": {
-              "x": -0.618,
-              "y": -3.1
-            },
-            "distance": 181,
-            "magnitude": 4.08,
-            "spectralClass": "K1II",
-            "color": "#ffc088",
-            "size": 0.06,
-            "stellarType": "orange_bright_giant",
-            "physics": {
-              "massSolar": 2.6,
-              "radiusSolar": 15.9,
-              "tempKelvin": 4665,
-              "note": "Component Aa"
-            },
-            "info": {
-              "basic": "Zeta Andromedae ends the southern chain, a heavily spotted orange giant.",
-              "scientific": {
-                "class": "K1II orange bright giant",
-                "feature": "An RS Canum Venaticorum variable; interferometry has directly imaged huge starspots on its surface"
-              }
-            }
-          },
-          {
             "id": "mirach",
+            "hip": 5447,
             "name": "Mirach",
             "designation": "β Andromedae",
             "isMajor": true,
             "position2D": {
-              "x": -1.476,
-              "y": -0.639
+              "x": -0.779,
+              "y": -0.253
             },
             "distance": 199,
             "magnitude": 2.07,
@@ -1108,12 +1162,13 @@ const constellationLoaderComponent = {
           },
           {
             "id": "almach",
+            "hip": 9640,
             "name": "Almach",
-            "designation": "γ Andromedae",
+            "designation": "γ¹ Andromedae",
             "isMajor": true,
             "position2D": {
-              "x": -3.463,
-              "y": 1.137
+              "x": -3.6,
+              "y": 2
             },
             "distance": 355,
             "magnitude": 2.1,
@@ -1139,12 +1194,13 @@ const constellationLoaderComponent = {
           },
           {
             "id": "mu_and",
+            "hip": 4436,
             "name": "Mu Andromedae",
             "designation": "μ Andromedae",
             "isMajor": true,
             "position2D": {
-              "x": -0.892,
-              "y": -0.085
+              "x": -0.031,
+              "y": 0.548
             },
             "distance": 136,
             "magnitude": 3.86,
@@ -1168,12 +1224,13 @@ const constellationLoaderComponent = {
           },
           {
             "id": "nu_and",
+            "hip": 3881,
             "name": "Nu Andromedae",
             "designation": "ν Andromedae",
             "isMajor": false,
             "position2D": {
-              "x": -0.59,
-              "y": 0.432
+              "x": 0.341,
+              "y": 1.284
             },
             "distance": 679,
             "magnitude": 4.53,
@@ -1195,217 +1252,22 @@ const constellationLoaderComponent = {
                 "feature": "A close line-of-sight neighbour of M31, though it lies within our own galaxy"
               }
             }
-          },
-          {
-            "id": "phi_and",
-            "name": "Phi Andromedae",
-            "designation": "φ Andromedae",
-            "isMajor": false,
-            "position2D": {
-              "x": -1.233,
-              "y": 1.767
-            },
-            "distance": 736,
-            "magnitude": 4.26,
-            "spectralClass": "B7III",
-            "color": "#aabbff",
-            "size": 0.06,
-            "stellarType": "blue_giant",
-            "info": {
-              "basic": "Phi Andromedae continues the northern arm of the constellation toward Cassiopeia.",
-              "scientific": {
-                "class": "B7III blue giant",
-                "feature": "A Be shell star with a circumstellar disc of ejected gas"
-              }
-            }
-          },
-          {
-            "id": "51_and",
-            "name": "51 Andromedae",
-            "designation": "51 And (Nembus)",
-            "isMajor": true,
-            "position2D": {
-              "x": -2.2,
-              "y": 2.223
-            },
-            "distance": 174,
-            "magnitude": 3.59,
-            "spectralClass": "K3III",
-            "color": "#ffb877",
-            "size": 0.075,
-            "stellarType": "orange_giant",
-            "physics": {
-              "massSolar": 1.75,
-              "radiusSolar": 20.91,
-              "tempKelvin": 4316
-            },
-            "info": {
-              "basic": "51 Andromedae, officially named Nembus, ends the northern arm. Ptolemy counted it as part of Perseus before Flamsteed moved it into Andromeda.",
-              "scientific": {
-                "class": "K3III orange giant",
-                "temperature": "About 4,400 K",
-                "feature": "Its Bayer letter was lost when the star changed constellations, leaving only a Flamsteed number"
-              }
-            }
-          },
-          {
-            "id": "pi_and",
-            "name": "Pi Andromedae",
-            "designation": "π Andromedae",
-            "isMajor": false,
-            "position2D": {
-              "x": -0.098,
-              "y": -1.098
-            },
-            "distance": 656,
-            "magnitude": 4.34,
-            "spectralClass": "B5V",
-            "color": "#a8bcff",
-            "size": 0.055,
-            "stellarType": "blue_white_main_sequence",
-            "physics": {
-              "massSolar": 5.8,
-              "radiusSolar": 4.7,
-              "tempKelvin": 15000,
-              "note": "Component A"
-            },
-            "info": {
-              "basic": "Pi Andromedae begins the long western chain that trails away from the princess's body.",
-              "scientific": {
-                "class": "B5V blue-white main-sequence star",
-                "feature": "A spectroscopic binary with a close companion"
-              }
-            }
-          },
-          {
-            "id": "iota_and",
-            "name": "Iota Andromedae",
-            "designation": "ι Andromedae",
-            "isMajor": false,
-            "position2D": {
-              "x": 2.135,
-              "y": 1.052
-            },
-            "distance": 502,
-            "magnitude": 4.29,
-            "spectralClass": "B8V",
-            "color": "#b3c4ff",
-            "size": 0.06,
-            "stellarType": "blue_white_main_sequence",
-            "physics": {
-              "massSolar": 3.1,
-              "radiusSolar": 4.6,
-              "tempKelvin": 12620
-            },
-            "info": {
-              "basic": "Iota Andromedae anchors the small northwestern group of stars that closes the constellation's chain.",
-              "scientific": {
-                "class": "B8V blue-white main-sequence star",
-                "temperature": "About 12,000 K"
-              }
-            }
-          },
-          {
-            "id": "kappa_and",
-            "name": "Kappa Andromedae",
-            "designation": "κ Andromedae",
-            "isMajor": false,
-            "position2D": {
-              "x": 2.014,
-              "y": 1.259
-            },
-            "distance": 170,
-            "magnitude": 4.15,
-            "spectralClass": "B9IVn",
-            "color": "#bbccff",
-            "size": 0.06,
-            "stellarType": "blue_white_subgiant",
-            "physics": {
-              "massSolar": 2.768,
-              "radiusSolar": 2.303,
-              "tempKelvin": 10342,
-              "note": "Equatorial values"
-            },
-            "info": {
-              "basic": "Kappa Andromedae is a fast-spinning blue-white star that made headlines for its directly imaged companion.",
-              "scientific": {
-                "class": "B9IV blue-white subgiant",
-                "feature": "Hosts Kappa Andromedae b, a substellar companion captured in direct images in 2012"
-              }
-            }
-          },
-          {
-            "id": "lambda_and",
-            "name": "Lambda Andromedae",
-            "designation": "λ Andromedae",
-            "isMajor": true,
-            "position2D": {
-              "x": 2.05,
-              "y": 1.721
-            },
-            "distance": 84,
-            "magnitude": 3.81,
-            "spectralClass": "G8III-IV",
-            "color": "#fff0c8",
-            "size": 0.07,
-            "stellarType": "yellow_giant",
-            "physics": {
-              "massSolar": 1.47,
-              "radiusSolar": 7.787,
-              "tempKelvin": 4633
-            },
-            "info": {
-              "basic": "Lambda Andromedae is a nearby yellow giant whose brightness wavers as enormous starspots rotate across its face.",
-              "scientific": {
-                "class": "G8III-IV yellow giant",
-                "feature": "An RS Canum Venaticorum variable; its light varies as heavily spotted regions turn in and out of view"
-              }
-            }
-          },
-          {
-            "id": "omicron_and",
-            "name": "Omicron Andromedae",
-            "designation": "ο Andromedae",
-            "isMajor": true,
-            "position2D": {
-              "x": 3.6,
-              "y": 1.173
-            },
-            "distance": 692,
-            "magnitude": 3.62,
-            "spectralClass": "B6III",
-            "color": "#aabbff",
-            "size": 0.075,
-            "stellarType": "blue_giant",
-            "physics": {
-              "massSolar": 6.5,
-              "radiusSolar": 11.5,
-              "tempKelvin": 14540,
-              "note": "Component Aa"
-            },
-            "info": {
-              "basic": "Omicron Andromedae closes the western end of the chain, near the border with Lacerta.",
-              "scientific": {
-                "class": "B6III blue giant",
-                "feature": "A variable shell star in a multiple system, shedding gas into a surrounding disc"
-              }
-            }
           }
         ],
         "connections": [
           {
-            "from": "almach",
-            "to": "mirach",
-            "type": "body"
-          },
-          {
-            "from": "mirach",
+            "from": "alpheratz",
             "to": "delta_and",
             "type": "body"
           },
           {
             "from": "delta_and",
-            "to": "alpheratz",
+            "to": "mirach",
+            "type": "body"
+          },
+          {
+            "from": "almach",
+            "to": "mirach",
             "type": "body"
           },
           {
@@ -1417,51 +1279,6 @@ const constellationLoaderComponent = {
             "from": "mu_and",
             "to": "nu_and",
             "type": "arm"
-          },
-          {
-            "from": "nu_and",
-            "to": "phi_and",
-            "type": "arm"
-          },
-          {
-            "from": "phi_and",
-            "to": "51_and",
-            "type": "arm"
-          },
-          {
-            "from": "delta_and",
-            "to": "pi_and",
-            "type": "chain"
-          },
-          {
-            "from": "pi_and",
-            "to": "iota_and",
-            "type": "chain"
-          },
-          {
-            "from": "iota_and",
-            "to": "omicron_and",
-            "type": "chain"
-          },
-          {
-            "from": "iota_and",
-            "to": "kappa_and",
-            "type": "chain"
-          },
-          {
-            "from": "kappa_and",
-            "to": "lambda_and",
-            "type": "chain"
-          },
-          {
-            "from": "delta_and",
-            "to": "epsilon_and",
-            "type": "chain"
-          },
-          {
-            "from": "epsilon_and",
-            "to": "zeta_and",
-            "type": "chain"
           }
         ],
         "deepSkyObjects": [
@@ -1472,8 +1289,8 @@ const constellationLoaderComponent = {
             "type": "spiral_galaxy",
             "layer": "galaxy",
             "position2D": {
-              "x": -0.315,
-              "y": 0.462
+              "x": 0.718,
+              "y": 1.349
             },
             "distance": 2537000,
             "magnitude": 3.44,
@@ -1504,8 +1321,8 @@ const constellationLoaderComponent = {
             "type": "dwarf_elliptical_galaxy",
             "layer": "none",
             "position2D": {
-              "x": -0.315,
-              "y": 0.378
+              "x": 0.725,
+              "y": 1.234
             },
             "distance": 2490000,
             "magnitude": 8.08,
@@ -1519,8 +1336,8 @@ const constellationLoaderComponent = {
             "type": "dwarf_elliptical_galaxy",
             "layer": "none",
             "position2D": {
-              "x": -0.222,
-              "y": 0.545
+              "x": 0.84,
+              "y": 1.473
             },
             "distance": 2690000,
             "magnitude": 8.07,
@@ -1534,8 +1351,8 @@ const constellationLoaderComponent = {
             "type": "planetary_nebula",
             "layer": "none",
             "position2D": {
-              "x": 2.636,
-              "y": 0.988
+              "x": 4.831,
+              "y": 2.352
             },
             "distance": 5600,
             "magnitude": 8.3,
@@ -1549,8 +1366,8 @@ const constellationLoaderComponent = {
             "type": "open_cluster",
             "layer": "none",
             "position2D": {
-              "x": -3.453,
-              "y": 0.107
+              "x": -3.43,
+              "y": 0.629
             },
             "distance": 1300,
             "magnitude": 5.7,
@@ -1591,21 +1408,6 @@ const constellationLoaderComponent = {
             ],
             "story": "Almach marks the princess's foot, and its name has nothing to do with her. Al 'Anak al 'Ard means 'the Earth-kid' - a small predatory Arabian animal like a badger, known locally as Al Barid. The name was used by Al Tizini and by the fifteenth-century Tartar astronomer Ulug Beg, and Allen took its oddity as a sign of very early Arab star-lore. Thomas Hyde recorded the alternative Al Rijl al Musalsalah, 'the Woman's Foot.' Chinese astronomers gave it a grander title - Tien Ta Tseang, 'Heaven's Great General,' honourable and eminent. Robson assigns it the nature of Venus: honour, eminence and artistic ability. Through a telescope it splits into a celebrated gold and blue-green pair.",
             "sources": "R.H. Allen, Star Names (1899); V. Robson, Fixed Stars (1923)"
-          },
-          {
-            "id": "chains",
-            "title": "The Chains",
-            "view": "2d",
-            "detailScale": 1.2,
-            "centerStarName": "Kappa Andromedae",
-            "targetStarNames": [
-              "Omicron Andromedae",
-              "Lambda Andromedae",
-              "Kappa Andromedae",
-              "Iota Andromedae"
-            ],
-            "story": "Ptolemy listed Andromeda among his original forty-eight constellations in the Almagest, and in his description Alpha marks her head while Omicron and Lambda are her chains. The story behind them is the oldest in this sky: Cassiopeia boasted that her daughter outshone the sea nymphs, Poseidon sent the monster Cetus, and an oracle told King Cepheus that only his daughter's sacrifice would save the kingdom. She was chained to a rock, and rescued by Perseus. The chained figure is not only Greek - Sanskrit texts describe Antarmada bound to a rock, a resemblance scholars have long remarked on. Other skies saw something else entirely: in the Marshall Islands these stars form the body of a porpoise, with Cassiopeia as its tail and Aries its head.",
-            "sources": "Ptolemy, Almagest (2nd c.); R.H. Allen, Star Names (1899); Wikipedia"
           },
           {
             "id": "m31",
@@ -1675,13 +1477,112 @@ const constellationLoaderComponent = {
         },
         "stars": [
           {
+            "id": "elnath",
+            "hip": 25428,
+            "name": "Elnath",
+            "designation": "β Tauri",
+            "isMajor": true,
+            "position2D": {
+              "x": -2.852,
+              "y": 2.351
+            },
+            "distance": 131,
+            "magnitude": 1.65,
+            "spectralClass": "B7III",
+            "color": "#bbccff",
+            "size": 0.13,
+            "stellarType": "blue_white_giant",
+            "physics": {
+              "massSolar": 5,
+              "radiusSolar": 4.79,
+              "tempKelvin": 13600,
+              "note": "Primary; mercury-manganese peculiar star; also catalogued as Gamma Aurigae, shared between Taurus and Auriga"
+            },
+            "info": {
+              "basic": "Elnath is the tip of the northern horn. Its name is Arabic, al-nath, \"the butting one\" — the horn doing the goring. It sits on the border with Auriga and was once counted as a star of both figures.",
+              "scientific": {
+                "class": "B7 III blue-white giant",
+                "temperature": "About 13,600 K",
+                "mass": "Roughly 5 times the Sun",
+                "radius": "About 4.8 times the Sun",
+                "feature": "The second-brightest star in Taurus, and shared historically with Auriga as Gamma Aurigae"
+              }
+            }
+          },
+          {
+            "id": "tau_tauri",
+            "hip": 21881,
+            "name": "Tau Tauri",
+            "designation": "τ Tauri",
+            "isMajor": false,
+            "position2D": {
+              "x": -0.718,
+              "y": 0.946
+            },
+            "distance": 400,
+            "magnitude": 4.27,
+            "spectralClass": "B3V",
+            "color": "#a8bcff",
+            "size": 0.055,
+            "stellarType": "blue_white_main_sequence",
+            "physics": {
+              "massSolar": 4.55,
+              "radiusSolar": 3.35,
+              "tempKelvin": 14880,
+              "note": "Catalogue values: typical for spectral type B2.5V. Not hand-checked."
+            },
+            "info": {
+              "basic": "Tau Tauri lies along the line running out to the northern horn tip, well beyond the Hyades and unrelated to them.",
+              "scientific": {
+                "class": "B3 V blue-white main sequence",
+                "temperature": "About 17,000 K",
+                "distance": "Around 400 light-years — far behind the Hyades",
+                "feature": "Mass and radius are not published for this star, so its tone is estimated from its spectral class rather than measured"
+              }
+            }
+          },
+          {
+            "id": "epsilon_tauri",
+            "hip": 20889,
+            "name": "Ain",
+            "designation": "ε Tauri",
+            "isMajor": true,
+            "position2D": {
+              "x": -0.041,
+              "y": 0.122
+            },
+            "distance": 155,
+            "magnitude": 3.53,
+            "spectralClass": "K0III",
+            "color": "#ffb877",
+            "size": 0.085,
+            "stellarType": "orange_giant",
+            "physics": {
+              "massSolar": 2.458,
+              "radiusSolar": 12.46,
+              "tempKelvin": 4880,
+              "note": "Primary (Ain), the northern eye of the bull; hosts exoplanet Epsilon Tauri b (Amateru)"
+            },
+            "info": {
+              "basic": "Epsilon Tauri carries the name Ain, Arabic for \"eye\" — the bull’s second eye, opposite Aldebaran across the face.",
+              "scientific": {
+                "class": "K0 III orange giant",
+                "temperature": "About 4,880 K",
+                "mass": "Roughly 2.5 times the Sun",
+                "radius": "About 12 times the Sun",
+                "feature": "Hosts a confirmed giant planet — one of the few known in an open cluster"
+              }
+            }
+          },
+          {
             "id": "aldebaran",
+            "hip": 21421,
             "name": "Aldebaran",
             "designation": "α Tauri",
             "isMajor": true,
             "position2D": {
-              "x": -0.756,
-              "y": 0.168
+              "x": -0.419,
+              "y": -0.45
             },
             "distance": 65,
             "magnitude": 0.87,
@@ -1707,45 +1608,47 @@ const constellationLoaderComponent = {
             }
           },
           {
-            "id": "theta2_tauri",
-            "name": "Theta2 Tauri",
-            "designation": "θ² Tauri (Chamukuy)",
+            "id": "zeta_tauri",
+            "hip": 26451,
+            "name": "Tianguan",
+            "designation": "ζ Tauri",
             "isMajor": true,
             "position2D": {
-              "x": -0.428,
-              "y": 0.042
+              "x": -3.6,
+              "y": 0.745
             },
-            "distance": 149,
-            "magnitude": 3.4,
-            "spectralClass": "A7III",
-            "color": "#ffffff",
+            "distance": 417,
+            "magnitude": 2.97,
+            "spectralClass": "B4IIIp",
+            "color": "#a8bcff",
             "size": 0.085,
-            "stellarType": "white_giant",
+            "stellarType": "blue_white_giant",
             "physics": {
-              "massSolar": 2.86,
-              "radiusSolar": 4.4,
-              "tempKelvin": 7800,
-              "note": "Component Aa (Chamukuy); brighter of the theta Tauri pair"
+              "massSolar": 11.2,
+              "radiusSolar": 5.5,
+              "tempKelvin": 15500,
+              "note": "Component A, primary of a single-lined spectroscopic binary; Be shell star"
             },
             "info": {
-              "basic": "Theta-2 Tauri, or Chamukuy, sits in the Hyades V. It has a near twin, Theta-1, so close beside it that the pair reads as a single point to the unaided eye — which is why only one of them is drawn here.",
+              "basic": "Zeta Tauri is the tip of the southern horn, and the signpost for the Crab Nebula — the wreck of a star that exploded here in 1054.",
               "scientific": {
-                "class": "A7 III white giant",
-                "temperature": "About 7,800 K",
-                "mass": "Roughly 2.9 times the Sun",
-                "radius": "About 4.4 times the Sun",
-                "feature": "The brightest true member of the Hyades cluster"
+                "class": "B4 III peculiar blue-white giant",
+                "temperature": "About 15,500 K",
+                "mass": "Roughly 11 times the Sun",
+                "radius": "About 5.5 times the Sun",
+                "feature": "A Be shell star, spinning fast enough to fling out a disc of its own gas"
               }
             }
           },
           {
             "id": "gamma_tauri",
-            "name": "Gamma Tauri",
-            "designation": "γ Tauri (Prima Hyadum)",
+            "hip": 20205,
+            "name": "Prima Hyadum",
+            "designation": "γ Tauri",
             "isMajor": true,
             "position2D": {
-              "x": -0.025,
-              "y": -0.006
+              "x": 0.416,
+              "y": -0.641
             },
             "distance": 154,
             "magnitude": 3.65,
@@ -1772,12 +1675,13 @@ const constellationLoaderComponent = {
           },
           {
             "id": "delta1_tauri",
-            "name": "Delta1 Tauri",
-            "designation": "δ¹ Tauri (Secunda Hyadum)",
+            "hip": 20455,
+            "name": "Secunda Hyadum",
+            "designation": "δ Tauri",
             "isMajor": true,
             "position2D": {
-              "x": -0.166,
-              "y": 0.356
+              "x": 0.25,
+              "y": -0.229
             },
             "distance": 153,
             "magnitude": 3.77,
@@ -1803,134 +1707,14 @@ const constellationLoaderComponent = {
             }
           },
           {
-            "id": "epsilon_tauri",
-            "name": "Epsilon Tauri",
-            "designation": "ε Tauri (Ain)",
-            "isMajor": true,
-            "position2D": {
-              "x": -0.419,
-              "y": 0.669
-            },
-            "distance": 155,
-            "magnitude": 3.53,
-            "spectralClass": "K0III",
-            "color": "#ffb877",
-            "size": 0.085,
-            "stellarType": "orange_giant",
-            "physics": {
-              "massSolar": 2.458,
-              "radiusSolar": 12.46,
-              "tempKelvin": 4880,
-              "note": "Primary (Ain), the northern eye of the bull; hosts exoplanet Epsilon Tauri b (Amateru)"
-            },
-            "info": {
-              "basic": "Epsilon Tauri carries the name Ain, Arabic for \"eye\" — the bull’s second eye, opposite Aldebaran across the face.",
-              "scientific": {
-                "class": "K0 III orange giant",
-                "temperature": "About 4,880 K",
-                "mass": "Roughly 2.5 times the Sun",
-                "radius": "About 12 times the Sun",
-                "feature": "Hosts a confirmed giant planet — one of the few known in an open cluster"
-              }
-            }
-          },
-          {
-            "id": "tau_tauri",
-            "name": "Tau Tauri",
-            "designation": "τ Tauri",
-            "isMajor": false,
-            "position2D": {
-              "x": -1.011,
-              "y": 1.406
-            },
-            "distance": 400,
-            "magnitude": 4.27,
-            "spectralClass": "B3V",
-            "color": "#a8bcff",
-            "size": 0.055,
-            "stellarType": "blue_white_main_sequence",
-            "info": {
-              "basic": "Tau Tauri lies along the line running out to the northern horn tip, well beyond the Hyades and unrelated to them.",
-              "scientific": {
-                "class": "B3 V blue-white main sequence",
-                "temperature": "About 17,000 K",
-                "distance": "Around 400 light-years — far behind the Hyades",
-                "feature": "Mass and radius are not published for this star, so its tone is estimated from its spectral class rather than measured"
-              }
-            }
-          },
-          {
-            "id": "elnath",
-            "name": "Elnath",
-            "designation": "β Tauri",
-            "isMajor": true,
-            "position2D": {
-              "x": -2.92,
-              "y": 2.7
-            },
-            "distance": 131,
-            "magnitude": 1.65,
-            "spectralClass": "B7III",
-            "color": "#bbccff",
-            "size": 0.13,
-            "stellarType": "blue_white_giant",
-            "physics": {
-              "massSolar": 5,
-              "radiusSolar": 4.79,
-              "tempKelvin": 13600,
-              "note": "Primary; mercury-manganese peculiar star; also catalogued as Gamma Aurigae, shared between Taurus and Auriga"
-            },
-            "info": {
-              "basic": "Elnath is the tip of the northern horn. Its name is Arabic, al-nath, \"the butting one\" — the horn doing the goring. It sits on the border with Auriga and was once counted as a star of both figures.",
-              "scientific": {
-                "class": "B7 III blue-white giant",
-                "temperature": "About 13,600 K",
-                "mass": "Roughly 5 times the Sun",
-                "radius": "About 4.8 times the Sun",
-                "feature": "The second-brightest star in Taurus, and shared historically with Auriga as Gamma Aurigae"
-              }
-            }
-          },
-          {
-            "id": "zeta_tauri",
-            "name": "Zeta Tauri",
-            "designation": "ζ Tauri (Tianguan)",
-            "isMajor": true,
-            "position2D": {
-              "x": -3.59,
-              "y": 1.264
-            },
-            "distance": 417,
-            "magnitude": 2.97,
-            "spectralClass": "B4IIIp",
-            "color": "#a8bcff",
-            "size": 0.085,
-            "stellarType": "blue_white_giant",
-            "physics": {
-              "massSolar": 11.2,
-              "radiusSolar": 5.5,
-              "tempKelvin": 15500,
-              "note": "Component A, primary of a single-lined spectroscopic binary; Be shell star"
-            },
-            "info": {
-              "basic": "Zeta Tauri is the tip of the southern horn, and the signpost for the Crab Nebula — the wreck of a star that exploded here in 1054.",
-              "scientific": {
-                "class": "B4 III peculiar blue-white giant",
-                "temperature": "About 15,500 K",
-                "mass": "Roughly 11 times the Sun",
-                "radius": "About 5.5 times the Sun",
-                "feature": "A Be shell star, spinning fast enough to fling out a disc of its own gas"
-              }
-            }
-          },
-          {
             "id": "lambda_tauri",
+            "hip": 18724,
             "name": "Lambda Tauri",
-            "designation": "λ Tauri (Bibing)",
+            "designation": "λ Tauri",
             "isMajor": true,
             "position2D": {
-              "x": 0.86,
-              "y": -0.592
+              "x": 1.439,
+              "y": -1.304
             },
             "distance": 370,
             "magnitude": 3.41,
@@ -1956,108 +1740,14 @@ const constellationLoaderComponent = {
             }
           },
           {
-            "id": "mu_tauri",
-            "name": "Mu Tauri",
-            "designation": "μ Tauri",
-            "isMajor": false,
-            "position2D": {
-              "x": 0.175,
-              "y": -1.285
-            },
-            "distance": 435,
-            "magnitude": 4.27,
-            "spectralClass": "B3IV",
-            "color": "#a8bcff",
-            "size": 0.058,
-            "stellarType": "blue_white_subgiant",
-            "physics": {
-              "massSolar": 6.7,
-              "radiusSolar": 6.9,
-              "tempKelvin": 16980
-            },
-            "info": {
-              "basic": "Mu Tauri runs down from the shoulder toward the foreleg, one of the fainter stars holding the bull’s front together.",
-              "scientific": {
-                "class": "B3 IV blue-white subgiant",
-                "temperature": "About 17,000 K",
-                "mass": "Roughly 6.7 times the Sun",
-                "radius": "About 6.9 times the Sun",
-                "feature": "At 435 light-years it stands far behind the Hyades, unrelated to them"
-              }
-            }
-          },
-          {
-            "id": "nu_tauri",
-            "name": "Nu Tauri",
-            "designation": "ν Tauri",
-            "isMajor": true,
-            "position2D": {
-              "x": 0.768,
-              "y": -1.842
-            },
-            "distance": 129,
-            "magnitude": 3.91,
-            "spectralClass": "A1V",
-            "color": "#ffffff",
-            "size": 0.075,
-            "stellarType": "white_main_sequence",
-            "physics": {
-              "massSolar": 2.25,
-              "radiusSolar": 2.87,
-              "tempKelvin": 7836,
-              "note": "Single star; radius and temperature quoted with asymmetric errors, central values used"
-            },
-            "info": {
-              "basic": "Nu Tauri is the lowest star of the figure, at the bull’s knee — and the nearest of the shoulder group, barely a third the distance of its neighbours.",
-              "scientific": {
-                "class": "A1 V white main sequence",
-                "temperature": "About 7,800 K",
-                "mass": "Roughly 2.3 times the Sun",
-                "radius": "About 2.9 times the Sun",
-                "feature": "A single star at 129 light-years"
-              }
-            }
-          },
-          {
-            "id": "xi_tauri",
-            "name": "Xi Tauri",
-            "designation": "ξ Tauri (Ushakaron)",
-            "isMajor": true,
-            "position2D": {
-              "x": 2.478,
-              "y": -1.076
-            },
-            "distance": 222,
-            "magnitude": 3.73,
-            "spectralClass": "B9Vn",
-            "color": "#bbccff",
-            "size": 0.08,
-            "stellarType": "blue_white_main_sequence",
-            "physics": {
-              "massSolar": 2.25,
-              "radiusSolar": 1.691,
-              "tempKelvin": 11000,
-              "note": "Component Aa, the more massive star of the inner eclipsing pair"
-            },
-            "info": {
-              "basic": "Xi Tauri, Ushakaron, sits near the far western end of the figure. What looks like a single star is four: two close pairs orbiting one another.",
-              "scientific": {
-                "class": "B9 V blue-white main sequence",
-                "temperature": "About 11,000 K",
-                "mass": "Roughly 2.3 times the Sun",
-                "radius": "About 1.7 times the Sun",
-                "feature": "A quadruple system; the inner pair eclipse each other every 7.15 days"
-              }
-            }
-          },
-          {
             "id": "omicron_tauri",
+            "hip": 15900,
             "name": "Omicron Tauri",
             "designation": "ο Tauri",
             "isMajor": true,
             "position2D": {
-              "x": 2.603,
-              "y": -1.21
+              "x": 3.476,
+              "y": -2.005
             },
             "distance": 211,
             "magnitude": 3.61,
@@ -2083,43 +1773,120 @@ const constellationLoaderComponent = {
             }
           },
           {
-            "id": "five_tauri",
-            "name": "5 Tauri",
-            "designation": "5 Tauri (f Tauri)",
+            "id": "theta2_tauri",
+            "hip": 20894,
+            "name": "Chamukuy",
+            "designation": "θ² Tauri",
             "isMajor": true,
             "position2D": {
-              "x": 2.26,
-              "y": -0.461
+              "x": -0.044,
+              "y": -0.59
             },
-            "distance": 530,
-            "magnitude": 4.14,
-            "spectralClass": "K0III",
-            "color": "#ffb877",
-            "size": 0.062,
-            "stellarType": "orange_giant",
+            "distance": 149,
+            "magnitude": 3.4,
+            "spectralClass": "A7III",
+            "color": "#ffffff",
+            "size": 0.085,
+            "stellarType": "white_giant",
             "physics": {
-              "massSolar": 4,
-              "radiusSolar": 8.5,
-              "tempKelvin": 4644,
-              "note": "Component A"
+              "massSolar": 2.86,
+              "radiusSolar": 4.4,
+              "tempKelvin": 7800,
+              "note": "Component Aa (Chamukuy); brighter of the theta Tauri pair"
             },
             "info": {
-              "basic": "5 Tauri, also catalogued f Tauri, carries the line westward from the shoulder out toward the bull’s foreleg.",
+              "basic": "Theta-2 Tauri, or Chamukuy, sits in the Hyades V. It has a near twin, Theta-1, so close beside it that the pair reads as a single point to the unaided eye — which is why only one of them is drawn here.",
               "scientific": {
-                "class": "K0 III orange giant",
-                "temperature": "About 4,600 K",
-                "mass": "Roughly 4 times the Sun",
-                "radius": "About 8.5 times the Sun",
-                "feature": "A binary; the companion is about 1.1 solar masses"
+                "class": "A7 III white giant",
+                "temperature": "About 7,800 K",
+                "mass": "Roughly 2.9 times the Sun",
+                "radius": "About 4.4 times the Sun",
+                "feature": "The brightest true member of the Hyades cluster"
               }
+            }
+          },
+          {
+            "id": "68_tauri",
+            "hip": 20648,
+            "name": "68 Tauri",
+            "designation": "68 Tauri",
+            "isMajor": false,
+            "position2D": {
+              "x": 0.119,
+              "y": -0.147
+            },
+            "distance": 148.4,
+            "magnitude": 4.298,
+            "spectralClass": "A1V",
+            "color": "#ffffff",
+            "size": 0.068,
+            "stellarType": "white_main_sequence",
+            "physics": {
+              "massSolar": 2.29,
+              "radiusSolar": 2.29,
+              "tempKelvin": 8910,
+              "note": "Catalogue values: Allende Prieto & Lambert 1999. Not hand-checked."
+            }
+          },
+          {
+            "id": "atlas",
+            "hip": 17847,
+            "name": "Atlas",
+            "designation": "27 Tauri",
+            "isMajor": true,
+            "position2D": {
+              "x": 1.922,
+              "y": 1.241
+            },
+            "distance": 398.8,
+            "magnitude": 3.63,
+            "spectralClass": "B7III",
+            "color": "#a8bcff",
+            "size": 0.084,
+            "stellarType": "blue_white_giant",
+            "physics": {
+              "massSolar": 4.2,
+              "radiusSolar": 7.92,
+              "tempKelvin": 10470,
+              "note": "Catalogue values: typical for spectral type B7III. Not hand-checked."
             }
           }
         ],
         "connections": [
           {
-            "from": "zeta_tauri",
-            "to": "aldebaran",
+            "from": "elnath",
+            "to": "tau_tauri",
             "type": "horn"
+          },
+          {
+            "from": "tau_tauri",
+            "to": "epsilon_tauri",
+            "type": "horn"
+          },
+          {
+            "from": "aldebaran",
+            "to": "zeta_tauri",
+            "type": "horn"
+          },
+          {
+            "from": "gamma_tauri",
+            "to": "delta1_tauri",
+            "type": "face"
+          },
+          {
+            "from": "gamma_tauri",
+            "to": "lambda_tauri",
+            "type": "shoulder"
+          },
+          {
+            "from": "lambda_tauri",
+            "to": "omicron_tauri",
+            "type": "figure"
+          },
+          {
+            "from": "aldebaran",
+            "to": "epsilon_tauri",
+            "type": "figure"
           },
           {
             "from": "aldebaran",
@@ -2132,54 +1899,19 @@ const constellationLoaderComponent = {
             "type": "face"
           },
           {
-            "from": "gamma_tauri",
+            "from": "epsilon_tauri",
+            "to": "68_tauri",
+            "type": "figure"
+          },
+          {
+            "from": "68_tauri",
             "to": "delta1_tauri",
-            "type": "face"
+            "type": "figure"
           },
           {
             "from": "delta1_tauri",
-            "to": "epsilon_tauri",
-            "type": "face"
-          },
-          {
-            "from": "epsilon_tauri",
-            "to": "tau_tauri",
-            "type": "horn"
-          },
-          {
-            "from": "tau_tauri",
-            "to": "elnath",
-            "type": "horn"
-          },
-          {
-            "from": "gamma_tauri",
-            "to": "lambda_tauri",
-            "type": "shoulder"
-          },
-          {
-            "from": "lambda_tauri",
-            "to": "mu_tauri",
-            "type": "foreleg"
-          },
-          {
-            "from": "mu_tauri",
-            "to": "nu_tauri",
-            "type": "foreleg"
-          },
-          {
-            "from": "lambda_tauri",
-            "to": "five_tauri",
-            "type": "shoulder"
-          },
-          {
-            "from": "five_tauri",
-            "to": "xi_tauri",
-            "type": "foreleg"
-          },
-          {
-            "from": "xi_tauri",
-            "to": "omicron_tauri",
-            "type": "foreleg"
+            "to": "atlas",
+            "type": "figure"
           }
         ],
         "deepSkyObjects": [
@@ -2190,8 +1922,8 @@ const constellationLoaderComponent = {
             "type": "open_cluster",
             "layer": "cluster",
             "position2D": {
-              "x": 1.429,
-              "y": 1.663
+              "x": 2.048,
+              "y": 1.277
             },
             "distance": 444,
             "magnitude": 1.6,
@@ -2537,8 +2269,8 @@ const constellationLoaderComponent = {
             "type": "supernova_remnant",
             "layer": "none",
             "position2D": {
-              "x": -3.422,
-              "y": 1.42
+              "x": -3.413,
+              "y": 0.922
             },
             "distance": 6500,
             "magnitude": 8.4,
@@ -2562,12 +2294,12 @@ const constellationLoaderComponent = {
             "id": "hyades",
             "title": "The Rainy Sisters",
             "view": "2d",
-            "centerStarName": "Gamma Tauri",
+            "centerStarName": "Prima Hyadum",
             "targetStarNames": [
-              "Gamma Tauri",
-              "Delta1 Tauri",
-              "Epsilon Tauri",
-              "Theta2 Tauri"
+              "Prima Hyadum",
+              "Secunda Hyadum",
+              "Ain",
+              "Chamukuy"
             ],
             "story": "The V that forms the bull’s face is the Hyades, the nearest open cluster to us and one of the best studied. In Greek myth they were five daughters of Atlas and half-sisters of the Pleiades; when their brother Hyas died they wept without stopping and were set in the sky, where their rising came to mean rain. England kept the same association under a plainer name, calling them the April Rainers in the folk song Green Grow the Rushes, O. Homer put them on the shield of Achilles in Book 18 of the Iliad. The names of the two brightest carry the order they were seen in: Gamma is Prima Hyadum, the first of the Hyades, and Delta is Secunda Hyadum, the second.",
             "sources": "Wikipedia, Hyades (star cluster); Homer, Iliad, Book 18"
@@ -2579,35 +2311,19 @@ const constellationLoaderComponent = {
             "centerStarName": "Aldebaran",
             "targetStarNames": [
               "Aldebaran",
-              "Gamma Tauri",
+              "Prima Hyadum",
               "Elnath"
             ],
             "story": "This is one of the oldest figures in the sky, and the stories agree it is a bull even when they agree on nothing else. Babylonian astronomy called it GU4.AN.NA, the Bull of Heaven; in the Epic of Gilgamesh, Ishtar sends that bull to kill Gilgamesh for refusing her, and Enkidu tears off its hindquarters and hurls them into the sky — which is why the figure has no back half. Greek writers made it Zeus, who took the form of a white bull to carry off the Phoenician princess Europa, or else Io, whom Zeus turned into a heifer to hide her from Hera; Acusilaus identified it instead with the Cretan Bull of Heracles. In Egypt the constellation vanished into the Sun’s glare as spring began, and that sacrifice was read as the renewal of the land.",
             "sources": "Wikipedia, Taurus (constellation); Epic of Gilgamesh; Acusilaus"
           },
           {
-            "id": "shoulder",
-            "title": "The Half a Bull",
-            "view": "2d",
-            "centerStarName": "Lambda Tauri",
-            "targetStarNames": [
-              "Lambda Tauri",
-              "Mu Tauri",
-              "Nu Tauri",
-              "5 Tauri",
-              "Xi Tauri",
-              "Omicron Tauri"
-            ],
-            "story": "West of the face the figure carries on into a shoulder and two forelegs, and then simply stops. Taurus has no hindquarters, and the Babylonians had an explanation ready: Enkidu tore them off and threw them away. Lambda Tauri is the joint everything hangs from — an eclipsing binary whose two stars pass in front of one another every four days, dimming by a third each time, which anyone watching carefully can see without a telescope. The line runs down through Mu to Nu at the knee, and west through 5 Tauri to Xi and Omicron at the far end of the leg. Xi is stranger than it looks: four stars, two close pairs circling each other, reading as one point to the eye.",
-            "sources": "Wikipedia, Taurus (constellation); Wikipedia, Lambda Tauri; Wikipedia, Xi Tauri"
-          },
-          {
             "id": "guest_star",
             "title": "The Guest Star of 1054",
             "view": "2d",
-            "centerStarName": "Zeta Tauri",
+            "centerStarName": "Tianguan",
             "targetStarNames": [
-              "Zeta Tauri"
+              "Tianguan"
             ],
             "story": "On 4 July 1054 a star appeared beside the southern horn and reached magnitude −4 — bright enough to be seen in broad daylight. Chinese historical texts recorded it as a guest star. It was not only watched from China: a painting in a New Mexico canyon and pottery from the same period appear to depict the event. Then it faded, and nobody knew what had been there until John Bevis found a small smudge in the same place in 1731. That smudge is the Crab Nebula, the expanding wreckage of the star that exploded, now magnitude 8.4 and needing a telescope. It is one of the very few objects in the sky whose exact birthday is written down.",
             "sources": "Wikipedia, Taurus (constellation); Chinese historical records of SN 1054"
@@ -3353,7 +3069,7 @@ const constellationLoaderComponent = {
     this.clearConstellation()
 
     // Update data path
-    this.data.constellationFile = constellationName
+    this.setConstellationFile(constellationName)
 
     // Reload data and recreate constellation
     await this.loadConstellationData()

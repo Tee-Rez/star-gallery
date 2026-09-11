@@ -1,0 +1,425 @@
+<title>Constellation Lore Journeys</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper:      #faf7f2;
+    --panel:      #f2ede4;
+    --ink:        #1c1b24;
+    --ink-soft:   #58534a;
+    --rule:       #ddd5c8;
+    --brass:      #8a6420;
+    --brass-dim:  #b08334;
+    --lapis:      #2c4a7c;
+    --cut:        #8c3a2e;
+    --measure:    64ch;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper:     #101320;
+      --panel:     #171b2a;
+      --ink:       #e9e4d9;
+      --ink-soft:  #9b9585;
+      --rule:      #2b3145;
+      --brass:     #d8ab55;
+      --brass-dim: #b08334;
+      --lapis:     #86a8dd;
+      --cut:       #d98a72;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper:     #101320;
+    --panel:     #171b2a;
+    --ink:       #e9e4d9;
+    --ink-soft:  #9b9585;
+    --rule:      #2b3145;
+    --brass:     #d8ab55;
+    --brass-dim: #b08334;
+    --lapis:     #86a8dd;
+    --cut:       #d98a72;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: 'EB Garamond', Georgia, 'Times New Roman', serif;
+    font-size: 19px;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 62rem; margin: 0 auto; padding: 4rem 1.5rem 6rem; }
+
+  .mast { border-bottom: 2px solid var(--ink); padding-bottom: 1.5rem; margin-bottom: 1rem; }
+  .mast h1 {
+    font-size: clamp(2.4rem, 6vw, 3.6rem); font-weight: 500; margin: 0 0 .4rem;
+    letter-spacing: -0.015em; text-wrap: balance;
+  }
+  .mast p { margin: 0; max-width: var(--measure); color: var(--ink-soft); }
+  .standfirst { font-size: 1.05rem; }
+  .mast .note {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    font-size: .72rem; text-transform: uppercase; letter-spacing: .1em;
+    color: var(--brass); margin-top: 1rem;
+  }
+
+  .toc {
+    display: flex; flex-wrap: wrap; gap: 1.5rem;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .78rem;
+    padding: 1rem 0 0; margin-bottom: 4rem;
+  }
+  .toc a { color: var(--lapis); text-decoration: none; border-bottom: 1px solid transparent; }
+  .toc a:hover, .toc a:focus-visible { border-bottom-color: var(--lapis); }
+
+  .con { margin-bottom: 5.5rem; scroll-margin-top: 2rem; }
+  .con__head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+    gap: 1rem 2rem; border-bottom: 1px solid var(--rule); padding-bottom: .75rem;
+  }
+  .con__head h2 { font-size: 2rem; font-weight: 500; margin: 0; letter-spacing: -0.01em; }
+
+  .counts { display: flex; gap: 1.75rem; margin: 0; font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .78rem; }
+  .counts div { display: flex; gap: .45rem; align-items: baseline; }
+  .counts dt { color: var(--ink-soft); text-transform: uppercase; letter-spacing: .08em; }
+  .counts dd { margin: 0; font-variant-numeric: tabular-nums; color: var(--ink-soft); }
+  .counts strong { color: var(--ink); font-weight: 500; }
+  .arrow { color: var(--brass); }
+
+  .delta {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: 1.5rem 2rem;
+    background: var(--panel); padding: 1.5rem; margin: 1.5rem 0 3rem;
+    border-left: 3px solid var(--brass-dim);
+  }
+  .delta h4 {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .7rem;
+    text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft);
+    margin: 0 0 .6rem; font-weight: 500;
+  }
+  .delta ul { margin: 0; padding-left: 1.1rem; font-size: .95rem; }
+  .delta li { margin-bottom: .15rem; }
+  .minus li::marker { content: '\2212  '; color: var(--cut); }
+  .plus li::marker { content: '+  '; color: var(--lapis); }
+  .delta .none { margin: 0 0 .4rem; font-size: .95rem; color: var(--ink-soft); }
+  .tag {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .62rem;
+    text-transform: uppercase; letter-spacing: .08em; padding: .1rem .4rem;
+    border: 1px solid currentColor; margin-right: .35rem;
+  }
+  .tag--cut { color: var(--cut); }
+  .tag--new { color: var(--lapis); }
+
+  .stops { display: flex; flex-direction: column; gap: 3rem; }
+  .stop { display: grid; grid-template-columns: 4.5rem 1fr; gap: 1.5rem; }
+  .stop__index {
+    display: flex; flex-direction: column; gap: .3rem; align-items: flex-start;
+    font-family: 'IBM Plex Mono', ui-monospace, monospace;
+    border-top: 2px solid var(--brass); padding-top: .5rem;
+  }
+  .stop__index > span:first-child { font-size: 1.3rem; color: var(--brass); font-variant-numeric: tabular-nums; }
+  .stop__view { font-size: .64rem; text-transform: uppercase; letter-spacing: .1em; color: var(--ink-soft); }
+  .stop__body { min-width: 0; }
+  .stop h3 { font-size: 1.45rem; font-weight: 500; margin: 0 0 .8rem; text-wrap: balance; letter-spacing: -0.01em; }
+
+  .chips { display: flex; flex-wrap: wrap; gap: .5rem; margin-bottom: 1.2rem; }
+  .chip {
+    display: inline-flex; flex-direction: column; gap: .1rem;
+    border: 1px solid var(--rule); padding: .35rem .6rem; background: var(--panel);
+  }
+  .chip__name { font-size: .92rem; }
+  .chip__meta {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .64rem;
+    color: var(--ink-soft); font-variant-numeric: tabular-nums;
+  }
+  .chip--missing { color: var(--cut); border-color: var(--cut); }
+
+  .prose p { margin: 0 0 1rem; max-width: var(--measure); }
+  .prose p:last-child { margin-bottom: 0; }
+  .sources {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .68rem;
+    line-height: 1.55; color: var(--ink-soft); margin: 1.1rem 0 0;
+    max-width: var(--measure); padding-top: .6rem; border-top: 1px solid var(--rule);
+  }
+  .unused {
+    font-size: .92rem; color: var(--ink-soft); margin: 2.5rem 0 0;
+    max-width: var(--measure); border-left: 2px solid var(--rule); padding-left: 1rem;
+  }
+
+  @media (max-width: 34rem) {
+    body { font-size: 18px; }
+    .stop { grid-template-columns: 1fr; gap: .75rem; }
+    .stop__index { flex-direction: row; align-items: baseline; gap: .75rem; }
+  }
+</style>
+
+<div class="wrap">
+  <header class="mast">
+    <h1>Constellation Lore Journeys</h1>
+    <p class="standfirst">Rebuilt from the Constellation Brain vault after the figures were migrated to Stellarium&rsquo;s western sky culture. Every star shown below exists in the app&rsquo;s current data; every claim traces to a named source.</p>
+    <p class="note">Draft &middot; not yet wired into the app</p>
+  </header>
+
+  <nav class="toc">
+    <a href="#orion">Orion the Hunter</a><a href="#taurus">Taurus the Bull</a><a href="#andromeda">Andromeda the Chained Maiden</a>
+  </nav>
+
+  
+    <section class="con" id="orion">
+      <header class="con__head">
+        <h2>Orion the Hunter</h2>
+        <dl class="counts">
+          <div><dt>stars</dt><dd>15 <span class="arrow">&rarr;</span> <strong>19</strong></dd></div>
+          <div><dt>lines</dt><dd>15 <span class="arrow">&rarr;</span> <strong>21</strong></dd></div>
+          <div><dt>stops</dt><dd>5 <span class="arrow">&rarr;</span> <strong>6</strong></dd></div>
+        </dl>
+      </header>
+
+      <div class="delta">
+        <div class="delta__col">
+          <h4>Stars gone from the figure</h4>
+          <ul class="minus"><li>Pi5 Orionis</li><li>Chi2 Orionis</li><li>42 Orionis</li><li>Theta1 Orionis</li></ul>
+        </div>
+        <div class="delta__col">
+          <h4>Stars new to the figure</h4>
+          <ul class="plus"><li>64 Orionis</li><li>Xi Orionis</li><li>Nu Orionis</li><li>Mu Orionis</li><li>5 Orionis</li><li>Pi6 Orionis</li><li>Pi2 Orionis</li><li>Pi1 Orionis</li></ul>
+        </div>
+        <div class="delta__col">
+          <h4>Journey stops changed</h4>
+          
+          <p class="none"><span class="tag tag--new">new</span> shield, sahu</p>
+          <p class="none">bellatrix folded into shoulders, beside Betelgeuse - al-Sufi gave both stars the same name</p>
+        </div>
+      </div>
+
+      <div class="stops">
+      <article class="stop">
+        <div class="stop__index"><span>01</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>Three Names for One Belt</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Mintaka</span><span class="chip__meta">δ Orionis · mag 2.23 · HIP 25930</span></span><span class="chip"><span class="chip__name">Alnilam</span><span class="chip__meta">ε Orionis · mag 1.69 · HIP 26311</span></span><span class="chip"><span class="chip__name">Alnitak</span><span class="chip__meta">ζ Orionis · mag 1.77 · HIP 26727</span></span></div>
+          <div class="prose"><p>Three stars in a row, evenly spaced, nearly matched in brightness. The Arabic astronomers who catalogued them gave all three names that mean roughly the same thing. Mintaka is al-Mintakah, the belt. Alnitak is al-Nitāq, the sash or girdle. Alnilam comes from al-Nithām, the string of pearls. Each name was first applied to the whole trio and only later pinned to one star, which is why they overlap so heavily.</p>
+<p>Babylonian scribes read the figure another way entirely. In the MUL.APIN lists, compiled around 1000 BCE, this was MUL.SIPA.ZI.AN.NA, the True Shepherd of Anu. Anu was the sky-god at the top of the Mesopotamian pantheon, and his shepherd guarded the Road of Anu, the equatorial band. The belt stars sat almost exactly on the celestial equator. That made the figure useful rather than decorative: it anchored the calendar.</p></div>
+          <p class="sources">Allen, Star Names (1899); Constellations of Words, Mintaka / Alnitak / Alnilam; MUL.APIN via Allen 1899</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>02</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>Both Shoulders Had the Same Name</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Betelgeuse</span><span class="chip__meta">α Orionis · mag 0.5 · HIP 27989</span></span><span class="chip"><span class="chip__name">Bellatrix</span><span class="chip__meta">γ Orionis · mag 1.64 · HIP 25336</span></span></div>
+          <div class="prose"><p>Al-Sufi listed both of these stars as Al Mankib, the shoulder. One on each side of the figure, one name between them. What separated them afterwards was accident on one side and translation on the other.</p>
+<p>Betelgeuse began as Yad al-Jauzah, the hand of the central one, al-Jauzah being the Arabic name for Orion. A medieval Latin scribe read the Arabic letter yā' as bā', turning yad into bed, and the misreading hardened into Bedalgeuze and then Betelgeuse. The name we use is a copying mistake that nobody corrected. Arabic sources also carried Ibt al-Jauzah, the armpit, for the same star.</p>
+<p>Bellatrix went through no such corruption. It is plain Latin for a female warrior, coined to translate Al Najid, the Conqueror, which Ulug Beg gave in the fifteenth century in the fuller form Al Murzim al Najid, the Roaring Conqueror. European astrologers called it the Amazon Star.</p></div>
+          <p class="sources">Allen, Star Names (1899); Constellations of Words, Betelgeuse / Bellatrix; al-Sufi, Book of Fixed Stars (964); Ulug Beg (15th c.)</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>03</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>The Left Leg</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Rigel</span><span class="chip__meta">β Orionis · mag 0.13 · HIP 24436</span></span></div>
+          <div class="prose"><p>Rigel is short for Rijl al-Jauzah al-Yusrā, the left leg of the central one. The full phrase appears in the Alfonsine Tables in 1521; the shortened form is what survived into common use.</p>
+<p>Al-Sufi recorded something else for this star. He gives Rā'ī al-Jauzah, the Herdsman of the central one, which does not place it on the body at all. In that reading Rigel is a separate figure standing near Orion rather than part of him. Both names circulated. Only one made it into the atlases, and the choice was never argued out in any surviving text.</p>
+<p>At magnitude 0.13 it is the brightest star in the constellation, outshining Betelgeuse most of the time, despite carrying the beta designation.</p></div>
+          <p class="sources">Allen, Star Names (1899); Constellations of Words, Rigel; Alfonsine Tables (1521); al-Sufi, Book of Fixed Stars (964)</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>04</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>The Enduring One</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Tabit</span><span class="chip__meta">π³ Orionis · mag 3.65 · HIP 22449</span></span><span class="chip"><span class="chip__name">Pi1 Orionis</span><span class="chip__meta">π¹ Orionis · mag 4.648 · HIP 22845</span></span><span class="chip"><span class="chip__name">Pi2 Orionis</span><span class="chip__meta">π² Orionis · mag 4.35 · HIP 22509</span></span><span class="chip"><span class="chip__name">Pi4 Orionis</span><span class="chip__meta">π4 Orionis · mag 3.685 · HIP 22549</span></span><span class="chip"><span class="chip__name">Pi6 Orionis</span><span class="chip__meta">π6 Orionis · mag 4.459 · HIP 23123</span></span></div>
+          <div class="prose"><p>A shallow arc of faint stars curves west from Orion's raised hand. In the Greek artistic tradition this is the shield or the lion-skin he holds up against the charging bull of Taurus, which faces him from the other side of the sky.</p>
+<p>The Arabic name for the group is Al Thabit, the enduring one, or the persevering. It belonged to the π Orionis stars collectively. π³ is the brightest of them and ended up with the name to itself, now spelled Tabit.</p>
+<p>These stars are faint enough that the arc is easy to miss, and many modern figure drawings leave it out. The Stellarium western sky culture keeps it, which is why the shield is drawn here.</p></div>
+          <p class="sources">Allen, Star Names (1899); Stellarium western sky culture</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>05</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>A Sword, and a Name Given to the Wrong Star</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Saiph</span><span class="chip__meta">κ Orionis · mag 2.09 · HIP 27366</span></span><span class="chip"><span class="chip__name">Meissa</span><span class="chip__meta">λ Orionis · mag 3.7 · HIP 26207</span></span></div>
+          <div class="prose"><p>Saiph is Saif al-Jabbār, the Sword of the Giant. Al-Jabbār, the Giant, was the other Arabic name for this constellation, competing with al-Jauzah. The same sword designation was also attached to η Orionis, so the sword region stayed loosely defined for a long time before individual stars were fixed.</p>
+<p>Meissa has a stranger history. The name is a corruption of Al Maisan, the shining one, and it originally belonged to γ Geminorum, a star in an entirely different constellation. The fourteenth-century lexicographer al-Firuzabadi moved it here by mistake. Nobody moved it back. The genuine Arabic names for this star were Ras al-Jauzah, the head of the central one, and Al Hak'ah, a white spot, which referred to the faint knot of stars clustered around it. The modern alternative name Heka comes from that second one.</p></div>
+          <p class="sources">Allen, Star Names (1899); Constellations of Words, Saiph / Meissa; al-Firuzabadi (14th c.)</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>06</span><span class="stop__view">3d</span></div>
+        <div class="stop__body">
+          <h3>Four Traditions, One Giant</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Alnilam</span><span class="chip__meta">ε Orionis · mag 1.69 · HIP 26311</span></span><span class="chip"><span class="chip__name">Betelgeuse</span><span class="chip__meta">α Orionis · mag 0.5 · HIP 27989</span></span><span class="chip"><span class="chip__name">Rigel</span><span class="chip__meta">β Orionis · mag 0.13 · HIP 24436</span></span></div>
+          <div class="prose"><p>Egyptian priests called this figure Sahu, the celestial soul of Osiris. The Pyramid Texts, carved between roughly 2400 and 2300 BCE, identify the dead king with Sahu-Osiris. Orion's first pre-dawn appearance in summer came just before the Nile flood, so the figure announced both the inundation and the king's resurrection.</p>
+<p>The Greeks made him a hunter, son of Poseidon, who boasted he would kill every beast alive. Gaia sent a scorpion. Zeus put both in the sky on opposite sides of it, and they still avoid each other: when Scorpius rises in the east, Orion is setting in the west.</p>
+<p>Babylon had a shepherd. Arabic astronomy had a giant, al-Jabbār, whose name survives in Saiph.</p>
+<p>Four traditions, four kinds of authority, one figure. What they were reaching for differed in every case. What they agreed on was that the brightest thing in the winter sky needed to be somebody important.</p></div>
+          <p class="sources">Allen, Star Names (1899); Pyramid Texts (c. 2400-2300 BCE) via Allen; Ptolemy, Almagest; Constellations of Words</p>
+        </div>
+      </article></div>
+
+      <p class="unused"><strong>Not visited by any stop:</strong> 64 Orionis, Xi Orionis, Nu Orionis, Chi1 Orionis, Mu Orionis, 5 Orionis. These are figure stars with no lore in the vault; they still render and can still be tapped.</p>
+    </section>
+    <section class="con" id="taurus">
+      <header class="con__head">
+        <h2>Taurus the Bull</h2>
+        <dl class="counts">
+          <div><dt>stars</dt><dd>14 <span class="arrow">&rarr;</span> <strong>12</strong></dd></div>
+          <div><dt>lines</dt><dd>13 <span class="arrow">&rarr;</span> <strong>12</strong></dd></div>
+          <div><dt>stops</dt><dd>5 <span class="arrow">&rarr;</span> <strong>5</strong></dd></div>
+        </dl>
+      </header>
+
+      <div class="delta">
+        <div class="delta__col">
+          <h4>Stars gone from the figure</h4>
+          <ul class="minus"><li>Mu Tauri</li><li>Nu Tauri</li><li>Xi Tauri</li><li>5 Tauri</li></ul>
+        </div>
+        <div class="delta__col">
+          <h4>Stars new to the figure</h4>
+          <ul class="plus"><li>68 Tauri</li><li>Atlas</li></ul>
+        </div>
+        <div class="delta__col">
+          <h4>Journey stops changed</h4>
+          <p class="none"><span class="tag tag--cut">cut</span> shoulder</p>
+          <p class="none"><span class="tag tag--new">new</span> pleiades</p>
+          <p class="none">guest_star retargeted from Zeta Tauri to its Stellarium name, Tianguan</p>
+        </div>
+      </div>
+
+      <div class="stops">
+      <article class="stop">
+        <div class="stop__index"><span>01</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>The Follower</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Aldebaran</span><span class="chip__meta">α Tauri · mag 0.87 · HIP 21421</span></span></div>
+          <div class="prose"><p>Al-Dabarān means the Follower. The name says nothing about the star itself, only about what it does: it rises behind the Pleiades and chases them across the sky all night without ever closing the gap. Al-Sufi records the name in the tenth century and takes care to identify exactly which star in the Taurus figure it belongs to, correcting confusions already present in the record by then. The fourth lunar mansion is named after the star, not the other way round.</p>
+<p>In the Hindu system the same star is Rohiṇī, the Red One, fourth of the twenty-seven nakṣatras. Rohiṇī was the favourite among the Moon-god Soma's wives. His attachment to her was blatant enough that her co-wives complained to their father Daksha, who cursed Soma to wane. The curse was later softened into the cycle we see: Soma waxes for a fortnight as he returns to her, wanes for a fortnight as he pays.</p>
+<p>The two accounts run in opposite directions. Arabic tradition makes Aldebaran the pursuer. Hindu tradition makes it the destination. Neither names the star for anything it is.</p></div>
+          <p class="sources">Allen, Star Names (1899) p. 383; al-Sufi, Book of Fixed Stars (964); vault thread: The Follower</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>02</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>The Rainy Sisters</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Prima Hyadum</span><span class="chip__meta">γ Tauri · mag 3.65 · HIP 20205</span></span><span class="chip"><span class="chip__name">Secunda Hyadum</span><span class="chip__meta">δ Tauri · mag 3.77 · HIP 20455</span></span><span class="chip"><span class="chip__name">Ain</span><span class="chip__meta">ε Tauri · mag 3.53 · HIP 20889</span></span><span class="chip"><span class="chip__name">Chamukuy</span><span class="chip__meta">θ² Tauri · mag 3.4 · HIP 20894</span></span></div>
+          <div class="prose"><p>The V is a real cluster, the closest one to Earth, about 153 light-years out. Greek writers tied the name to hyein, to rain, because the group's rising and setting fell near the wet parts of the Mediterranean year. Manilius uses them for wet autumns and Vergil treats them as a weather-sign in the Georgics. In one telling they are daughters of Atlas who wept themselves into the sky over their brother Hyas, killed by a lion.</p>
+<p>Aldebaran sits in the V and is not part of it. The cluster is at 153 light-years; Aldebaran is at about 65, less than half as far, and simply happens to fall along the same line of sight. Every tradition that counted it among the Hyades was reading a coincidence.</p>
+<p>Two of these stars still carry their Latin ordinals. Prima Hyadum is the first of the Hyades, Secunda Hyadum the second.</p></div>
+          <p class="sources">Allen, Star Names (1899); Manilius, Astronomica; Vergil, Georgics; vault object note: Hyades</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>03</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>The Bull of Heaven</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Elnath</span><span class="chip__meta">β Tauri · mag 1.65 · HIP 25428</span></span><span class="chip"><span class="chip__name">Tianguan</span><span class="chip__meta">ζ Tauri · mag 2.97 · HIP 26451</span></span><span class="chip"><span class="chip__name">Aldebaran</span><span class="chip__meta">α Tauri · mag 0.87 · HIP 21421</span></span></div>
+          <div class="prose"><p>GU4.AN.NA, the Bull of Heaven, is among the oldest constellation names anyone has recovered, present in Sumerian astronomical texts before the MUL.APIN catalogue was assembled around 1000 BCE. Tablet VI of the Epic of Gilgamesh has Ishtar, refused by Gilgamesh, demanding the Bull from her father Anu. He warns her it will bring seven years of famine. He hands it over anyway. Gilgamesh and Enkidu kill it, and Enkidu throws its haunch at Ishtar, which is the act the gods decide he has to die for. Aldebaran is the Bull's eye.</p>
+<p>The Greek story keeps the bull and reverses everything else. Zeus takes the shape of a white bull to reach Europa on the shore at Sidon. She garlands him with flowers, climbs on, and he swims to Crete with her. Their sons were Minos, Rhadamanthus and Sarpedon.</p>
+<p>In Babylon the bull is a weapon that mortals destroy, and the sky commemorates the defiance. In Greece the bull is the god himself, and the sky commemorates an abduction that founded a dynasty.</p>
+<p>Elnath, at the northern horn tip, is Al-Naṭḥ, the Butting One. It is named for the part of the bull that does the damage.</p></div>
+          <p class="sources">Allen, Star Names (1899); Epic of Gilgamesh Tablet VI; MUL.APIN (c. 1000 BCE); Manilius, Astronomica bk. 2; vault thread: Bull of Heaven</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>04</span><span class="stop__view">3d</span></div>
+        <div class="stop__body">
+          <h3>The Guest Star of 1054</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Tianguan</span><span class="chip__meta">ζ Tauri · mag 2.97 · HIP 26451</span></span></div>
+          <div class="prose"><p>On 4 July 1054 a new star appeared near this one, bright enough to be seen in daylight for twenty-three days and visible at night for close to two years. Chinese astronomers logged it as a guest star and recorded its position carefully enough that we can still match it to the sky.</p>
+<p>What they watched was a star exploding about 6,500 light-years away. The wreckage is still expanding and is now the Crab Nebula, with the collapsed core of the original star at its centre, spinning thirty times a second.</p>
+<p>The star's modern name is Tianguan, from the Chinese celestial-office system, meaning the Heavenly Gate. It is one of the relatively few traditional Chinese star names adopted into the standard international list.</p></div>
+          <p class="sources">Chinese observational records of SN 1054; Stellarium star name catalogue; vault star note: Tianguan</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>05</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>Seven Named, Six Seen</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Atlas</span><span class="chip__meta">27 Tauri · mag 3.63 · HIP 17847</span></span></div>
+          <div class="prose"><p>Al-Thurayyā, the many little ones, is the Arabic name for the cluster on the bull's shoulder. Aldebaran's name depends on it: the Follower only means anything if there is something ahead to follow.</p>
+<p>Every tradition that names the Pleiades counts seven. Most people see six. The gap between those two numbers has to be explained, and the explanations divide into two kinds.</p>
+<p>One kind is a story. Electra left the group in grief after Troy fell, since the Trojans descended from her son Dardanus, and became a comet. Or Merope hides her face, the only sister who married a mortal while the others married gods. Or Pleione herself drifted off.</p>
+<p>The other kind refuses the story. Japanese tradition calls the cluster Subaru and notes the discrepancy without mourning anybody. Māori accounts of Matariki keep the count at seven and put the emphasis on the cluster as a whole.</p>
+<p>Atlas is the sisters' father in the Greek telling, and one of the faintest stars carrying a Pleiad name.</p></div>
+          <p class="sources">Allen, Star Names (1899); Manilius, Astronomica bk. 5; vault thread: The Lost Pleiad; vault object note: Pleiades</p>
+        </div>
+      </article></div>
+
+      <p class="unused"><strong>Not visited by any stop:</strong> Tau Tauri, Lambda Tauri, Omicron Tauri, 68 Tauri. These are figure stars with no lore in the vault; they still render and can still be tapped.</p>
+    </section>
+    <section class="con" id="andromeda">
+      <header class="con__head">
+        <h2>Andromeda the Chained Maiden</h2>
+        <dl class="counts">
+          <div><dt>stars</dt><dd>15 <span class="arrow">&rarr;</span> <strong>6</strong></dd></div>
+          <div><dt>lines</dt><dd>14 <span class="arrow">&rarr;</span> <strong>5</strong></dd></div>
+          <div><dt>stops</dt><dd>5 <span class="arrow">&rarr;</span> <strong>4</strong></dd></div>
+        </dl>
+      </header>
+
+      <div class="delta">
+        <div class="delta__col">
+          <h4>Stars gone from the figure</h4>
+          <ul class="minus"><li>Epsilon Andromedae</li><li>Zeta Andromedae</li><li>Phi Andromedae</li><li>51 Andromedae</li><li>Pi Andromedae</li><li>Iota Andromedae</li><li>Kappa Andromedae</li><li>Lambda Andromedae</li><li>Omicron Andromedae</li></ul>
+        </div>
+        <div class="delta__col">
+          <h4>Stars new to the figure</h4>
+          <p class="none">none</p>
+        </div>
+        <div class="delta__col">
+          <h4>Journey stops changed</h4>
+          <p class="none"><span class="tag tag--cut">cut</span> chains</p>
+          
+          <p class="none">m31 recentred on Mirach, the star actually used to find the galaxy</p>
+        </div>
+      </div>
+
+      <div class="stops">
+      <article class="stop">
+        <div class="stop__index"><span>01</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>The Navel of the Horse</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Alpheratz</span><span class="chip__meta">α Andromedae · mag 2.07 · HIP 677</span></span></div>
+          <div class="prose"><p>This star spent most of recorded history belonging to two constellations at once. Ptolemy counted it twice, as α Andromedae, the head of the chained princess, and as δ Pegasi, a corner of the Great Square. Al-Sufi's catalogue lists it under both figures and notes the double identity without treating it as a problem. The IAU ended the arrangement in 1930 and assigned it to Andromeda.</p>
+<p>The name never caught up. Alpheratz comes from al-Surrat al-Faras, the navel of the horse, which describes its position in Pegasus. The contracted form al-Sirra gives the alternative name Sirrah. Anyone using the traditional name today is pointing at a horse that officially no longer contains this star.</p>
+<p>Betelgeuse got its name through a scribal error. This is the opposite case: an accurate Arabic name that outlived the arrangement it accurately described.</p></div>
+          <p class="sources">Allen, Star Names (1899); Constellations of Words; al-Sufi, Book of Fixed Stars (964); Ptolemy, Almagest; IAU boundaries (1930)</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>02</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>The Loins, and the Signpost</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Mirach</span><span class="chip__meta">β Andromedae · mag 2.07 · HIP 5447</span></span></div>
+          <div class="prose"><p>Mirach is al-Maraqq, the loins or the flank, placing it at the waist of the figure. Allen records several Arabic variants for this star and its neighbours, all of them circling the same part of the body.</p>
+<p>It is a red giant of class M0, roughly 200 light-years away, and one of the few naked-eye stars with visible colour. Not as obviously red as Betelgeuse, but warm enough to stand out against the blue-white stars around it.</p>
+<p>Its modern job has nothing to do with Andromeda's waist. The Andromeda Galaxy sits about one degree north, and the standard way to find it is to locate Mirach and step off from there. A name recording a position on a woman's body is now mostly used as a pointer to another galaxy.</p></div>
+          <p class="sources">Allen, Star Names (1899); Constellations of Words; Ptolemy, Almagest</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>03</span><span class="stop__view">2d</span></div>
+        <div class="stop__body">
+          <h3>The Caracal</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Almach</span><span class="chip__meta">γ¹ Andromedae · mag 2.1 · HIP 9640</span></span></div>
+          <div class="prose"><p>Almach is al-'Anaq al-Ard, the caracal, a desert lynx. The name has no connection to the Greek figure. It came from an independent Arabic grouping of stars in this region, and when the Greek constellation arrived through al-Sufi's version of Ptolemy, the Arabic name was mapped onto it without anyone reconciling the two.</p>
+<p>So the star means a wild cat and marks a chained woman's foot, and both are correct. Arabic astronomy absorbed the Greek figures this way routinely, keeping its own names in place underneath.</p>
+<p>In a small telescope Almach splits into a golden-orange primary and a blue-green companion, a colour pairing often called the finest in the sky. The companion is itself a close triple, so the whole thing is a quadruple system.</p></div>
+          <p class="sources">Allen, Star Names (1899); Constellations of Words; al-Sufi, Book of Fixed Stars (964); Ptolemy, Almagest</p>
+        </div>
+      </article>
+      <article class="stop">
+        <div class="stop__index"><span>04</span><span class="stop__view">3d</span></div>
+        <div class="stop__body">
+          <h3>The Other Galaxy</h3>
+          <div class="chips"><span class="chip"><span class="chip__name">Mirach</span><span class="chip__meta">β Andromedae · mag 2.07 · HIP 5447</span></span></div>
+          <div class="prose"><p>The faint smudge north of Mirach is the Andromeda Galaxy, and until the 1920s nobody was certain what it was. It is a separate galaxy of roughly a trillion stars, about 2.5 million light-years off, and the most distant thing most people will ever see without equipment.</p>
+<p>The Greek myth this constellation carries is unusually well arranged in the sky. Cepheus and Cassiopeia, Andromeda's parents, sit beside her. Perseus, who cut her free, is next along to the northeast. Cetus, the monster she was chained out for, spreads below. Cassiopeia's boast that she outshone the Nereids started it, and Poseidon sent the monster, and the oracle of Ammon said only Andromeda's death would settle it.</p>
+<p>She does nothing at all in the story. She is put on a rock and waited on. The constellation named after her holds the corner star that Pegasus wants back, the guide star for the galaxy, and the finest double in the northern sky.</p></div>
+          <p class="sources">Ptolemy, Almagest; Constellations of Words; Allen, Star Names (1899); vault constellation note: Andromeda</p>
+        </div>
+      </article></div>
+
+      <p class="unused"><strong>Not visited by any stop:</strong> Delta Andromedae, Mu Andromedae, Nu Andromedae. These are figure stars with no lore in the vault; they still render and can still be tapped.</p>
+    </section>
+</div>

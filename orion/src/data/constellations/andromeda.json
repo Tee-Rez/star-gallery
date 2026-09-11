@@ -52,12 +52,13 @@
   "stars": [
     {
       "id": "alpheratz",
+      "hip": 677,
       "name": "Alpheratz",
       "designation": "α Andromedae",
       "isMajor": true,
       "position2D": {
-        "x": 1.199,
-        "y": -2.034
+        "x": 3.005,
+        "y": -1.972
       },
       "distance": 97,
       "magnitude": 2.07,
@@ -84,12 +85,13 @@
     },
     {
       "id": "delta_and",
+      "hip": 3092,
       "name": "Delta Andromedae",
       "designation": "δ Andromedae",
       "isMajor": true,
       "position2D": {
-        "x": -0.211,
-        "y": -1.693
+        "x": 1.031,
+        "y": -1.599
       },
       "distance": 101,
       "magnitude": 3.27,
@@ -114,71 +116,14 @@
       }
     },
     {
-      "id": "epsilon_and",
-      "name": "Epsilon Andromedae",
-      "designation": "ε Andromedae",
-      "isMajor": false,
-      "position2D": {
-        "x": -0.18,
-        "y": -2.02
-      },
-      "distance": 169,
-      "magnitude": 4.34,
-      "spectralClass": "G5III",
-      "color": "#ffeec0",
-      "size": 0.055,
-      "stellarType": "yellow_giant",
-      "physics": {
-        "massSolar": 1.01,
-        "radiusSolar": 9.04,
-        "tempKelvin": 5082
-      },
-      "info": {
-        "basic": "Epsilon Andromedae carries the chain south from Delta toward the border with Pisces.",
-        "scientific": {
-          "class": "G5III yellow giant",
-          "temperature": "About 4,900 K",
-          "feature": "A yellow giant marking the southern chain of Andromeda"
-        }
-      }
-    },
-    {
-      "id": "zeta_and",
-      "name": "Zeta Andromedae",
-      "designation": "ζ Andromedae",
-      "isMajor": false,
-      "position2D": {
-        "x": -0.618,
-        "y": -3.1
-      },
-      "distance": 181,
-      "magnitude": 4.08,
-      "spectralClass": "K1II",
-      "color": "#ffc088",
-      "size": 0.06,
-      "stellarType": "orange_bright_giant",
-      "physics": {
-        "massSolar": 2.6,
-        "radiusSolar": 15.9,
-        "tempKelvin": 4665,
-        "note": "Component Aa"
-      },
-      "info": {
-        "basic": "Zeta Andromedae ends the southern chain, a heavily spotted orange giant.",
-        "scientific": {
-          "class": "K1II orange bright giant",
-          "feature": "An RS Canum Venaticorum variable; interferometry has directly imaged huge starspots on its surface"
-        }
-      }
-    },
-    {
       "id": "mirach",
+      "hip": 5447,
       "name": "Mirach",
       "designation": "β Andromedae",
       "isMajor": true,
       "position2D": {
-        "x": -1.476,
-        "y": -0.639
+        "x": -0.779,
+        "y": -0.253
       },
       "distance": 199,
       "magnitude": 2.07,
@@ -205,12 +150,13 @@
     },
     {
       "id": "almach",
+      "hip": 9640,
       "name": "Almach",
-      "designation": "γ Andromedae",
+      "designation": "γ¹ Andromedae",
       "isMajor": true,
       "position2D": {
-        "x": -3.463,
-        "y": 1.137
+        "x": -3.6,
+        "y": 2
       },
       "distance": 355,
       "magnitude": 2.1,
@@ -236,12 +182,13 @@
     },
     {
       "id": "mu_and",
+      "hip": 4436,
       "name": "Mu Andromedae",
       "designation": "μ Andromedae",
       "isMajor": true,
       "position2D": {
-        "x": -0.892,
-        "y": -0.085
+        "x": -0.031,
+        "y": 0.548
       },
       "distance": 136,
       "magnitude": 3.86,
@@ -265,12 +212,13 @@
     },
     {
       "id": "nu_and",
+      "hip": 3881,
       "name": "Nu Andromedae",
       "designation": "ν Andromedae",
       "isMajor": false,
       "position2D": {
-        "x": -0.59,
-        "y": 0.432
+        "x": 0.341,
+        "y": 1.284
       },
       "distance": 679,
       "magnitude": 4.53,
@@ -292,217 +240,22 @@
           "feature": "A close line-of-sight neighbour of M31, though it lies within our own galaxy"
         }
       }
-    },
-    {
-      "id": "phi_and",
-      "name": "Phi Andromedae",
-      "designation": "φ Andromedae",
-      "isMajor": false,
-      "position2D": {
-        "x": -1.233,
-        "y": 1.767
-      },
-      "distance": 736,
-      "magnitude": 4.26,
-      "spectralClass": "B7III",
-      "color": "#aabbff",
-      "size": 0.06,
-      "stellarType": "blue_giant",
-      "info": {
-        "basic": "Phi Andromedae continues the northern arm of the constellation toward Cassiopeia.",
-        "scientific": {
-          "class": "B7III blue giant",
-          "feature": "A Be shell star with a circumstellar disc of ejected gas"
-        }
-      }
-    },
-    {
-      "id": "51_and",
-      "name": "51 Andromedae",
-      "designation": "51 And (Nembus)",
-      "isMajor": true,
-      "position2D": {
-        "x": -2.2,
-        "y": 2.223
-      },
-      "distance": 174,
-      "magnitude": 3.59,
-      "spectralClass": "K3III",
-      "color": "#ffb877",
-      "size": 0.075,
-      "stellarType": "orange_giant",
-      "physics": {
-        "massSolar": 1.75,
-        "radiusSolar": 20.91,
-        "tempKelvin": 4316
-      },
-      "info": {
-        "basic": "51 Andromedae, officially named Nembus, ends the northern arm. Ptolemy counted it as part of Perseus before Flamsteed moved it into Andromeda.",
-        "scientific": {
-          "class": "K3III orange giant",
-          "temperature": "About 4,400 K",
-          "feature": "Its Bayer letter was lost when the star changed constellations, leaving only a Flamsteed number"
-        }
-      }
-    },
-    {
-      "id": "pi_and",
-      "name": "Pi Andromedae",
-      "designation": "π Andromedae",
-      "isMajor": false,
-      "position2D": {
-        "x": -0.098,
-        "y": -1.098
-      },
-      "distance": 656,
-      "magnitude": 4.34,
-      "spectralClass": "B5V",
-      "color": "#a8bcff",
-      "size": 0.055,
-      "stellarType": "blue_white_main_sequence",
-      "physics": {
-        "massSolar": 5.8,
-        "radiusSolar": 4.7,
-        "tempKelvin": 15000,
-        "note": "Component A"
-      },
-      "info": {
-        "basic": "Pi Andromedae begins the long western chain that trails away from the princess's body.",
-        "scientific": {
-          "class": "B5V blue-white main-sequence star",
-          "feature": "A spectroscopic binary with a close companion"
-        }
-      }
-    },
-    {
-      "id": "iota_and",
-      "name": "Iota Andromedae",
-      "designation": "ι Andromedae",
-      "isMajor": false,
-      "position2D": {
-        "x": 2.135,
-        "y": 1.052
-      },
-      "distance": 502,
-      "magnitude": 4.29,
-      "spectralClass": "B8V",
-      "color": "#b3c4ff",
-      "size": 0.06,
-      "stellarType": "blue_white_main_sequence",
-      "physics": {
-        "massSolar": 3.1,
-        "radiusSolar": 4.6,
-        "tempKelvin": 12620
-      },
-      "info": {
-        "basic": "Iota Andromedae anchors the small northwestern group of stars that closes the constellation's chain.",
-        "scientific": {
-          "class": "B8V blue-white main-sequence star",
-          "temperature": "About 12,000 K"
-        }
-      }
-    },
-    {
-      "id": "kappa_and",
-      "name": "Kappa Andromedae",
-      "designation": "κ Andromedae",
-      "isMajor": false,
-      "position2D": {
-        "x": 2.014,
-        "y": 1.259
-      },
-      "distance": 170,
-      "magnitude": 4.15,
-      "spectralClass": "B9IVn",
-      "color": "#bbccff",
-      "size": 0.06,
-      "stellarType": "blue_white_subgiant",
-      "physics": {
-        "massSolar": 2.768,
-        "radiusSolar": 2.303,
-        "tempKelvin": 10342,
-        "note": "Equatorial values"
-      },
-      "info": {
-        "basic": "Kappa Andromedae is a fast-spinning blue-white star that made headlines for its directly imaged companion.",
-        "scientific": {
-          "class": "B9IV blue-white subgiant",
-          "feature": "Hosts Kappa Andromedae b, a substellar companion captured in direct images in 2012"
-        }
-      }
-    },
-    {
-      "id": "lambda_and",
-      "name": "Lambda Andromedae",
-      "designation": "λ Andromedae",
-      "isMajor": true,
-      "position2D": {
-        "x": 2.05,
-        "y": 1.721
-      },
-      "distance": 84,
-      "magnitude": 3.81,
-      "spectralClass": "G8III-IV",
-      "color": "#fff0c8",
-      "size": 0.07,
-      "stellarType": "yellow_giant",
-      "physics": {
-        "massSolar": 1.47,
-        "radiusSolar": 7.787,
-        "tempKelvin": 4633
-      },
-      "info": {
-        "basic": "Lambda Andromedae is a nearby yellow giant whose brightness wavers as enormous starspots rotate across its face.",
-        "scientific": {
-          "class": "G8III-IV yellow giant",
-          "feature": "An RS Canum Venaticorum variable; its light varies as heavily spotted regions turn in and out of view"
-        }
-      }
-    },
-    {
-      "id": "omicron_and",
-      "name": "Omicron Andromedae",
-      "designation": "ο Andromedae",
-      "isMajor": true,
-      "position2D": {
-        "x": 3.6,
-        "y": 1.173
-      },
-      "distance": 692,
-      "magnitude": 3.62,
-      "spectralClass": "B6III",
-      "color": "#aabbff",
-      "size": 0.075,
-      "stellarType": "blue_giant",
-      "physics": {
-        "massSolar": 6.5,
-        "radiusSolar": 11.5,
-        "tempKelvin": 14540,
-        "note": "Component Aa"
-      },
-      "info": {
-        "basic": "Omicron Andromedae closes the western end of the chain, near the border with Lacerta.",
-        "scientific": {
-          "class": "B6III blue giant",
-          "feature": "A variable shell star in a multiple system, shedding gas into a surrounding disc"
-        }
-      }
     }
   ],
   "connections": [
     {
-      "from": "almach",
-      "to": "mirach",
-      "type": "body"
-    },
-    {
-      "from": "mirach",
+      "from": "alpheratz",
       "to": "delta_and",
       "type": "body"
     },
     {
       "from": "delta_and",
-      "to": "alpheratz",
+      "to": "mirach",
+      "type": "body"
+    },
+    {
+      "from": "almach",
+      "to": "mirach",
       "type": "body"
     },
     {
@@ -514,51 +267,6 @@
       "from": "mu_and",
       "to": "nu_and",
       "type": "arm"
-    },
-    {
-      "from": "nu_and",
-      "to": "phi_and",
-      "type": "arm"
-    },
-    {
-      "from": "phi_and",
-      "to": "51_and",
-      "type": "arm"
-    },
-    {
-      "from": "delta_and",
-      "to": "pi_and",
-      "type": "chain"
-    },
-    {
-      "from": "pi_and",
-      "to": "iota_and",
-      "type": "chain"
-    },
-    {
-      "from": "iota_and",
-      "to": "omicron_and",
-      "type": "chain"
-    },
-    {
-      "from": "iota_and",
-      "to": "kappa_and",
-      "type": "chain"
-    },
-    {
-      "from": "kappa_and",
-      "to": "lambda_and",
-      "type": "chain"
-    },
-    {
-      "from": "delta_and",
-      "to": "epsilon_and",
-      "type": "chain"
-    },
-    {
-      "from": "epsilon_and",
-      "to": "zeta_and",
-      "type": "chain"
     }
   ],
   "deepSkyObjects": [
@@ -569,8 +277,8 @@
       "type": "spiral_galaxy",
       "layer": "galaxy",
       "position2D": {
-        "x": -0.315,
-        "y": 0.462
+        "x": 0.718,
+        "y": 1.349
       },
       "distance": 2537000,
       "magnitude": 3.44,
@@ -601,8 +309,8 @@
       "type": "dwarf_elliptical_galaxy",
       "layer": "none",
       "position2D": {
-        "x": -0.315,
-        "y": 0.378
+        "x": 0.725,
+        "y": 1.234
       },
       "distance": 2490000,
       "magnitude": 8.08,
@@ -616,8 +324,8 @@
       "type": "dwarf_elliptical_galaxy",
       "layer": "none",
       "position2D": {
-        "x": -0.222,
-        "y": 0.545
+        "x": 0.84,
+        "y": 1.473
       },
       "distance": 2690000,
       "magnitude": 8.07,
@@ -631,8 +339,8 @@
       "type": "planetary_nebula",
       "layer": "none",
       "position2D": {
-        "x": 2.636,
-        "y": 0.988
+        "x": 4.831,
+        "y": 2.352
       },
       "distance": 5600,
       "magnitude": 8.3,
@@ -646,8 +354,8 @@
       "type": "open_cluster",
       "layer": "none",
       "position2D": {
-        "x": -3.453,
-        "y": 0.107
+        "x": -3.43,
+        "y": 0.629
       },
       "distance": 1300,
       "magnitude": 5.7,
@@ -688,21 +396,6 @@
       ],
       "story": "Almach marks the princess's foot, and its name has nothing to do with her. Al 'Anak al 'Ard means 'the Earth-kid' - a small predatory Arabian animal like a badger, known locally as Al Barid. The name was used by Al Tizini and by the fifteenth-century Tartar astronomer Ulug Beg, and Allen took its oddity as a sign of very early Arab star-lore. Thomas Hyde recorded the alternative Al Rijl al Musalsalah, 'the Woman's Foot.' Chinese astronomers gave it a grander title - Tien Ta Tseang, 'Heaven's Great General,' honourable and eminent. Robson assigns it the nature of Venus: honour, eminence and artistic ability. Through a telescope it splits into a celebrated gold and blue-green pair.",
       "sources": "R.H. Allen, Star Names (1899); V. Robson, Fixed Stars (1923)"
-    },
-    {
-      "id": "chains",
-      "title": "The Chains",
-      "view": "2d",
-      "detailScale": 1.2,
-      "centerStarName": "Kappa Andromedae",
-      "targetStarNames": [
-        "Omicron Andromedae",
-        "Lambda Andromedae",
-        "Kappa Andromedae",
-        "Iota Andromedae"
-      ],
-      "story": "Ptolemy listed Andromeda among his original forty-eight constellations in the Almagest, and in his description Alpha marks her head while Omicron and Lambda are her chains. The story behind them is the oldest in this sky: Cassiopeia boasted that her daughter outshone the sea nymphs, Poseidon sent the monster Cetus, and an oracle told King Cepheus that only his daughter's sacrifice would save the kingdom. She was chained to a rock, and rescued by Perseus. The chained figure is not only Greek - Sanskrit texts describe Antarmada bound to a rock, a resemblance scholars have long remarked on. Other skies saw something else entirely: in the Marshall Islands these stars form the body of a porpoise, with Cassiopeia as its tail and Aries its head.",
-      "sources": "Ptolemy, Almagest (2nd c.); R.H. Allen, Star Names (1899); Wikipedia"
     },
     {
       "id": "m31",

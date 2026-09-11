@@ -51,13 +51,112 @@
   },
   "stars": [
     {
+      "id": "elnath",
+      "hip": 25428,
+      "name": "Elnath",
+      "designation": "β Tauri",
+      "isMajor": true,
+      "position2D": {
+        "x": -2.852,
+        "y": 2.351
+      },
+      "distance": 131,
+      "magnitude": 1.65,
+      "spectralClass": "B7III",
+      "color": "#bbccff",
+      "size": 0.13,
+      "stellarType": "blue_white_giant",
+      "physics": {
+        "massSolar": 5,
+        "radiusSolar": 4.79,
+        "tempKelvin": 13600,
+        "note": "Primary; mercury-manganese peculiar star; also catalogued as Gamma Aurigae, shared between Taurus and Auriga"
+      },
+      "info": {
+        "basic": "Elnath is the tip of the northern horn. Its name is Arabic, al-nath, \"the butting one\" — the horn doing the goring. It sits on the border with Auriga and was once counted as a star of both figures.",
+        "scientific": {
+          "class": "B7 III blue-white giant",
+          "temperature": "About 13,600 K",
+          "mass": "Roughly 5 times the Sun",
+          "radius": "About 4.8 times the Sun",
+          "feature": "The second-brightest star in Taurus, and shared historically with Auriga as Gamma Aurigae"
+        }
+      }
+    },
+    {
+      "id": "tau_tauri",
+      "hip": 21881,
+      "name": "Tau Tauri",
+      "designation": "τ Tauri",
+      "isMajor": false,
+      "position2D": {
+        "x": -0.718,
+        "y": 0.946
+      },
+      "distance": 400,
+      "magnitude": 4.27,
+      "spectralClass": "B3V",
+      "color": "#a8bcff",
+      "size": 0.055,
+      "stellarType": "blue_white_main_sequence",
+      "physics": {
+        "massSolar": 4.55,
+        "radiusSolar": 3.35,
+        "tempKelvin": 14880,
+        "note": "Catalogue values: typical for spectral type B2.5V. Not hand-checked."
+      },
+      "info": {
+        "basic": "Tau Tauri lies along the line running out to the northern horn tip, well beyond the Hyades and unrelated to them.",
+        "scientific": {
+          "class": "B3 V blue-white main sequence",
+          "temperature": "About 17,000 K",
+          "distance": "Around 400 light-years — far behind the Hyades",
+          "feature": "Mass and radius are not published for this star, so its tone is estimated from its spectral class rather than measured"
+        }
+      }
+    },
+    {
+      "id": "epsilon_tauri",
+      "hip": 20889,
+      "name": "Ain",
+      "designation": "ε Tauri",
+      "isMajor": true,
+      "position2D": {
+        "x": -0.041,
+        "y": 0.122
+      },
+      "distance": 155,
+      "magnitude": 3.53,
+      "spectralClass": "K0III",
+      "color": "#ffb877",
+      "size": 0.085,
+      "stellarType": "orange_giant",
+      "physics": {
+        "massSolar": 2.458,
+        "radiusSolar": 12.46,
+        "tempKelvin": 4880,
+        "note": "Primary (Ain), the northern eye of the bull; hosts exoplanet Epsilon Tauri b (Amateru)"
+      },
+      "info": {
+        "basic": "Epsilon Tauri carries the name Ain, Arabic for \"eye\" — the bull’s second eye, opposite Aldebaran across the face.",
+        "scientific": {
+          "class": "K0 III orange giant",
+          "temperature": "About 4,880 K",
+          "mass": "Roughly 2.5 times the Sun",
+          "radius": "About 12 times the Sun",
+          "feature": "Hosts a confirmed giant planet — one of the few known in an open cluster"
+        }
+      }
+    },
+    {
       "id": "aldebaran",
+      "hip": 21421,
       "name": "Aldebaran",
       "designation": "α Tauri",
       "isMajor": true,
       "position2D": {
-        "x": -0.756,
-        "y": 0.168
+        "x": -0.419,
+        "y": -0.45
       },
       "distance": 65,
       "magnitude": 0.87,
@@ -83,45 +182,47 @@
       }
     },
     {
-      "id": "theta2_tauri",
-      "name": "Theta2 Tauri",
-      "designation": "θ² Tauri (Chamukuy)",
+      "id": "zeta_tauri",
+      "hip": 26451,
+      "name": "Tianguan",
+      "designation": "ζ Tauri",
       "isMajor": true,
       "position2D": {
-        "x": -0.428,
-        "y": 0.042
+        "x": -3.6,
+        "y": 0.745
       },
-      "distance": 149,
-      "magnitude": 3.4,
-      "spectralClass": "A7III",
-      "color": "#ffffff",
+      "distance": 417,
+      "magnitude": 2.97,
+      "spectralClass": "B4IIIp",
+      "color": "#a8bcff",
       "size": 0.085,
-      "stellarType": "white_giant",
+      "stellarType": "blue_white_giant",
       "physics": {
-        "massSolar": 2.86,
-        "radiusSolar": 4.4,
-        "tempKelvin": 7800,
-        "note": "Component Aa (Chamukuy); brighter of the theta Tauri pair"
+        "massSolar": 11.2,
+        "radiusSolar": 5.5,
+        "tempKelvin": 15500,
+        "note": "Component A, primary of a single-lined spectroscopic binary; Be shell star"
       },
       "info": {
-        "basic": "Theta-2 Tauri, or Chamukuy, sits in the Hyades V. It has a near twin, Theta-1, so close beside it that the pair reads as a single point to the unaided eye — which is why only one of them is drawn here.",
+        "basic": "Zeta Tauri is the tip of the southern horn, and the signpost for the Crab Nebula — the wreck of a star that exploded here in 1054.",
         "scientific": {
-          "class": "A7 III white giant",
-          "temperature": "About 7,800 K",
-          "mass": "Roughly 2.9 times the Sun",
-          "radius": "About 4.4 times the Sun",
-          "feature": "The brightest true member of the Hyades cluster"
+          "class": "B4 III peculiar blue-white giant",
+          "temperature": "About 15,500 K",
+          "mass": "Roughly 11 times the Sun",
+          "radius": "About 5.5 times the Sun",
+          "feature": "A Be shell star, spinning fast enough to fling out a disc of its own gas"
         }
       }
     },
     {
       "id": "gamma_tauri",
-      "name": "Gamma Tauri",
-      "designation": "γ Tauri (Prima Hyadum)",
+      "hip": 20205,
+      "name": "Prima Hyadum",
+      "designation": "γ Tauri",
       "isMajor": true,
       "position2D": {
-        "x": -0.025,
-        "y": -0.006
+        "x": 0.416,
+        "y": -0.641
       },
       "distance": 154,
       "magnitude": 3.65,
@@ -148,12 +249,13 @@
     },
     {
       "id": "delta1_tauri",
-      "name": "Delta1 Tauri",
-      "designation": "δ¹ Tauri (Secunda Hyadum)",
+      "hip": 20455,
+      "name": "Secunda Hyadum",
+      "designation": "δ Tauri",
       "isMajor": true,
       "position2D": {
-        "x": -0.166,
-        "y": 0.356
+        "x": 0.25,
+        "y": -0.229
       },
       "distance": 153,
       "magnitude": 3.77,
@@ -179,134 +281,14 @@
       }
     },
     {
-      "id": "epsilon_tauri",
-      "name": "Epsilon Tauri",
-      "designation": "ε Tauri (Ain)",
-      "isMajor": true,
-      "position2D": {
-        "x": -0.419,
-        "y": 0.669
-      },
-      "distance": 155,
-      "magnitude": 3.53,
-      "spectralClass": "K0III",
-      "color": "#ffb877",
-      "size": 0.085,
-      "stellarType": "orange_giant",
-      "physics": {
-        "massSolar": 2.458,
-        "radiusSolar": 12.46,
-        "tempKelvin": 4880,
-        "note": "Primary (Ain), the northern eye of the bull; hosts exoplanet Epsilon Tauri b (Amateru)"
-      },
-      "info": {
-        "basic": "Epsilon Tauri carries the name Ain, Arabic for \"eye\" — the bull’s second eye, opposite Aldebaran across the face.",
-        "scientific": {
-          "class": "K0 III orange giant",
-          "temperature": "About 4,880 K",
-          "mass": "Roughly 2.5 times the Sun",
-          "radius": "About 12 times the Sun",
-          "feature": "Hosts a confirmed giant planet — one of the few known in an open cluster"
-        }
-      }
-    },
-    {
-      "id": "tau_tauri",
-      "name": "Tau Tauri",
-      "designation": "τ Tauri",
-      "isMajor": false,
-      "position2D": {
-        "x": -1.011,
-        "y": 1.406
-      },
-      "distance": 400,
-      "magnitude": 4.27,
-      "spectralClass": "B3V",
-      "color": "#a8bcff",
-      "size": 0.055,
-      "stellarType": "blue_white_main_sequence",
-      "info": {
-        "basic": "Tau Tauri lies along the line running out to the northern horn tip, well beyond the Hyades and unrelated to them.",
-        "scientific": {
-          "class": "B3 V blue-white main sequence",
-          "temperature": "About 17,000 K",
-          "distance": "Around 400 light-years — far behind the Hyades",
-          "feature": "Mass and radius are not published for this star, so its tone is estimated from its spectral class rather than measured"
-        }
-      }
-    },
-    {
-      "id": "elnath",
-      "name": "Elnath",
-      "designation": "β Tauri",
-      "isMajor": true,
-      "position2D": {
-        "x": -2.92,
-        "y": 2.7
-      },
-      "distance": 131,
-      "magnitude": 1.65,
-      "spectralClass": "B7III",
-      "color": "#bbccff",
-      "size": 0.13,
-      "stellarType": "blue_white_giant",
-      "physics": {
-        "massSolar": 5,
-        "radiusSolar": 4.79,
-        "tempKelvin": 13600,
-        "note": "Primary; mercury-manganese peculiar star; also catalogued as Gamma Aurigae, shared between Taurus and Auriga"
-      },
-      "info": {
-        "basic": "Elnath is the tip of the northern horn. Its name is Arabic, al-nath, \"the butting one\" — the horn doing the goring. It sits on the border with Auriga and was once counted as a star of both figures.",
-        "scientific": {
-          "class": "B7 III blue-white giant",
-          "temperature": "About 13,600 K",
-          "mass": "Roughly 5 times the Sun",
-          "radius": "About 4.8 times the Sun",
-          "feature": "The second-brightest star in Taurus, and shared historically with Auriga as Gamma Aurigae"
-        }
-      }
-    },
-    {
-      "id": "zeta_tauri",
-      "name": "Zeta Tauri",
-      "designation": "ζ Tauri (Tianguan)",
-      "isMajor": true,
-      "position2D": {
-        "x": -3.59,
-        "y": 1.264
-      },
-      "distance": 417,
-      "magnitude": 2.97,
-      "spectralClass": "B4IIIp",
-      "color": "#a8bcff",
-      "size": 0.085,
-      "stellarType": "blue_white_giant",
-      "physics": {
-        "massSolar": 11.2,
-        "radiusSolar": 5.5,
-        "tempKelvin": 15500,
-        "note": "Component A, primary of a single-lined spectroscopic binary; Be shell star"
-      },
-      "info": {
-        "basic": "Zeta Tauri is the tip of the southern horn, and the signpost for the Crab Nebula — the wreck of a star that exploded here in 1054.",
-        "scientific": {
-          "class": "B4 III peculiar blue-white giant",
-          "temperature": "About 15,500 K",
-          "mass": "Roughly 11 times the Sun",
-          "radius": "About 5.5 times the Sun",
-          "feature": "A Be shell star, spinning fast enough to fling out a disc of its own gas"
-        }
-      }
-    },
-    {
       "id": "lambda_tauri",
+      "hip": 18724,
       "name": "Lambda Tauri",
-      "designation": "λ Tauri (Bibing)",
+      "designation": "λ Tauri",
       "isMajor": true,
       "position2D": {
-        "x": 0.86,
-        "y": -0.592
+        "x": 1.439,
+        "y": -1.304
       },
       "distance": 370,
       "magnitude": 3.41,
@@ -332,108 +314,14 @@
       }
     },
     {
-      "id": "mu_tauri",
-      "name": "Mu Tauri",
-      "designation": "μ Tauri",
-      "isMajor": false,
-      "position2D": {
-        "x": 0.175,
-        "y": -1.285
-      },
-      "distance": 435,
-      "magnitude": 4.27,
-      "spectralClass": "B3IV",
-      "color": "#a8bcff",
-      "size": 0.058,
-      "stellarType": "blue_white_subgiant",
-      "physics": {
-        "massSolar": 6.7,
-        "radiusSolar": 6.9,
-        "tempKelvin": 16980
-      },
-      "info": {
-        "basic": "Mu Tauri runs down from the shoulder toward the foreleg, one of the fainter stars holding the bull’s front together.",
-        "scientific": {
-          "class": "B3 IV blue-white subgiant",
-          "temperature": "About 17,000 K",
-          "mass": "Roughly 6.7 times the Sun",
-          "radius": "About 6.9 times the Sun",
-          "feature": "At 435 light-years it stands far behind the Hyades, unrelated to them"
-        }
-      }
-    },
-    {
-      "id": "nu_tauri",
-      "name": "Nu Tauri",
-      "designation": "ν Tauri",
-      "isMajor": true,
-      "position2D": {
-        "x": 0.768,
-        "y": -1.842
-      },
-      "distance": 129,
-      "magnitude": 3.91,
-      "spectralClass": "A1V",
-      "color": "#ffffff",
-      "size": 0.075,
-      "stellarType": "white_main_sequence",
-      "physics": {
-        "massSolar": 2.25,
-        "radiusSolar": 2.87,
-        "tempKelvin": 7836,
-        "note": "Single star; radius and temperature quoted with asymmetric errors, central values used"
-      },
-      "info": {
-        "basic": "Nu Tauri is the lowest star of the figure, at the bull’s knee — and the nearest of the shoulder group, barely a third the distance of its neighbours.",
-        "scientific": {
-          "class": "A1 V white main sequence",
-          "temperature": "About 7,800 K",
-          "mass": "Roughly 2.3 times the Sun",
-          "radius": "About 2.9 times the Sun",
-          "feature": "A single star at 129 light-years"
-        }
-      }
-    },
-    {
-      "id": "xi_tauri",
-      "name": "Xi Tauri",
-      "designation": "ξ Tauri (Ushakaron)",
-      "isMajor": true,
-      "position2D": {
-        "x": 2.478,
-        "y": -1.076
-      },
-      "distance": 222,
-      "magnitude": 3.73,
-      "spectralClass": "B9Vn",
-      "color": "#bbccff",
-      "size": 0.08,
-      "stellarType": "blue_white_main_sequence",
-      "physics": {
-        "massSolar": 2.25,
-        "radiusSolar": 1.691,
-        "tempKelvin": 11000,
-        "note": "Component Aa, the more massive star of the inner eclipsing pair"
-      },
-      "info": {
-        "basic": "Xi Tauri, Ushakaron, sits near the far western end of the figure. What looks like a single star is four: two close pairs orbiting one another.",
-        "scientific": {
-          "class": "B9 V blue-white main sequence",
-          "temperature": "About 11,000 K",
-          "mass": "Roughly 2.3 times the Sun",
-          "radius": "About 1.7 times the Sun",
-          "feature": "A quadruple system; the inner pair eclipse each other every 7.15 days"
-        }
-      }
-    },
-    {
       "id": "omicron_tauri",
+      "hip": 15900,
       "name": "Omicron Tauri",
       "designation": "ο Tauri",
       "isMajor": true,
       "position2D": {
-        "x": 2.603,
-        "y": -1.21
+        "x": 3.476,
+        "y": -2.005
       },
       "distance": 211,
       "magnitude": 3.61,
@@ -459,43 +347,120 @@
       }
     },
     {
-      "id": "five_tauri",
-      "name": "5 Tauri",
-      "designation": "5 Tauri (f Tauri)",
+      "id": "theta2_tauri",
+      "hip": 20894,
+      "name": "Chamukuy",
+      "designation": "θ² Tauri",
       "isMajor": true,
       "position2D": {
-        "x": 2.26,
-        "y": -0.461
+        "x": -0.044,
+        "y": -0.59
       },
-      "distance": 530,
-      "magnitude": 4.14,
-      "spectralClass": "K0III",
-      "color": "#ffb877",
-      "size": 0.062,
-      "stellarType": "orange_giant",
+      "distance": 149,
+      "magnitude": 3.4,
+      "spectralClass": "A7III",
+      "color": "#ffffff",
+      "size": 0.085,
+      "stellarType": "white_giant",
       "physics": {
-        "massSolar": 4,
-        "radiusSolar": 8.5,
-        "tempKelvin": 4644,
-        "note": "Component A"
+        "massSolar": 2.86,
+        "radiusSolar": 4.4,
+        "tempKelvin": 7800,
+        "note": "Component Aa (Chamukuy); brighter of the theta Tauri pair"
       },
       "info": {
-        "basic": "5 Tauri, also catalogued f Tauri, carries the line westward from the shoulder out toward the bull’s foreleg.",
+        "basic": "Theta-2 Tauri, or Chamukuy, sits in the Hyades V. It has a near twin, Theta-1, so close beside it that the pair reads as a single point to the unaided eye — which is why only one of them is drawn here.",
         "scientific": {
-          "class": "K0 III orange giant",
-          "temperature": "About 4,600 K",
-          "mass": "Roughly 4 times the Sun",
-          "radius": "About 8.5 times the Sun",
-          "feature": "A binary; the companion is about 1.1 solar masses"
+          "class": "A7 III white giant",
+          "temperature": "About 7,800 K",
+          "mass": "Roughly 2.9 times the Sun",
+          "radius": "About 4.4 times the Sun",
+          "feature": "The brightest true member of the Hyades cluster"
         }
+      }
+    },
+    {
+      "id": "68_tauri",
+      "hip": 20648,
+      "name": "68 Tauri",
+      "designation": "68 Tauri",
+      "isMajor": false,
+      "position2D": {
+        "x": 0.119,
+        "y": -0.147
+      },
+      "distance": 148.4,
+      "magnitude": 4.298,
+      "spectralClass": "A1V",
+      "color": "#ffffff",
+      "size": 0.068,
+      "stellarType": "white_main_sequence",
+      "physics": {
+        "massSolar": 2.29,
+        "radiusSolar": 2.29,
+        "tempKelvin": 8910,
+        "note": "Catalogue values: Allende Prieto & Lambert 1999. Not hand-checked."
+      }
+    },
+    {
+      "id": "atlas",
+      "hip": 17847,
+      "name": "Atlas",
+      "designation": "27 Tauri",
+      "isMajor": true,
+      "position2D": {
+        "x": 1.922,
+        "y": 1.241
+      },
+      "distance": 398.8,
+      "magnitude": 3.63,
+      "spectralClass": "B7III",
+      "color": "#a8bcff",
+      "size": 0.084,
+      "stellarType": "blue_white_giant",
+      "physics": {
+        "massSolar": 4.2,
+        "radiusSolar": 7.92,
+        "tempKelvin": 10470,
+        "note": "Catalogue values: typical for spectral type B7III. Not hand-checked."
       }
     }
   ],
   "connections": [
     {
-      "from": "zeta_tauri",
-      "to": "aldebaran",
+      "from": "elnath",
+      "to": "tau_tauri",
       "type": "horn"
+    },
+    {
+      "from": "tau_tauri",
+      "to": "epsilon_tauri",
+      "type": "horn"
+    },
+    {
+      "from": "aldebaran",
+      "to": "zeta_tauri",
+      "type": "horn"
+    },
+    {
+      "from": "gamma_tauri",
+      "to": "delta1_tauri",
+      "type": "face"
+    },
+    {
+      "from": "gamma_tauri",
+      "to": "lambda_tauri",
+      "type": "shoulder"
+    },
+    {
+      "from": "lambda_tauri",
+      "to": "omicron_tauri",
+      "type": "figure"
+    },
+    {
+      "from": "aldebaran",
+      "to": "epsilon_tauri",
+      "type": "figure"
     },
     {
       "from": "aldebaran",
@@ -508,54 +473,19 @@
       "type": "face"
     },
     {
-      "from": "gamma_tauri",
+      "from": "epsilon_tauri",
+      "to": "68_tauri",
+      "type": "figure"
+    },
+    {
+      "from": "68_tauri",
       "to": "delta1_tauri",
-      "type": "face"
+      "type": "figure"
     },
     {
       "from": "delta1_tauri",
-      "to": "epsilon_tauri",
-      "type": "face"
-    },
-    {
-      "from": "epsilon_tauri",
-      "to": "tau_tauri",
-      "type": "horn"
-    },
-    {
-      "from": "tau_tauri",
-      "to": "elnath",
-      "type": "horn"
-    },
-    {
-      "from": "gamma_tauri",
-      "to": "lambda_tauri",
-      "type": "shoulder"
-    },
-    {
-      "from": "lambda_tauri",
-      "to": "mu_tauri",
-      "type": "foreleg"
-    },
-    {
-      "from": "mu_tauri",
-      "to": "nu_tauri",
-      "type": "foreleg"
-    },
-    {
-      "from": "lambda_tauri",
-      "to": "five_tauri",
-      "type": "shoulder"
-    },
-    {
-      "from": "five_tauri",
-      "to": "xi_tauri",
-      "type": "foreleg"
-    },
-    {
-      "from": "xi_tauri",
-      "to": "omicron_tauri",
-      "type": "foreleg"
+      "to": "atlas",
+      "type": "figure"
     }
   ],
   "deepSkyObjects": [
@@ -566,8 +496,8 @@
       "type": "open_cluster",
       "layer": "cluster",
       "position2D": {
-        "x": 1.429,
-        "y": 1.663
+        "x": 2.048,
+        "y": 1.277
       },
       "distance": 444,
       "magnitude": 1.6,
@@ -913,8 +843,8 @@
       "type": "supernova_remnant",
       "layer": "none",
       "position2D": {
-        "x": -3.422,
-        "y": 1.42
+        "x": -3.413,
+        "y": 0.922
       },
       "distance": 6500,
       "magnitude": 8.4,
@@ -938,12 +868,12 @@
       "id": "hyades",
       "title": "The Rainy Sisters",
       "view": "2d",
-      "centerStarName": "Gamma Tauri",
+      "centerStarName": "Prima Hyadum",
       "targetStarNames": [
-        "Gamma Tauri",
-        "Delta1 Tauri",
-        "Epsilon Tauri",
-        "Theta2 Tauri"
+        "Prima Hyadum",
+        "Secunda Hyadum",
+        "Ain",
+        "Chamukuy"
       ],
       "story": "The V that forms the bull’s face is the Hyades, the nearest open cluster to us and one of the best studied. In Greek myth they were five daughters of Atlas and half-sisters of the Pleiades; when their brother Hyas died they wept without stopping and were set in the sky, where their rising came to mean rain. England kept the same association under a plainer name, calling them the April Rainers in the folk song Green Grow the Rushes, O. Homer put them on the shield of Achilles in Book 18 of the Iliad. The names of the two brightest carry the order they were seen in: Gamma is Prima Hyadum, the first of the Hyades, and Delta is Secunda Hyadum, the second.",
       "sources": "Wikipedia, Hyades (star cluster); Homer, Iliad, Book 18"
@@ -955,35 +885,19 @@
       "centerStarName": "Aldebaran",
       "targetStarNames": [
         "Aldebaran",
-        "Gamma Tauri",
+        "Prima Hyadum",
         "Elnath"
       ],
       "story": "This is one of the oldest figures in the sky, and the stories agree it is a bull even when they agree on nothing else. Babylonian astronomy called it GU4.AN.NA, the Bull of Heaven; in the Epic of Gilgamesh, Ishtar sends that bull to kill Gilgamesh for refusing her, and Enkidu tears off its hindquarters and hurls them into the sky — which is why the figure has no back half. Greek writers made it Zeus, who took the form of a white bull to carry off the Phoenician princess Europa, or else Io, whom Zeus turned into a heifer to hide her from Hera; Acusilaus identified it instead with the Cretan Bull of Heracles. In Egypt the constellation vanished into the Sun’s glare as spring began, and that sacrifice was read as the renewal of the land.",
       "sources": "Wikipedia, Taurus (constellation); Epic of Gilgamesh; Acusilaus"
     },
     {
-      "id": "shoulder",
-      "title": "The Half a Bull",
-      "view": "2d",
-      "centerStarName": "Lambda Tauri",
-      "targetStarNames": [
-        "Lambda Tauri",
-        "Mu Tauri",
-        "Nu Tauri",
-        "5 Tauri",
-        "Xi Tauri",
-        "Omicron Tauri"
-      ],
-      "story": "West of the face the figure carries on into a shoulder and two forelegs, and then simply stops. Taurus has no hindquarters, and the Babylonians had an explanation ready: Enkidu tore them off and threw them away. Lambda Tauri is the joint everything hangs from — an eclipsing binary whose two stars pass in front of one another every four days, dimming by a third each time, which anyone watching carefully can see without a telescope. The line runs down through Mu to Nu at the knee, and west through 5 Tauri to Xi and Omicron at the far end of the leg. Xi is stranger than it looks: four stars, two close pairs circling each other, reading as one point to the eye.",
-      "sources": "Wikipedia, Taurus (constellation); Wikipedia, Lambda Tauri; Wikipedia, Xi Tauri"
-    },
-    {
       "id": "guest_star",
       "title": "The Guest Star of 1054",
       "view": "2d",
-      "centerStarName": "Zeta Tauri",
+      "centerStarName": "Tianguan",
       "targetStarNames": [
-        "Zeta Tauri"
+        "Tianguan"
       ],
       "story": "On 4 July 1054 a star appeared beside the southern horn and reached magnitude −4 — bright enough to be seen in broad daylight. Chinese historical texts recorded it as a guest star. It was not only watched from China: a painting in a New Mexico canyon and pottery from the same period appear to depict the event. Then it faded, and nobody knew what had been there until John Bevis found a small smudge in the same place in 1731. That smudge is the Crab Nebula, the expanding wreckage of the star that exploded, now magnitude 8.4 and needing a telescope. It is one of the very few objects in the sky whose exact birthday is written down.",
       "sources": "Wikipedia, Taurus (constellation); Chinese historical records of SN 1054"

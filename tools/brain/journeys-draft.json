@@ -1,0 +1,299 @@
+{
+  "_note": "Draft lore journeys rebuilt from the Constellation Brain vault after the Stellarium figure migration. Not yet wired into orion/src/data/constellations/*.json - review first. Written against orion/docs/lore-writing-style.md.",
+  "orion": {
+    "displayName": "Orion the Hunter",
+    "stops": [
+      {
+        "id": "belt",
+        "title": "Three Names for One Belt",
+        "view": "2d",
+        "centerStarName": "Alnilam",
+        "targetStarNames": [
+          "Mintaka",
+          "Alnilam",
+          "Alnitak"
+        ],
+        "story": "Three stars in a row, evenly spaced, nearly matched in brightness. The Arabic astronomers who catalogued them gave all three names that mean roughly the same thing. Mintaka is al-Mintakah, the belt. Alnitak is al-Nitāq, the sash or girdle. Alnilam comes from al-Nithām, the string of pearls. Each name was first applied to the whole trio and only later pinned to one star, which is why they overlap so heavily.\n\nBabylonian scribes read the figure another way entirely. In the MUL.APIN lists, compiled around 1000 BCE, this was MUL.SIPA.ZI.AN.NA, the True Shepherd of Anu. Anu was the sky-god at the top of the Mesopotamian pantheon, and his shepherd guarded the Road of Anu, the equatorial band. The belt stars sat almost exactly on the celestial equator. That made the figure useful rather than decorative: it anchored the calendar.",
+        "sources": "Allen, Star Names (1899); Constellations of Words, Mintaka / Alnitak / Alnilam; MUL.APIN via Allen 1899"
+      },
+      {
+        "id": "shoulders",
+        "title": "Both Shoulders Had the Same Name",
+        "view": "2d",
+        "centerStarName": "Betelgeuse",
+        "targetStarNames": [
+          "Betelgeuse",
+          "Bellatrix"
+        ],
+        "story": "Al-Sufi listed both of these stars as Al Mankib, the shoulder. One on each side of the figure, one name between them. What separated them afterwards was accident on one side and translation on the other.\n\nBetelgeuse began as Yad al-Jauzah, the hand of the central one, al-Jauzah being the Arabic name for Orion. A medieval Latin scribe read the Arabic letter yā' as bā', turning yad into bed, and the misreading hardened into Bedalgeuze and then Betelgeuse. The name we use is a copying mistake that nobody corrected. Arabic sources also carried Ibt al-Jauzah, the armpit, for the same star.\n\nBellatrix went through no such corruption. It is plain Latin for a female warrior, coined to translate Al Najid, the Conqueror, which Ulug Beg gave in the fifteenth century in the fuller form Al Murzim al Najid, the Roaring Conqueror. European astrologers called it the Amazon Star.",
+        "sources": "Allen, Star Names (1899); Constellations of Words, Betelgeuse / Bellatrix; al-Sufi, Book of Fixed Stars (964); Ulug Beg (15th c.)"
+      },
+      {
+        "id": "rigel",
+        "title": "The Left Leg",
+        "view": "2d",
+        "centerStarName": "Rigel",
+        "targetStarNames": [
+          "Rigel"
+        ],
+        "story": "Rigel is short for Rijl al-Jauzah al-Yusrā, the left leg of the central one. The full phrase appears in the Alfonsine Tables in 1521; the shortened form is what survived into common use.\n\nAl-Sufi recorded something else for this star. He gives Rā'ī al-Jauzah, the Herdsman of the central one, which does not place it on the body at all. In that reading Rigel is a separate figure standing near Orion rather than part of him. Both names circulated. Only one made it into the atlases, and the choice was never argued out in any surviving text.\n\nAt magnitude 0.13 it is the brightest star in the constellation, outshining Betelgeuse most of the time, despite carrying the beta designation.",
+        "sources": "Allen, Star Names (1899); Constellations of Words, Rigel; Alfonsine Tables (1521); al-Sufi, Book of Fixed Stars (964)"
+      },
+      {
+        "id": "shield",
+        "title": "The Enduring One",
+        "view": "2d",
+        "centerStarName": "Tabit",
+        "targetStarNames": [
+          "Tabit",
+          "Pi1 Orionis",
+          "Pi2 Orionis",
+          "Pi4 Orionis",
+          "Pi6 Orionis"
+        ],
+        "story": "A shallow arc of faint stars curves west from Orion's raised hand. In the Greek artistic tradition this is the shield or the lion-skin he holds up against the charging bull of Taurus, which faces him from the other side of the sky.\n\nThe Arabic name for the group is Al Thabit, the enduring one, or the persevering. It belonged to the π Orionis stars collectively. π³ is the brightest of them and ended up with the name to itself, now spelled Tabit.\n\nThese stars are faint enough that the arc is easy to miss, and many modern figure drawings leave it out. The Stellarium western sky culture keeps it, which is why the shield is drawn here.",
+        "sources": "Allen, Star Names (1899); Stellarium western sky culture"
+      },
+      {
+        "id": "sword_and_head",
+        "title": "A Sword, and a Name Given to the Wrong Star",
+        "view": "2d",
+        "centerStarName": "Saiph",
+        "targetStarNames": [
+          "Saiph",
+          "Meissa"
+        ],
+        "story": "Saiph is Saif al-Jabbār, the Sword of the Giant. Al-Jabbār, the Giant, was the other Arabic name for this constellation, competing with al-Jauzah. The same sword designation was also attached to η Orionis, so the sword region stayed loosely defined for a long time before individual stars were fixed.\n\nMeissa has a stranger history. The name is a corruption of Al Maisan, the shining one, and it originally belonged to γ Geminorum, a star in an entirely different constellation. The fourteenth-century lexicographer al-Firuzabadi moved it here by mistake. Nobody moved it back. The genuine Arabic names for this star were Ras al-Jauzah, the head of the central one, and Al Hak'ah, a white spot, which referred to the faint knot of stars clustered around it. The modern alternative name Heka comes from that second one.",
+        "sources": "Allen, Star Names (1899); Constellations of Words, Saiph / Meissa; al-Firuzabadi (14th c.)"
+      },
+      {
+        "id": "sahu",
+        "title": "Four Traditions, One Giant",
+        "view": "3d",
+        "centerStarName": "Alnilam",
+        "targetStarNames": [
+          "Alnilam",
+          "Betelgeuse",
+          "Rigel"
+        ],
+        "story": "Egyptian priests called this figure Sahu, the celestial soul of Osiris. The Pyramid Texts, carved between roughly 2400 and 2300 BCE, identify the dead king with Sahu-Osiris. Orion's first pre-dawn appearance in summer came just before the Nile flood, so the figure announced both the inundation and the king's resurrection.\n\nThe Greeks made him a hunter, son of Poseidon, who boasted he would kill every beast alive. Gaia sent a scorpion. Zeus put both in the sky on opposite sides of it, and they still avoid each other: when Scorpius rises in the east, Orion is setting in the west.\n\nBabylon had a shepherd. Arabic astronomy had a giant, al-Jabbār, whose name survives in Saiph.\n\nFour traditions, four kinds of authority, one figure. What they were reaching for differed in every case. What they agreed on was that the brightest thing in the winter sky needed to be somebody important.",
+        "sources": "Allen, Star Names (1899); Pyramid Texts (c. 2400-2300 BCE) via Allen; Ptolemy, Almagest; Constellations of Words"
+      }
+    ],
+    "changes": {
+      "before": {
+        "stars": 15,
+        "connections": 15,
+        "stops": [
+          "betelgeuse",
+          "bellatrix",
+          "belt",
+          "saiph",
+          "rigel"
+        ]
+      },
+      "starsRemoved": [
+        "Pi5 Orionis",
+        "Chi2 Orionis",
+        "42 Orionis",
+        "Theta1 Orionis"
+      ],
+      "starsAdded": [
+        "64 Orionis",
+        "Xi Orionis",
+        "Nu Orionis",
+        "Mu Orionis",
+        "5 Orionis",
+        "Pi6 Orionis",
+        "Pi2 Orionis",
+        "Pi1 Orionis"
+      ],
+      "stopsRemoved": [],
+      "stopsAdded": [
+        "shield",
+        "sahu"
+      ],
+      "stopsChanged": [
+        "bellatrix folded into shoulders, beside Betelgeuse - al-Sufi gave both stars the same name"
+      ]
+    }
+  },
+  "taurus": {
+    "displayName": "Taurus the Bull",
+    "stops": [
+      {
+        "id": "aldebaran",
+        "title": "The Follower",
+        "view": "2d",
+        "centerStarName": "Aldebaran",
+        "targetStarNames": [
+          "Aldebaran"
+        ],
+        "story": "Al-Dabarān means the Follower. The name says nothing about the star itself, only about what it does: it rises behind the Pleiades and chases them across the sky all night without ever closing the gap. Al-Sufi records the name in the tenth century and takes care to identify exactly which star in the Taurus figure it belongs to, correcting confusions already present in the record by then. The fourth lunar mansion is named after the star, not the other way round.\n\nIn the Hindu system the same star is Rohiṇī, the Red One, fourth of the twenty-seven nakṣatras. Rohiṇī was the favourite among the Moon-god Soma's wives. His attachment to her was blatant enough that her co-wives complained to their father Daksha, who cursed Soma to wane. The curse was later softened into the cycle we see: Soma waxes for a fortnight as he returns to her, wanes for a fortnight as he pays.\n\nThe two accounts run in opposite directions. Arabic tradition makes Aldebaran the pursuer. Hindu tradition makes it the destination. Neither names the star for anything it is.",
+        "sources": "Allen, Star Names (1899) p. 383; al-Sufi, Book of Fixed Stars (964); vault thread: The Follower"
+      },
+      {
+        "id": "hyades",
+        "title": "The Rainy Sisters",
+        "view": "2d",
+        "centerStarName": "Prima Hyadum",
+        "targetStarNames": [
+          "Prima Hyadum",
+          "Secunda Hyadum",
+          "Ain",
+          "Chamukuy"
+        ],
+        "story": "The V is a real cluster, the closest one to Earth, about 153 light-years out. Greek writers tied the name to hyein, to rain, because the group's rising and setting fell near the wet parts of the Mediterranean year. Manilius uses them for wet autumns and Vergil treats them as a weather-sign in the Georgics. In one telling they are daughters of Atlas who wept themselves into the sky over their brother Hyas, killed by a lion.\n\nAldebaran sits in the V and is not part of it. The cluster is at 153 light-years; Aldebaran is at about 65, less than half as far, and simply happens to fall along the same line of sight. Every tradition that counted it among the Hyades was reading a coincidence.\n\nTwo of these stars still carry their Latin ordinals. Prima Hyadum is the first of the Hyades, Secunda Hyadum the second.",
+        "sources": "Allen, Star Names (1899); Manilius, Astronomica; Vergil, Georgics; vault object note: Hyades"
+      },
+      {
+        "id": "bull_of_heaven",
+        "title": "The Bull of Heaven",
+        "view": "2d",
+        "centerStarName": "Elnath",
+        "targetStarNames": [
+          "Elnath",
+          "Tianguan",
+          "Aldebaran"
+        ],
+        "story": "GU4.AN.NA, the Bull of Heaven, is among the oldest constellation names anyone has recovered, present in Sumerian astronomical texts before the MUL.APIN catalogue was assembled around 1000 BCE. Tablet VI of the Epic of Gilgamesh has Ishtar, refused by Gilgamesh, demanding the Bull from her father Anu. He warns her it will bring seven years of famine. He hands it over anyway. Gilgamesh and Enkidu kill it, and Enkidu throws its haunch at Ishtar, which is the act the gods decide he has to die for. Aldebaran is the Bull's eye.\n\nThe Greek story keeps the bull and reverses everything else. Zeus takes the shape of a white bull to reach Europa on the shore at Sidon. She garlands him with flowers, climbs on, and he swims to Crete with her. Their sons were Minos, Rhadamanthus and Sarpedon.\n\nIn Babylon the bull is a weapon that mortals destroy, and the sky commemorates the defiance. In Greece the bull is the god himself, and the sky commemorates an abduction that founded a dynasty.\n\nElnath, at the northern horn tip, is Al-Naṭḥ, the Butting One. It is named for the part of the bull that does the damage.",
+        "sources": "Allen, Star Names (1899); Epic of Gilgamesh Tablet VI; MUL.APIN (c. 1000 BCE); Manilius, Astronomica bk. 2; vault thread: Bull of Heaven"
+      },
+      {
+        "id": "guest_star",
+        "title": "The Guest Star of 1054",
+        "view": "3d",
+        "centerStarName": "Tianguan",
+        "targetStarNames": [
+          "Tianguan"
+        ],
+        "story": "On 4 July 1054 a new star appeared near this one, bright enough to be seen in daylight for twenty-three days and visible at night for close to two years. Chinese astronomers logged it as a guest star and recorded its position carefully enough that we can still match it to the sky.\n\nWhat they watched was a star exploding about 6,500 light-years away. The wreckage is still expanding and is now the Crab Nebula, with the collapsed core of the original star at its centre, spinning thirty times a second.\n\nThe star's modern name is Tianguan, from the Chinese celestial-office system, meaning the Heavenly Gate. It is one of the relatively few traditional Chinese star names adopted into the standard international list.",
+        "sources": "Chinese observational records of SN 1054; Stellarium star name catalogue; vault star note: Tianguan"
+      },
+      {
+        "id": "pleiades",
+        "title": "Seven Named, Six Seen",
+        "view": "2d",
+        "centerStarName": "Atlas",
+        "targetStarNames": [
+          "Atlas"
+        ],
+        "story": "Al-Thurayyā, the many little ones, is the Arabic name for the cluster on the bull's shoulder. Aldebaran's name depends on it: the Follower only means anything if there is something ahead to follow.\n\nEvery tradition that names the Pleiades counts seven. Most people see six. The gap between those two numbers has to be explained, and the explanations divide into two kinds.\n\nOne kind is a story. Electra left the group in grief after Troy fell, since the Trojans descended from her son Dardanus, and became a comet. Or Merope hides her face, the only sister who married a mortal while the others married gods. Or Pleione herself drifted off.\n\nThe other kind refuses the story. Japanese tradition calls the cluster Subaru and notes the discrepancy without mourning anybody. Māori accounts of Matariki keep the count at seven and put the emphasis on the cluster as a whole.\n\nAtlas is the sisters' father in the Greek telling, and one of the faintest stars carrying a Pleiad name.",
+        "sources": "Allen, Star Names (1899); Manilius, Astronomica bk. 5; vault thread: The Lost Pleiad; vault object note: Pleiades"
+      }
+    ],
+    "changes": {
+      "before": {
+        "stars": 14,
+        "connections": 13,
+        "stops": [
+          "aldebaran",
+          "hyades",
+          "bull_of_heaven",
+          "shoulder",
+          "guest_star"
+        ]
+      },
+      "starsRemoved": [
+        "Mu Tauri",
+        "Nu Tauri",
+        "Xi Tauri",
+        "5 Tauri"
+      ],
+      "starsAdded": [
+        "68 Tauri",
+        "Atlas"
+      ],
+      "stopsRemoved": [
+        "shoulder"
+      ],
+      "stopsAdded": [
+        "pleiades"
+      ],
+      "stopsChanged": [
+        "guest_star retargeted from Zeta Tauri to its Stellarium name, Tianguan"
+      ]
+    }
+  },
+  "andromeda": {
+    "displayName": "Andromeda the Chained Maiden",
+    "stops": [
+      {
+        "id": "alpheratz",
+        "title": "The Navel of the Horse",
+        "view": "2d",
+        "centerStarName": "Alpheratz",
+        "targetStarNames": [
+          "Alpheratz"
+        ],
+        "story": "This star spent most of recorded history belonging to two constellations at once. Ptolemy counted it twice, as α Andromedae, the head of the chained princess, and as δ Pegasi, a corner of the Great Square. Al-Sufi's catalogue lists it under both figures and notes the double identity without treating it as a problem. The IAU ended the arrangement in 1930 and assigned it to Andromeda.\n\nThe name never caught up. Alpheratz comes from al-Surrat al-Faras, the navel of the horse, which describes its position in Pegasus. The contracted form al-Sirra gives the alternative name Sirrah. Anyone using the traditional name today is pointing at a horse that officially no longer contains this star.\n\nBetelgeuse got its name through a scribal error. This is the opposite case: an accurate Arabic name that outlived the arrangement it accurately described.",
+        "sources": "Allen, Star Names (1899); Constellations of Words; al-Sufi, Book of Fixed Stars (964); Ptolemy, Almagest; IAU boundaries (1930)"
+      },
+      {
+        "id": "mirach",
+        "title": "The Loins, and the Signpost",
+        "view": "2d",
+        "centerStarName": "Mirach",
+        "targetStarNames": [
+          "Mirach"
+        ],
+        "story": "Mirach is al-Maraqq, the loins or the flank, placing it at the waist of the figure. Allen records several Arabic variants for this star and its neighbours, all of them circling the same part of the body.\n\nIt is a red giant of class M0, roughly 200 light-years away, and one of the few naked-eye stars with visible colour. Not as obviously red as Betelgeuse, but warm enough to stand out against the blue-white stars around it.\n\nIts modern job has nothing to do with Andromeda's waist. The Andromeda Galaxy sits about one degree north, and the standard way to find it is to locate Mirach and step off from there. A name recording a position on a woman's body is now mostly used as a pointer to another galaxy.",
+        "sources": "Allen, Star Names (1899); Constellations of Words; Ptolemy, Almagest"
+      },
+      {
+        "id": "almach",
+        "title": "The Caracal",
+        "view": "2d",
+        "centerStarName": "Almach",
+        "targetStarNames": [
+          "Almach"
+        ],
+        "story": "Almach is al-'Anaq al-Ard, the caracal, a desert lynx. The name has no connection to the Greek figure. It came from an independent Arabic grouping of stars in this region, and when the Greek constellation arrived through al-Sufi's version of Ptolemy, the Arabic name was mapped onto it without anyone reconciling the two.\n\nSo the star means a wild cat and marks a chained woman's foot, and both are correct. Arabic astronomy absorbed the Greek figures this way routinely, keeping its own names in place underneath.\n\nIn a small telescope Almach splits into a golden-orange primary and a blue-green companion, a colour pairing often called the finest in the sky. The companion is itself a close triple, so the whole thing is a quadruple system.",
+        "sources": "Allen, Star Names (1899); Constellations of Words; al-Sufi, Book of Fixed Stars (964); Ptolemy, Almagest"
+      },
+      {
+        "id": "m31",
+        "title": "The Other Galaxy",
+        "view": "3d",
+        "centerStarName": "Mirach",
+        "targetStarNames": [
+          "Mirach"
+        ],
+        "story": "The faint smudge north of Mirach is the Andromeda Galaxy, and until the 1920s nobody was certain what it was. It is a separate galaxy of roughly a trillion stars, about 2.5 million light-years off, and the most distant thing most people will ever see without equipment.\n\nThe Greek myth this constellation carries is unusually well arranged in the sky. Cepheus and Cassiopeia, Andromeda's parents, sit beside her. Perseus, who cut her free, is next along to the northeast. Cetus, the monster she was chained out for, spreads below. Cassiopeia's boast that she outshone the Nereids started it, and Poseidon sent the monster, and the oracle of Ammon said only Andromeda's death would settle it.\n\nShe does nothing at all in the story. She is put on a rock and waited on. The constellation named after her holds the corner star that Pegasus wants back, the guide star for the galaxy, and the finest double in the northern sky.",
+        "sources": "Ptolemy, Almagest; Constellations of Words; Allen, Star Names (1899); vault constellation note: Andromeda"
+      }
+    ],
+    "changes": {
+      "before": {
+        "stars": 15,
+        "connections": 14,
+        "stops": [
+          "alpheratz",
+          "mirach",
+          "almach",
+          "chains",
+          "m31"
+        ]
+      },
+      "starsRemoved": [
+        "Epsilon Andromedae",
+        "Zeta Andromedae",
+        "Phi Andromedae",
+        "51 Andromedae",
+        "Pi Andromedae",
+        "Iota Andromedae",
+        "Kappa Andromedae",
+        "Lambda Andromedae",
+        "Omicron Andromedae"
+      ],
+      "starsAdded": [],
+      "stopsRemoved": [
+        "chains"
+      ],
+      "stopsAdded": [],
+      "stopsChanged": [
+        "m31 recentred on Mirach, the star actually used to find the galaxy"
+      ]
+    }
+  }
+}

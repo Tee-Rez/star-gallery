@@ -1,424 +1,100 @@
 {
   "stars": [
     {
-      "id": "aldebaran",
-      "name": "Aldebaran",
-      "designation": "α Tauri",
-      "raH": 4.598667,
-      "dec": 16.50975,
-      "dist": 65,
-      "mag": 0.87,
-      "spectralClass": "K5III",
-      "source": "Wikipedia List of stars in Taurus; Wikipedia Aldebaran (infobox, physics)",
-      "physics": {
-        "massSolar": 1.03,
-        "radiusSolar": 45.1,
-        "tempKelvin": 3900,
-        "note": "Primary component, alpha Tauri A; companion alpha Tauri B is a faint M dwarf"
-      }
-    },
-    {
-      "id": "theta2_tauri",
-      "name": "Theta2 Tauri",
-      "designation": "θ² Tauri (Chamukuy)",
-      "raH": 4.477686,
-      "dec": 15.870944,
-      "dist": 149,
-      "mag": 3.4,
-      "spectralClass": "A7III",
-      "source": "Wikipedia List of stars in Taurus; Wikipedia Theta2 Tauri (infobox, physics)",
-      "physics": {
-        "massSolar": 2.86,
-        "radiusSolar": 4.4,
-        "tempKelvin": 7800,
-        "note": "Component Aa (Chamukuy); brighter of the theta Tauri pair"
-      }
-    },
-    {
-      "id": "gamma_tauri",
-      "name": "Gamma Tauri",
-      "designation": "γ Tauri (Prima Hyadum)",
-      "raH": 4.329869,
-      "dec": 15.627694,
-      "dist": 154,
-      "mag": 3.65,
-      "spectralClass": "G8III",
-      "source": "Wikipedia List of stars in Taurus; Wikipedia Gamma Tauri (infobox, physics)",
-      "physics": {
-        "massSolar": 2.7,
-        "radiusSolar": 11.94,
-        "tempKelvin": 4844,
-        "note": "Primary; apex/nose of the Hyades V, red clump giant"
-      }
-    },
-    {
-      "id": "delta1_tauri",
-      "name": "Delta1 Tauri",
-      "designation": "δ¹ Tauri (Secunda Hyadum)",
-      "raH": 4.382231,
-      "dec": 17.542583,
-      "dist": 153,
-      "mag": 3.77,
-      "spectralClass": "G8III",
-      "source": "Wikipedia List of stars in Taurus; Wikipedia Delta1 Tauri (infobox, physics)",
-      "physics": {
-        "massSolar": 2.75,
-        "radiusSolar": 14.9,
-        "tempKelvin": 4819,
-        "note": "Component Aa (Secunda Hyadum), the visible evolved giant of a spectroscopic binary"
-      }
-    },
-    {
-      "id": "epsilon_tauri",
-      "name": "Epsilon Tauri",
-      "designation": "ε Tauri (Ain)",
-      "raH": 4.476925,
-      "dec": 19.180528,
-      "dist": 155,
-      "mag": 3.53,
-      "spectralClass": "K0III",
-      "source": "Wikipedia List of stars in Taurus; Wikipedia Epsilon Tauri (infobox, physics)",
-      "physics": {
-        "massSolar": 2.458,
-        "radiusSolar": 12.46,
-        "tempKelvin": 4880,
-        "note": "Primary (Ain), the northern eye of the bull; hosts exoplanet Epsilon Tauri b (Amateru)"
-      }
+      "id": "elnath",
+      "raH": 5.438198,
+      "dec": 28.607452,
+      "dist": 131,
+      "mag": 1.65
     },
     {
       "id": "tau_tauri",
-      "name": "Tau Tauri",
-      "designation": "τ Tauri",
       "raH": 4.704083,
-      "dec": 22.956972,
+      "dec": 22.956903,
       "dist": 400,
-      "mag": 4.27,
-      "spectralClass": "B3V",
-      "source": "Wikipedia List of stars in Taurus; Wikipedia Tau Tauri (infobox)"
+      "mag": 4.27
     },
     {
-      "id": "elnath",
-      "name": "Elnath",
-      "designation": "β Tauri",
-      "raH": 5.438194,
-      "dec": 28.607861,
-      "dist": 131,
-      "mag": 1.65,
-      "spectralClass": "B7III",
-      "source": "Wikipedia List of stars in Taurus; Wikipedia Beta Tauri (infobox, physics)",
-      "physics": {
-        "massSolar": 5,
-        "radiusSolar": 4.79,
-        "tempKelvin": 13600,
-        "note": "Primary; mercury-manganese peculiar star; also catalogued as Gamma Aurigae, shared between Taurus and Auriga"
-      }
+      "id": "epsilon_tauri",
+      "raH": 4.476945,
+      "dec": 19.180434,
+      "dist": 155,
+      "mag": 3.53
+    },
+    {
+      "id": "aldebaran",
+      "raH": 4.598678,
+      "dec": 16.509302,
+      "dist": 65,
+      "mag": 0.87
     },
     {
       "id": "zeta_tauri",
-      "name": "Zeta Tauri",
-      "designation": "ζ Tauri (Tianguan)",
-      "raH": 5.627411,
-      "dec": 21.142583,
+      "raH": 5.627413,
+      "dec": 21.142544,
       "dist": 417,
-      "mag": 2.97,
-      "spectralClass": "B4IIIp",
-      "source": "Wikipedia List of stars in Taurus; Wikipedia Zeta Tauri (infobox, physics)",
-      "physics": {
-        "massSolar": 11.2,
-        "radiusSolar": 5.5,
-        "tempKelvin": 15500,
-        "note": "Component A, primary of a single-lined spectroscopic binary; Be shell star"
-      }
+      "mag": 2.97
+    },
+    {
+      "id": "gamma_tauri",
+      "raH": 4.32989,
+      "dec": 15.627642,
+      "dist": 154,
+      "mag": 3.65
+    },
+    {
+      "id": "delta1_tauri",
+      "raH": 4.382249,
+      "dec": 17.542514,
+      "dist": 153,
+      "mag": 3.77
     },
     {
       "id": "lambda_tauri",
-      "name": "Lambda Tauri",
-      "designation": "λ Tauri (Bibing)",
-      "raH": 4.011339,
-      "dec": 12.490389,
+      "raH": 4.011338,
+      "dec": 12.490344,
       "dist": 370,
-      "mag": 3.41,
-      "spectralClass": "B3V",
-      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Lambda Tauri",
-      "physics": {
-        "massSolar": 7.18,
-        "radiusSolar": 6.4,
-        "tempKelvin": 18700,
-        "note": "Component A"
-      }
-    },
-    {
-      "id": "mu_tauri",
-      "name": "Mu Tauri",
-      "designation": "μ Tauri",
-      "raH": 4.258903,
-      "dec": 8.892417,
-      "dist": 435,
-      "mag": 4.27,
-      "spectralClass": "B3IV",
-      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Mu Tauri",
-      "physics": {
-        "massSolar": 6.7,
-        "radiusSolar": 6.9,
-        "tempKelvin": 16980
-      }
-    },
-    {
-      "id": "nu_tauri",
-      "name": "Nu Tauri",
-      "designation": "ν Tauri",
-      "raH": 4.052606,
-      "dec": 5.989306,
-      "dist": 129,
-      "mag": 3.91,
-      "spectralClass": "A1V",
-      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Nu Tauri",
-      "physics": {
-        "massSolar": 2.25,
-        "radiusSolar": 2.87,
-        "tempKelvin": 7836,
-        "note": "Single star; radius and temperature quoted with asymmetric errors, central values used"
-      }
-    },
-    {
-      "id": "xi_tauri",
-      "name": "Xi Tauri",
-      "designation": "ξ Tauri (Ushakaron)",
-      "raH": 3.452811,
-      "dec": 9.732778,
-      "dist": 222,
-      "mag": 3.73,
-      "spectralClass": "B9Vn",
-      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Xi Tauri",
-      "physics": {
-        "massSolar": 2.25,
-        "radiusSolar": 1.691,
-        "tempKelvin": 11000,
-        "note": "Component Aa, the more massive star of the inner eclipsing pair"
-      }
+      "mag": 3.41
     },
     {
       "id": "omicron_tauri",
-      "name": "Omicron Tauri",
-      "designation": "ο Tauri",
-      "raH": 3.413567,
-      "dec": 9.029056,
+      "raH": 3.413555,
+      "dec": 9.02887,
       "dist": 211,
-      "mag": 3.61,
-      "spectralClass": "G8III",
-      "source": "Wikipedia, List of stars in Taurus; Wikipedia, Omicron Tauri",
-      "physics": {
-        "massSolar": 3.21,
-        "radiusSolar": 20.28,
-        "tempKelvin": 5094,
-        "note": "Component A"
-      }
+      "mag": 3.61
     },
     {
-      "id": "five_tauri",
-      "name": "5 Tauri",
-      "designation": "5 Tauri (f Tauri)",
-      "raH": 3.514551,
-      "dec": 12.93668,
-      "dist": 530,
-      "mag": 4.14,
-      "spectralClass": "K0III",
-      "source": "Wikipedia, 5 Tauri",
-      "physics": {
-        "massSolar": 4,
-        "radiusSolar": 8.5,
-        "tempKelvin": 4644,
-        "note": "Component A"
-      }
+      "id": "theta2_tauri",
+      "raH": 4.477706,
+      "dec": 15.870875,
+      "dist": 149,
+      "mag": 3.4
+    },
+    {
+      "id": "68_tauri",
+      "raH": 4.424829,
+      "dec": 17.927907,
+      "dist": 148.4,
+      "mag": 4.298
+    },
+    {
+      "id": "atlas",
+      "raH": 3.819373,
+      "dec": 24.053417,
+      "dist": 398.8,
+      "mag": 3.63
     }
   ],
   "deepSky": [
     {
       "id": "m45",
-      "name": "Pleiades",
-      "designation": "M45, Melotte 22, Seven Sisters",
       "raH": 3.777222,
-      "dec": 24.178056,
-      "type": "open_cluster",
-      "layer": "cluster",
-      "distance": 444,
-      "magnitude": 1.6,
-      "angularSize": "110 arcminutes (about 2 degrees)",
-      "info": {
-        "basic": "The Pleiades is the most famous open star cluster in the sky, a tight knot of hot blue stars in Taurus that most people can pick out with the naked eye and count six or seven of. It sits about 444 light-years away and is only around 100 million years old.",
-        "scientific": "M45 is a young open cluster of B-type stars roughly 136 parsecs (444 light-years) distant, per Gaia DR3 and VLBI parallax measurements; earlier Hipparcos measurements of about 118 pc were disputed and superseded. Its brightest members share a common origin and motion, and the reflection nebulosity seen around Merope and Maia is an unrelated interstellar dust cloud the cluster is currently passing through, not leftover material from its own formation."
-      },
-      "sources": "Wikipedia, Pleiades (star cluster); Gaia DR3 (2023) parallax 135.74±0.10 pc; van Leeuwen VLBI (2014) 136.2±1.2 pc"
+      "dec": 24.178056
     },
     {
       "id": "m1",
-      "name": "Crab Nebula",
-      "designation": "M1, NGC 1952",
       "raH": 5.5755,
-      "dec": 22.0175,
-      "type": "supernova_remnant",
-      "layer": "none",
-      "distance": 6500,
-      "magnitude": 8.4,
-      "angularSize": "6 x 4 arcminutes",
-      "info": {
-        "basic": "The Crab Nebula is the wreckage of a star that exploded as a supernova in the year 1054, an event bright enough to be recorded by astronomers in China and elsewhere. At its heart spins the crushed core of that star, a neutron star flashing 30 times a second.",
-        "scientific": "M1 is a pulsar wind nebula and supernova remnant about 6,500 light-years away, roughly 970 years old, spanning some 6 by 4 arcminutes (about 11 light-years across) and still expanding. Its filamentary shell of ionised ejecta (H, He, C, O, N, Fe, Ne, S at 11,000-18,000 K) surrounds a diffuse blue core produced by synchrotron radiation from relativistic electrons accelerated by the Crab Pulsar's magnetic field, not by ongoing star formation."
-      },
-      "sources": "Wikipedia, Crab Nebula"
+      "dec": 22.0175
     }
-  ],
-  "clusters": {
-    "m45": {
-      "stars": [
-        {
-          "id": "alcyone",
-          "name": "Alcyone",
-          "designation": "η Tauri (25 Tauri)",
-          "raH": 3.79141,
-          "dec": 24.105136,
-          "dist": 440,
-          "mag": 2.87,
-          "spectralClass": "B7IIIe",
-          "source": "Wikipedia Alcyone (star)",
-          "physics": {
-            "massSolar": 6,
-            "radiusSolar": 9.28,
-            "tempKelvin": 12258,
-            "note": "5.9-6.1 Msun midpoint; equatorial/polar radius 10.56/8.0 Rsun (rapid rotator, oblate), mean used"
-          }
-        },
-        {
-          "id": "electra",
-          "name": "Electra",
-          "designation": "17 Tauri",
-          "raH": 3.747928,
-          "dec": 24.113336,
-          "dist": 444,
-          "mag": 3.7,
-          "spectralClass": "B6IIIe",
-          "source": "Wikipedia Electra (star)",
-          "physics": {
-            "massSolar": 4.65,
-            "radiusSolar": 6.06,
-            "tempKelvin": 13484,
-            "note": "4.6-4.7 Msun midpoint"
-          }
-        },
-        {
-          "id": "maia",
-          "name": "Maia",
-          "designation": "20 Tauri",
-          "raH": 3.763774,
-          "dec": 24.367746,
-          "dist": 444,
-          "mag": 3.87,
-          "spectralClass": "B8III",
-          "source": "Wikipedia Maia (star)",
-          "physics": {
-            "massSolar": 4.74,
-            "radiusSolar": 6.61,
-            "tempKelvin": 12550,
-            "note": "Primary; illuminates the Maia Nebula (NGC 1432)"
-          }
-        },
-        {
-          "id": "merope",
-          "name": "Merope",
-          "designation": "23 Tauri",
-          "raH": 3.772108,
-          "dec": 23.948359,
-          "dist": 460,
-          "mag": 4.18,
-          "spectralClass": "B6IVe",
-          "source": "Wikipedia Merope (star)",
-          "physics": {
-            "massSolar": 4.25,
-            "radiusSolar": 4.79,
-            "tempKelvin": 14550,
-            "note": "Primary; illuminates the Merope Nebula (NGC 1435)"
-          }
-        },
-        {
-          "id": "taygeta",
-          "name": "Taygeta",
-          "designation": "19 Tauri",
-          "raH": 3.753471,
-          "dec": 24.467281,
-          "dist": 410,
-          "mag": 4.3,
-          "spectralClass": "B6IV",
-          "source": "Wikipedia Taygeta",
-          "physics": {
-            "massSolar": 4.41,
-            "radiusSolar": 4.36,
-            "tempKelvin": 13696,
-            "note": "Component Aa (19 Tauri Aa, Taygeta); Ab is a fainter companion, mass 3.2 Msun"
-          }
-        },
-        {
-          "id": "celaeno",
-          "name": "Celaeno",
-          "designation": "16 Tauri",
-          "raH": 3.746726,
-          "dec": 24.289467,
-          "dist": 442,
-          "mag": 5.45,
-          "spectralClass": "B7V",
-          "source": "Wikipedia Celaeno (star)",
-          "physics": {
-            "massSolar": 4,
-            "radiusSolar": 2.34,
-            "tempKelvin": 12800,
-            "note": "Primary"
-          }
-        },
-        {
-          "id": "asterope",
-          "name": "Asterope",
-          "designation": "21 Tauri (Sterope)",
-          "raH": 3.765133,
-          "dec": 24.554512,
-          "dist": 431,
-          "mag": 5.76,
-          "spectralClass": "B8V",
-          "source": "Wikipedia Asterope (star)"
-        },
-        {
-          "id": "atlas",
-          "name": "Atlas",
-          "designation": "27 Tauri",
-          "raH": 3.819373,
-          "dec": 24.053417,
-          "dist": 444,
-          "mag": 3.63,
-          "spectralClass": "B8III",
-          "source": "Wikipedia Atlas (star)",
-          "physics": {
-            "massSolar": 5.04,
-            "radiusSolar": 7.145,
-            "tempKelvin": 12525,
-            "note": "Component Aa1 (primary); equatorial/polar radius 7.81/6.48 Rsun (rapid rotator), mean used"
-          }
-        },
-        {
-          "id": "pleione",
-          "name": "Pleione",
-          "designation": "28 Tauri",
-          "raH": 3.819783,
-          "dec": 24.136714,
-          "dist": 450,
-          "mag": 5.05,
-          "spectralClass": "B8Vne",
-          "source": "Wikipedia Pleione (star)",
-          "physics": {
-            "massSolar": 2.888,
-            "radiusSolar": 4.17,
-            "tempKelvin": 11058,
-            "note": "Primary; Be shell star, variable between about 4.77 and 5.50 mag, 5.05 used as representative"
-          }
-        }
-      ]
-    }
-  }
+  ]
 }

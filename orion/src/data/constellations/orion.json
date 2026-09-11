@@ -51,143 +51,14 @@
   },
   "stars": [
     {
-      "id": "betelgeuse",
-      "name": "Betelgeuse",
-      "designation": "α Orionis",
-      "isMajor": true,
-      "position2D": {
-        "x": -1.442,
-        "y": 0.979
-      },
-      "distance": 642.5,
-      "magnitude": 0.5,
-      "spectralClass": "M1-M2 Ia-ab",
-      "color": "#ff4400",
-      "size": 0.17,
-      "stellarType": "red_supergiant",
-      "physics": {
-        "massSolar": 16.5,
-        "radiusSolar": 700,
-        "tempKelvin": 3700,
-        "note": "Ranges 14-19 M, 640-764 R, 3600-3800 K; midpoints"
-      },
-      "info": {
-        "basic": "Betelgeuse, the celestial ruby of Orion's shoulder, marks the Hunter's right side.",
-        "scientific": {
-          "age": "8-14 million years old",
-          "mass": "14-19 times the Sun's mass",
-          "radius": "640-764 times the Sun's radius - if placed at our Sun's position, would extend beyond Jupiter's orbit",
-          "luminosity": "65,000 times brighter than the Sun",
-          "temperature": "3,600-3,800 K",
-          "fate": "Destined to explode as a supernova within ~100,000 years"
-        }
-      }
-    },
-    {
-      "id": "rigel",
-      "name": "Rigel",
-      "designation": "β Orionis",
-      "isMajor": true,
-      "position2D": {
-        "x": 0.883,
-        "y": -2.633
-      },
-      "distance": 860,
-      "magnitude": 0.13,
-      "spectralClass": "B8 Ia",
-      "color": "#4477ff",
-      "size": 0.15,
-      "stellarType": "blue_supergiant",
-      "physics": {
-        "massSolar": 21,
-        "radiusSolar": 74.1,
-        "tempKelvin": 12100
-      },
-      "info": {
-        "basic": "Rigel, the commanding blue sentinel at Orion's foot, outshines even Betelgeuse despite being designated Beta Orionis.",
-        "scientific": {
-          "age": "8 million years old - extremely young for such a bright star",
-          "mass": "21 times the Sun's mass",
-          "radius": "74.1 times the Sun's radius",
-          "luminosity": "120,000 times brighter than the Sun",
-          "temperature": "12,100 K",
-          "composition": "Part of a multiple star system with at least three stellar companions"
-        }
-      }
-    },
-    {
-      "id": "bellatrix",
-      "name": "Bellatrix",
-      "designation": "γ Orionis",
-      "isMajor": true,
-      "position2D": {
-        "x": 0.268,
-        "y": 0.727
-      },
-      "distance": 243,
-      "magnitude": 1.64,
-      "spectralClass": "B2 III",
-      "color": "#bbbbff",
-      "size": 0.1,
-      "stellarType": "blue_giant",
-      "physics": {
-        "massSolar": 7.7,
-        "radiusSolar": 5.75,
-        "tempKelvin": 21800
-      },
-      "info": {
-        "basic": "Bellatrix, the 'Female Warrior' star, stands proud at Orion's left shoulder, one of the nearest bright stars in Orion.",
-        "scientific": {
-          "age": "25.2 million years old",
-          "mass": "7.7 times the Sun's mass",
-          "radius": "5.75 times the Sun's radius",
-          "luminosity": "9,211 times brighter than the Sun",
-          "temperature": "21,800 K",
-          "distance": "243 light-years - one of the closest major stars in Orion"
-        }
-      }
-    },
-    {
-      "id": "saiph",
-      "name": "Saiph",
-      "designation": "κ Orionis",
-      "isMajor": true,
-      "position2D": {
-        "x": -1.035,
-        "y": -2.986
-      },
-      "distance": 721,
-      "magnitude": 2.09,
-      "spectralClass": "B0.5 Ia",
-      "color": "#ffffff",
-      "size": 0.09,
-      "stellarType": "blue_supergiant",
-      "physics": {
-        "massSolar": 18.3,
-        "radiusSolar": 13.5,
-        "tempKelvin": 25700,
-        "note": "Ranges 15.5-21.1 M, 13-14 R; midpoints"
-      },
-      "info": {
-        "basic": "Saiph, the often-overlooked guardian at Orion's right foot, nearly matches Rigel in stellar properties but appears dimmer from Earth.",
-        "scientific": {
-          "age": "11.1 million years old",
-          "mass": "15.5-21.1 times the Sun's mass",
-          "radius": "13-14 times the Sun's radius",
-          "luminosity": "60,300 times brighter than the Sun",
-          "temperature": "25,700 K",
-          "fate": "Destined to end its life in a spectacular supernova"
-        }
-      }
-    },
-    {
       "id": "alnitak",
+      "hip": 26727,
       "name": "Alnitak",
       "designation": "ζ Orionis",
       "isMajor": true,
       "position2D": {
-        "x": -0.625,
-        "y": -1.17
+        "x": -0.708,
+        "y": -2.035
       },
       "distance": 817,
       "magnitude": 1.77,
@@ -215,12 +86,13 @@
     },
     {
       "id": "alnilam",
+      "hip": 26311,
       "name": "Alnilam",
       "designation": "ε Orionis",
       "isMajor": true,
       "position2D": {
-        "x": -0.364,
-        "y": -0.999
+        "x": -0.423,
+        "y": -1.847
       },
       "distance": 1342,
       "magnitude": 1.69,
@@ -247,12 +119,13 @@
     },
     {
       "id": "mintaka",
+      "hip": 25930,
       "name": "Mintaka",
       "designation": "δ Orionis",
       "isMajor": true,
       "position2D": {
-        "x": -0.123,
-        "y": -0.792
+        "x": -0.159,
+        "y": -1.62
       },
       "distance": 916,
       "magnitude": 2.23,
@@ -279,13 +152,273 @@
       }
     },
     {
+      "id": "64_orionis",
+      "hip": 28691,
+      "name": "64 Orionis",
+      "designation": "64 Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": -2.056,
+        "y": 3.464
+      },
+      "distance": 714.9,
+      "magnitude": 5.13,
+      "spectralClass": "B6:III/V",
+      "color": "#a8bcff",
+      "size": 0.06,
+      "stellarType": "blue_white_giant",
+      "physics": {
+        "massSolar": 4.6,
+        "radiusSolar": 6.63,
+        "tempKelvin": 11260,
+        "note": "Catalogue values: typical for spectral type B6:III/V. Not hand-checked."
+      }
+    },
+    {
+      "id": "xi_orionis",
+      "hip": 29426,
+      "name": "Xi Orionis",
+      "designation": "ξ Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": -2.609,
+        "y": 2.061
+      },
+      "distance": 606,
+      "magnitude": 4.48,
+      "spectralClass": "B3V",
+      "color": "#a8bcff",
+      "size": 0.063,
+      "stellarType": "blue_white_main_sequence",
+      "physics": {
+        "massSolar": 4.38,
+        "radiusSolar": 6.45,
+        "tempKelvin": 14450,
+        "note": "Catalogue values: typical for spectral type B3V. Not hand-checked."
+      }
+    },
+    {
+      "id": "nu_orionis",
+      "hip": 29038,
+      "name": "Nu Orionis",
+      "designation": "ν Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": -2.333,
+        "y": 2.192
+      },
+      "distance": 514.4,
+      "magnitude": 4.397,
+      "spectralClass": "B4V",
+      "color": "#a8bcff",
+      "size": 0.065,
+      "stellarType": "blue_white_main_sequence",
+      "physics": {
+        "massSolar": 4.04,
+        "radiusSolar": 5.98,
+        "tempKelvin": 13600,
+        "note": "Catalogue values: typical for spectral type B4V. Not hand-checked."
+      }
+    },
+    {
+      "id": "chi1_orionis",
+      "hip": 27913,
+      "name": "Chi1 Orionis",
+      "designation": "χ Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": -1.501,
+        "y": 3.594
+      },
+      "distance": 28,
+      "magnitude": 4.38,
+      "spectralClass": "G0 V",
+      "color": "#fff4e8",
+      "size": 0.06,
+      "stellarType": "yellow_main_sequence",
+      "physics": {
+        "massSolar": 1.01,
+        "radiusSolar": 0.983,
+        "tempKelvin": 5883
+      },
+      "info": {
+        "basic": "Chi1 Orionis, a nearby solar-type star, provides insights into our Sun's possible future and past states.",
+        "scientific": {
+          "age": "300-400 million years old - much younger than our Sun",
+          "mass": "1.01 times the Sun's mass",
+          "radius": "0.983 times the Sun's radius",
+          "luminosity": "1.042 times the Sun's luminosity",
+          "temperature": "5,883 K",
+          "composition": "RS Canum Venaticorum variable in binary system"
+        }
+      }
+    },
+    {
+      "id": "mu_orionis",
+      "hip": 28614,
+      "name": "Mu Orionis",
+      "designation": "μ Orionis",
+      "isMajor": false,
+      "position2D": {
+        "x": -2.031,
+        "y": 0.881
+      },
+      "distance": 154.8,
+      "magnitude": 5,
+      "spectralClass": "A2   V",
+      "color": "#ffffff",
+      "size": 0.06,
+      "stellarType": "white_main_sequence",
+      "physics": {
+        "massSolar": 2.1,
+        "radiusSolar": 3.39,
+        "tempKelvin": 7760,
+        "note": "Catalogue values: Allende Prieto & Lambert 1999. Not hand-checked."
+      }
+    },
+    {
+      "id": "betelgeuse",
+      "hip": 27989,
+      "name": "Betelgeuse",
+      "designation": "α Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": -1.589,
+        "y": 0.311
+      },
+      "distance": 642.5,
+      "magnitude": 0.5,
+      "spectralClass": "M1-M2 Ia-ab",
+      "color": "#ff4400",
+      "size": 0.17,
+      "stellarType": "red_supergiant",
+      "physics": {
+        "massSolar": 16.5,
+        "radiusSolar": 700,
+        "tempKelvin": 3700,
+        "note": "Ranges 14-19 M, 640-764 R, 3600-3800 K; midpoints"
+      },
+      "info": {
+        "basic": "Betelgeuse, the celestial ruby of Orion's shoulder, marks the Hunter's right side.",
+        "scientific": {
+          "age": "8-14 million years old",
+          "mass": "14-19 times the Sun's mass",
+          "radius": "640-764 times the Sun's radius - if placed at our Sun's position, would extend beyond Jupiter's orbit",
+          "luminosity": "65,000 times brighter than the Sun",
+          "temperature": "3,600-3,800 K",
+          "fate": "Destined to explode as a supernova within ~100,000 years"
+        }
+      }
+    },
+    {
+      "id": "saiph",
+      "hip": 27366,
+      "name": "Saiph",
+      "designation": "κ Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": -1.166,
+        "y": -4.05
+      },
+      "distance": 721,
+      "magnitude": 2.09,
+      "spectralClass": "B0.5 Ia",
+      "color": "#ffffff",
+      "size": 0.09,
+      "stellarType": "blue_supergiant",
+      "physics": {
+        "massSolar": 18.3,
+        "radiusSolar": 13.5,
+        "tempKelvin": 25700,
+        "note": "Ranges 15.5-21.1 M, 13-14 R; midpoints"
+      },
+      "info": {
+        "basic": "Saiph, the often-overlooked guardian at Orion's right foot, nearly matches Rigel in stellar properties but appears dimmer from Earth.",
+        "scientific": {
+          "age": "11.1 million years old",
+          "mass": "15.5-21.1 times the Sun's mass",
+          "radius": "13-14 times the Sun's radius",
+          "luminosity": "60,300 times brighter than the Sun",
+          "temperature": "25,700 K",
+          "fate": "Destined to end its life in a spectacular supernova"
+        }
+      }
+    },
+    {
+      "id": "rigel",
+      "hip": 24436,
+      "name": "Rigel",
+      "designation": "β Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": 0.947,
+        "y": -3.655
+      },
+      "distance": 860,
+      "magnitude": 0.13,
+      "spectralClass": "B8 Ia",
+      "color": "#4477ff",
+      "size": 0.15,
+      "stellarType": "blue_supergiant",
+      "physics": {
+        "massSolar": 21,
+        "radiusSolar": 74.1,
+        "tempKelvin": 12100
+      },
+      "info": {
+        "basic": "Rigel, the commanding blue sentinel at Orion's foot, outshines even Betelgeuse despite being designated Beta Orionis.",
+        "scientific": {
+          "age": "8 million years old - extremely young for such a bright star",
+          "mass": "21 times the Sun's mass",
+          "radius": "74.1 times the Sun's radius",
+          "luminosity": "120,000 times brighter than the Sun",
+          "temperature": "12,100 K",
+          "composition": "Part of a multiple star system with at least three stellar companions"
+        }
+      }
+    },
+    {
+      "id": "bellatrix",
+      "hip": 25336,
+      "name": "Bellatrix",
+      "designation": "γ Orionis",
+      "isMajor": true,
+      "position2D": {
+        "x": 0.267,
+        "y": 0.038
+      },
+      "distance": 243,
+      "magnitude": 1.64,
+      "spectralClass": "B2 III",
+      "color": "#bbbbff",
+      "size": 0.1,
+      "stellarType": "blue_giant",
+      "physics": {
+        "massSolar": 7.7,
+        "radiusSolar": 5.75,
+        "tempKelvin": 21800
+      },
+      "info": {
+        "basic": "Bellatrix, the 'Female Warrior' star, stands proud at Orion's left shoulder, one of the nearest bright stars in Orion.",
+        "scientific": {
+          "age": "25.2 million years old",
+          "mass": "7.7 times the Sun's mass",
+          "radius": "5.75 times the Sun's radius",
+          "luminosity": "9,211 times brighter than the Sun",
+          "temperature": "21,800 K",
+          "distance": "243 light-years - one of the closest major stars in Orion"
+        }
+      }
+    },
+    {
       "id": "meissa",
+      "hip": 26207,
       "name": "Meissa",
       "designation": "λ Orionis",
       "isMajor": true,
       "position2D": {
-        "x": -0.299,
-        "y": 1.551
+        "x": -0.348,
+        "y": 0.929
       },
       "distance": 1055,
       "magnitude": 3.7,
@@ -313,12 +446,13 @@
     },
     {
       "id": "pi3_orionis",
-      "name": "Pi3 Orionis",
-      "designation": "π³ Orionis (Tabit)",
+      "hip": 22449,
+      "name": "Tabit",
+      "designation": "π³ Orionis",
       "isMajor": true,
       "position2D": {
-        "x": 2.293,
-        "y": 0.891
+        "x": 2.464,
+        "y": 0.215
       },
       "distance": 26,
       "magnitude": 3.65,
@@ -345,12 +479,13 @@
     },
     {
       "id": "pi4_orionis",
+      "hip": 22549,
       "name": "Pi4 Orionis",
-      "designation": "π⁴ Orionis",
+      "designation": "π4 Orionis",
       "isMajor": true,
       "position2D": {
-        "x": 2.216,
-        "y": 0.575
+        "x": 2.384,
+        "y": -0.128
       },
       "distance": 1050,
       "magnitude": 3.685,
@@ -377,160 +512,95 @@
       }
     },
     {
-      "id": "pi5_orionis",
-      "name": "Pi5 Orionis",
-      "designation": "π⁵ Orionis",
-      "isMajor": true,
+      "id": "5_orionis",
+      "hip": 22730,
+      "name": "5 Orionis",
+      "designation": "5 Orionis",
+      "isMajor": false,
       "position2D": {
-        "x": 2.045,
-        "y": -0.159
+        "x": 2.259,
+        "y": -0.909
       },
-      "distance": 1300,
-      "magnitude": 3.69,
-      "spectralClass": "B2 III",
-      "color": "#bbbbff",
+      "distance": 589.3,
+      "magnitude": 5.324,
+      "spectralClass": "M1 III",
+      "color": "#ff7744",
       "size": 0.06,
-      "stellarType": "blue_giant",
+      "stellarType": "red_giant",
       "physics": {
-        "massSolar": 12,
-        "radiusSolar": 12,
-        "tempKelvin": 14496
-      },
-      "info": {
-        "basic": "Pi5 Orionis, another sentinel of Orion's shield, constantly changes shape as its binary components orbit each other.",
-        "scientific": {
-          "age": "Multiple components with varying ages",
-          "mass": "Primary: 12 times the Sun's mass, Secondary: 5 times the Sun's mass",
-          "luminosity": "Primary: 11,262 times the Sun, Secondary: 525-741 times the Sun",
-          "composition": "Spectroscopic binary with 3.7-day orbital period",
-          "variability": "Ellipsoidal variable star - brightness varies by 0.05 magnitudes"
-        }
+        "massSolar": 1.5,
+        "radiusSolar": null,
+        "tempKelvin": 3500,
+        "note": "Catalogue values: typical for spectral type M1 III. Not hand-checked."
       }
     },
     {
-      "id": "chi1_orionis",
-      "name": "Chi1 Orionis",
-      "designation": "χ¹ Orionis",
+      "id": "pi6_orionis",
+      "hip": 23123,
+      "name": "Pi6 Orionis",
+      "designation": "π6 Orionis",
       "isMajor": false,
       "position2D": {
-        "x": -1.378,
-        "y": 4.05
+        "x": 1.934,
+        "y": -1.111
       },
-      "distance": 28,
-      "magnitude": 4.38,
-      "spectralClass": "G0 V",
-      "color": "#fff4e8",
-      "size": 0.06,
-      "stellarType": "yellow_main_sequence",
+      "distance": 936.9,
+      "magnitude": 4.459,
+      "spectralClass": "K0/1 III",
+      "color": "#ffb066",
+      "size": 0.064,
+      "stellarType": "orange_giant",
       "physics": {
-        "massSolar": 1.01,
-        "radiusSolar": 0.983,
-        "tempKelvin": 5883
-      },
-      "info": {
-        "basic": "Chi1 Orionis, a nearby solar-type star, provides insights into our Sun's possible future and past states.",
-        "scientific": {
-          "age": "300-400 million years old - much younger than our Sun",
-          "mass": "1.01 times the Sun's mass",
-          "radius": "0.983 times the Sun's radius",
-          "luminosity": "1.042 times the Sun's luminosity",
-          "temperature": "5,883 K",
-          "composition": "RS Canum Venaticorum variable in binary system"
-        }
+        "massSolar": 1.5,
+        "radiusSolar": 94.63,
+        "tempKelvin": 4200,
+        "note": "Catalogue values: typical for spectral type K0/1 III. Not hand-checked."
       }
     },
     {
-      "id": "chi2_orionis",
-      "name": "Chi2 Orionis",
-      "designation": "χ² Orionis",
+      "id": "pi2_orionis",
+      "hip": 22509,
+      "name": "Pi2 Orionis",
+      "designation": "π² Orionis",
       "isMajor": false,
       "position2D": {
-        "x": -1.921,
-        "y": 4.04
+        "x": 2.406,
+        "y": 0.702
       },
-      "distance": 1300,
-      "magnitude": 4.63,
-      "spectralClass": "B2 Ia",
-      "color": "#bbbbff",
-      "size": 0.06,
-      "stellarType": "blue_supergiant",
+      "distance": 224.3,
+      "magnitude": 4.35,
+      "spectralClass": "A0Vnp lambda Boo",
+      "color": "#ffffff",
+      "size": 0.066,
+      "stellarType": "white_main_sequence",
       "physics": {
-        "massSolar": 42.3,
-        "radiusSolar": 61.9,
-        "tempKelvin": 19000
-      },
-      "info": {
-        "basic": "Chi2 Orionis, a massive blue supergiant, pulsates rhythmically while wielding the cosmic club of Orion.",
-        "scientific": {
-          "age": "5 million years - extremely young",
-          "mass": "42.3 times the Sun's mass",
-          "luminosity": "446,000 times the Sun's luminosity",
-          "temperature": "19,000 K",
-          "variability": "Alpha Cygni variable with 2.8-day period"
-        }
+        "massSolar": 2.51,
+        "radiusSolar": 2.95,
+        "tempKelvin": 9330,
+        "note": "Catalogue values: Allende Prieto & Lambert 1999. Not hand-checked."
       }
     },
     {
-      "id": "c_orionis",
-      "name": "42 Orionis",
-      "designation": "c Orionis (42 Ori)",
+      "id": "pi1_orionis",
+      "hip": 22845,
+      "name": "Pi1 Orionis",
+      "designation": "π¹ Orionis",
       "isMajor": false,
       "position2D": {
-        "x": -0.318,
-        "y": -1.839
+        "x": 2.131,
+        "y": 1.01
       },
-      "distance": 900,
-      "magnitude": 4.59,
-      "spectralClass": "B1 V",
-      "color": "#9db4ff",
-      "size": 0.06,
-      "stellarType": "blue_white_main_sequence",
-      "physics": {
-        "massSolar": 12,
-        "radiusSolar": 7,
-        "tempKelvin": 25400,
-        "note": "Component Aa; Wikipedia, not in the Unity table"
-      },
-      "info": {
-        "basic": "42 Orionis, also called c Orionis, is a hot blue-white star at the top of Orion's Sword, just below the Belt. Its light illuminates the reflection nebula NGC 1977, nicknamed the Running Man Nebula.",
-        "scientific": {
-          "class": "B1V main-sequence star",
-          "temperature": "About 25,000 K",
-          "mass": "Roughly 11 times the Sun's mass",
-          "feature": "Marks the hilt of Orion's Sword, between the Belt and the Orion Nebula"
-        }
-      }
-    },
-    {
-      "id": "theta1_orionis",
-      "name": "Theta1 Orionis",
-      "designation": "θ¹ Orionis (Trapezium)",
-      "isMajor": false,
-      "position2D": {
-        "x": -0.311,
-        "y": -1.967
-      },
-      "distance": 1344,
-      "magnitude": 4,
-      "spectralClass": "O7 V",
+      "distance": 116.3,
+      "magnitude": 4.648,
+      "spectralClass": "A3VakB9.5mB9.5 lambda Boo",
       "color": "#ffffff",
       "size": 0.06,
-      "stellarType": "blue_main_sequence",
+      "stellarType": "white_main_sequence",
       "physics": {
-        "massSolar": 33.5,
-        "radiusSolar": 8.91,
-        "tempKelvin": 39000,
-        "note": "Component C1"
-      },
-      "info": {
-        "basic": "Theta1 Orionis, the famous Trapezium Cluster, illuminates the heart of the Great Orion Nebula with its young, massive stars.",
-        "scientific": {
-          "age": "Only about 1 million years old",
-          "mass": "Primary star: 33 times the Sun's mass",
-          "composition": "Contains multiple massive O and B-type stars arranged in trapezoid pattern",
-          "luminosity": "Primary: 204,000 times the Sun's luminosity",
-          "feature": "Central star cluster of the Orion Nebula (M42)"
-        }
+        "massSolar": 1.91,
+        "radiusSolar": 1.66,
+        "tempKelvin": 8710,
+        "note": "Catalogue values: Allende Prieto & Lambert 1999. Not hand-checked."
       }
     }
   ],
@@ -546,6 +616,31 @@
       "type": "belt"
     },
     {
+      "from": "64_orionis",
+      "to": "xi_orionis",
+      "type": "figure"
+    },
+    {
+      "from": "xi_orionis",
+      "to": "nu_orionis",
+      "type": "figure"
+    },
+    {
+      "from": "nu_orionis",
+      "to": "chi1_orionis",
+      "type": "figure"
+    },
+    {
+      "from": "xi_orionis",
+      "to": "mu_orionis",
+      "type": "figure"
+    },
+    {
+      "from": "mu_orionis",
+      "to": "betelgeuse",
+      "type": "figure"
+    },
+    {
       "from": "betelgeuse",
       "to": "alnitak",
       "type": "body"
@@ -556,13 +651,23 @@
       "type": "body"
     },
     {
-      "from": "bellatrix",
+      "from": "saiph",
+      "to": "rigel",
+      "type": "figure"
+    },
+    {
+      "from": "rigel",
       "to": "mintaka",
       "type": "body"
     },
     {
       "from": "mintaka",
-      "to": "rigel",
+      "to": "bellatrix",
+      "type": "body"
+    },
+    {
+      "from": "bellatrix",
+      "to": "meissa",
       "type": "body"
     },
     {
@@ -571,14 +676,9 @@
       "type": "body"
     },
     {
-      "from": "meissa",
-      "to": "bellatrix",
-      "type": "body"
-    },
-    {
       "from": "bellatrix",
-      "to": "pi4_orionis",
-      "type": "bow"
+      "to": "pi3_orionis",
+      "type": "figure"
     },
     {
       "from": "pi3_orionis",
@@ -587,28 +687,28 @@
     },
     {
       "from": "pi4_orionis",
-      "to": "pi5_orionis",
-      "type": "bow"
+      "to": "5_orionis",
+      "type": "figure"
     },
     {
-      "from": "betelgeuse",
-      "to": "chi2_orionis",
-      "type": "club"
+      "from": "5_orionis",
+      "to": "pi6_orionis",
+      "type": "figure"
     },
     {
-      "from": "chi2_orionis",
-      "to": "chi1_orionis",
-      "type": "club"
+      "from": "pi3_orionis",
+      "to": "pi2_orionis",
+      "type": "figure"
     },
     {
-      "from": "alnilam",
-      "to": "c_orionis",
-      "type": "sword"
+      "from": "pi2_orionis",
+      "to": "pi1_orionis",
+      "type": "figure"
     },
     {
-      "from": "c_orionis",
-      "to": "theta1_orionis",
-      "type": "sword"
+      "from": "nu_orionis",
+      "to": "mu_orionis",
+      "type": "figure"
     }
   ],
   "deepSkyObjects": [
@@ -619,8 +719,8 @@
       "type": "emission_nebula",
       "layer": "nebula",
       "position2D": {
-        "x": -0.312,
-        "y": -1.968
+        "x": -0.368,
+        "y": -2.917
       },
       "distance": 1344,
       "magnitude": 4,
@@ -654,8 +754,8 @@
       "type": "emission_nebula",
       "layer": "none",
       "position2D": {
-        "x": -0.325,
-        "y": -1.939
+        "x": -0.382,
+        "y": -2.885
       },
       "distance": 1300,
       "magnitude": 9,

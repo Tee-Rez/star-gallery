@@ -1,0 +1,47 @@
+{
+  "importedAt": "2026-09-10",
+  "vault": "C:/Users/TearS/OneDrive/Desktop/STAR Arts/Consetellations/Constellation Brain",
+  "skyCulture": "western",
+  "sources": [
+    {
+      "file": "_meta/data/western-index.json",
+      "bytes": 92373,
+      "modified": "2026-09-09"
+    },
+    {
+      "file": "_meta/data/star-positions.json",
+      "bytes": 77766,
+      "modified": "2026-09-09"
+    },
+    {
+      "file": "_meta/data/hip-names.json",
+      "bytes": 10729,
+      "modified": "2026-09-09"
+    }
+  ],
+  "constellations": 88,
+  "coverage": {
+    "figureStars": 691,
+    "withCommonName": 242,
+    "withHarvestedNote": 242,
+    "withFullSpectralClass": 242,
+    "withDistanceLy": 2,
+    "withPhysics": 0,
+    "missingPositions": [],
+    "orphanStarNotes": [],
+    "constellationNotesMissingIau": [
+      "Taurus"
+    ]
+  },
+  "appOwnedFields": {
+    "note": "The vault cannot supply these. Preserve them from the existing constellation JSON on migration, or research them separately.",
+    "fields": [
+      "physics.massSolar",
+      "physics.radiusSolar",
+      "physics.tempKelvin",
+      "distance",
+      "info.basic",
+      "info.scientific"
+    ]
+  }
+}

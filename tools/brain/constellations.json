@@ -1,0 +1,9444 @@
+{
+  "Aql": {
+    "iau": "Aql",
+    "name": "Aquila",
+    "english": "Eagle",
+    "starCount": 9,
+    "connectionCount": 8,
+    "stars": [
+      98036,
+      97649,
+      97278,
+      95501,
+      97804,
+      99473,
+      93747,
+      93244,
+      93805
+    ],
+    "lines": [
+      [
+        98036,
+        97649,
+        97278
+      ],
+      [
+        97649,
+        95501,
+        97804
+      ],
+      [
+        99473,
+        97804
+      ],
+      [
+        95501,
+        93747,
+        93244
+      ],
+      [
+        95501,
+        93805
+      ]
+    ],
+    "connections": [
+      [
+        98036,
+        97649
+      ],
+      [
+        97649,
+        97278
+      ],
+      [
+        97649,
+        95501
+      ],
+      [
+        95501,
+        97804
+      ],
+      [
+        99473,
+        97804
+      ],
+      [
+        95501,
+        93747
+      ],
+      [
+        93747,
+        93244
+      ],
+      [
+        95501,
+        93805
+      ]
+    ],
+    "image": {
+      "file": "illustrations/aquila.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            163,
+            232
+          ],
+          "hip": 97649
+        },
+        {
+          "pos": [
+            385,
+            131
+          ],
+          "hip": 93244
+        },
+        {
+          "pos": [
+            397,
+            397
+          ],
+          "hip": 93805
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Aquila.md",
+      "title": "Aquila",
+      "aliases": [
+        "Eagle"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "And": {
+    "iau": "And",
+    "name": "Andromeda",
+    "english": "Chained Maiden",
+    "starCount": 6,
+    "connectionCount": 5,
+    "stars": [
+      677,
+      3092,
+      5447,
+      9640,
+      4436,
+      3881
+    ],
+    "lines": [
+      [
+        677,
+        3092,
+        5447
+      ],
+      [
+        9640,
+        5447,
+        4436,
+        3881
+      ]
+    ],
+    "connections": [
+      [
+        677,
+        3092
+      ],
+      [
+        3092,
+        5447
+      ],
+      [
+        9640,
+        5447
+      ],
+      [
+        5447,
+        4436
+      ],
+      [
+        4436,
+        3881
+      ]
+    ],
+    "image": {
+      "file": "illustrations/andromeda.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            198,
+            215
+          ],
+          "hip": 3881
+        },
+        {
+          "pos": [
+            337,
+            136
+          ],
+          "hip": 3092
+        },
+        {
+          "pos": [
+            224,
+            428
+          ],
+          "hip": 9640
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Andromeda.md",
+      "title": "Andromeda",
+      "aliases": [
+        "Chained Maiden"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Scl": {
+    "iau": "Scl",
+    "name": "Sculptor",
+    "english": "Sculptor",
+    "starCount": 3,
+    "connectionCount": 3,
+    "stars": [
+      116231,
+      4577,
+      115102
+    ],
+    "lines": [
+      [
+        116231,
+        4577,
+        115102,
+        116231
+      ]
+    ],
+    "connections": [
+      [
+        116231,
+        4577
+      ],
+      [
+        4577,
+        115102
+      ],
+      [
+        115102,
+        116231
+      ]
+    ],
+    "image": {
+      "file": "illustrations/sculptor.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            231,
+            39
+          ],
+          "hip": 115102
+        },
+        {
+          "pos": [
+            240,
+            106
+          ],
+          "hip": 116231
+        },
+        {
+          "pos": [
+            32,
+            174
+          ],
+          "hip": 4577
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Sculptor.md",
+      "title": "Sculptor",
+      "aliases": [],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Ara": {
+    "iau": "Ara",
+    "name": "Ara",
+    "english": "Altar",
+    "starCount": 7,
+    "connectionCount": 7,
+    "stars": [
+      88714,
+      85792,
+      83081,
+      82363,
+      85727,
+      85267,
+      85258
+    ],
+    "lines": [
+      [
+        88714,
+        85792,
+        83081,
+        82363,
+        85727,
+        85267,
+        85258,
+        88714
+      ]
+    ],
+    "connections": [
+      [
+        88714,
+        85792
+      ],
+      [
+        85792,
+        83081
+      ],
+      [
+        83081,
+        82363
+      ],
+      [
+        82363,
+        85727
+      ],
+      [
+        85727,
+        85267
+      ],
+      [
+        85267,
+        85258
+      ],
+      [
+        85258,
+        88714
+      ]
+    ],
+    "image": {
+      "file": "illustrations/ara.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            98,
+            70
+          ],
+          "hip": 83081
+        },
+        {
+          "pos": [
+            191,
+            93
+          ],
+          "hip": 85727
+        },
+        {
+          "pos": [
+            107,
+            249
+          ],
+          "hip": 88714
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Ara.md",
+      "title": "Ara",
+      "aliases": [
+        "Altar"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Lib": {
+    "iau": "Lib",
+    "name": "Libra",
+    "english": "Scales",
+    "starCount": 5,
+    "connectionCount": 5,
+    "stars": [
+      77853,
+      76333,
+      74785,
+      72622,
+      73714
+    ],
+    "lines": [
+      [
+        77853,
+        76333,
+        74785,
+        72622,
+        73714,
+        76333
+      ]
+    ],
+    "connections": [
+      [
+        77853,
+        76333
+      ],
+      [
+        76333,
+        74785
+      ],
+      [
+        74785,
+        72622
+      ],
+      [
+        72622,
+        73714
+      ],
+      [
+        73714,
+        76333
+      ]
+    ],
+    "image": {
+      "file": "illustrations/libra.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            41,
+            27
+          ],
+          "hip": 74785
+        },
+        {
+          "pos": [
+            58,
+            170
+          ],
+          "hip": 77853
+        },
+        {
+          "pos": [
+            224,
+            107
+          ],
+          "hip": 73714
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Libra.md",
+      "title": "Libra",
+      "aliases": [
+        "Scales"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cet": {
+    "iau": "Cet",
+    "name": "Cetus",
+    "english": "Sea Monster",
+    "starCount": 19,
+    "connectionCount": 20,
+    "stars": [
+      10324,
+      11484,
+      8102,
+      3419,
+      1562,
+      5364,
+      6537,
+      8645,
+      11345,
+      12390,
+      12770,
+      11783,
+      10826,
+      12387,
+      12706,
+      14135,
+      13954,
+      12828,
+      12093
+    ],
+    "lines": [
+      [
+        10324,
+        11484
+      ],
+      [
+        8102,
+        3419,
+        1562
+      ],
+      [
+        3419,
+        5364,
+        6537,
+        8645,
+        11345,
+        12390,
+        12770,
+        11783,
+        8102
+      ],
+      [
+        10826,
+        12390
+      ],
+      [
+        10826,
+        12387,
+        12706,
+        14135,
+        13954,
+        12828,
+        11484,
+        12093,
+        12706
+      ]
+    ],
+    "connections": [
+      [
+        10324,
+        11484
+      ],
+      [
+        8102,
+        3419
+      ],
+      [
+        3419,
+        1562
+      ],
+      [
+        3419,
+        5364
+      ],
+      [
+        5364,
+        6537
+      ],
+      [
+        6537,
+        8645
+      ],
+      [
+        8645,
+        11345
+      ],
+      [
+        11345,
+        12390
+      ],
+      [
+        12390,
+        12770
+      ],
+      [
+        12770,
+        11783
+      ],
+      [
+        11783,
+        8102
+      ],
+      [
+        10826,
+        12390
+      ],
+      [
+        10826,
+        12387
+      ],
+      [
+        12387,
+        12706
+      ],
+      [
+        12706,
+        14135
+      ],
+      [
+        14135,
+        13954
+      ],
+      [
+        13954,
+        12828
+      ],
+      [
+        12828,
+        11484
+      ],
+      [
+        11484,
+        12093
+      ],
+      [
+        12093,
+        12706
+      ]
+    ],
+    "image": {
+      "file": "illustrations/cetus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            87,
+            63
+          ],
+          "hip": 14143
+        },
+        {
+          "pos": [
+            28,
+            274
+          ],
+          "hip": 12770
+        },
+        {
+          "pos": [
+            412,
+            440
+          ],
+          "hip": 1562
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Cetus.md",
+      "title": "Cetus",
+      "aliases": [
+        "Sea Monster"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Ari": {
+    "iau": "Ari",
+    "name": "Aries",
+    "english": "Ram",
+    "starCount": 4,
+    "connectionCount": 3,
+    "stars": [
+      13209,
+      9884,
+      8903,
+      8832
+    ],
+    "lines": [
+      [
+        13209,
+        9884,
+        8903,
+        8832
+      ]
+    ],
+    "connections": [
+      [
+        13209,
+        9884
+      ],
+      [
+        9884,
+        8903
+      ],
+      [
+        8903,
+        8832
+      ]
+    ],
+    "image": {
+      "file": "illustrations/aries.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            12,
+            130
+          ],
+          "hip": 13209
+        },
+        {
+          "pos": [
+            58,
+            206
+          ],
+          "hip": 13914
+        },
+        {
+          "pos": [
+            210,
+            47
+          ],
+          "hip": 8832
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Aries.md",
+      "title": "Aries",
+      "aliases": [
+        "Ram"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Sct": {
+    "iau": "Sct",
+    "name": "Scutum",
+    "english": "Shield",
+    "starCount": 5,
+    "connectionCount": 5,
+    "stars": [
+      92175,
+      92202,
+      92814,
+      90595,
+      91117
+    ],
+    "lines": [
+      [
+        92175,
+        92202,
+        92814,
+        90595,
+        91117,
+        92175
+      ]
+    ],
+    "connections": [
+      [
+        92175,
+        92202
+      ],
+      [
+        92202,
+        92814
+      ],
+      [
+        92814,
+        90595
+      ],
+      [
+        90595,
+        91117
+      ],
+      [
+        91117,
+        92175
+      ]
+    ],
+    "image": {
+      "file": "illustrations/scutum.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            52,
+            17
+          ],
+          "hip": 92175
+        },
+        {
+          "pos": [
+            224,
+            124
+          ],
+          "hip": 90595
+        },
+        {
+          "pos": [
+            139,
+            206
+          ],
+          "hip": 92814
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Scutum.md",
+      "title": "Scutum",
+      "aliases": [
+        "Shield"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Pyx": {
+    "iau": "Pyx",
+    "name": "Pyxis",
+    "english": "Compass",
+    "starCount": 3,
+    "connectionCount": 2,
+    "stars": [
+      42515,
+      42828,
+      43409
+    ],
+    "lines": [
+      [
+        42515,
+        42828,
+        43409
+      ]
+    ],
+    "connections": [
+      [
+        42515,
+        42828
+      ],
+      [
+        42828,
+        43409
+      ]
+    ],
+    "image": {
+      "file": "illustrations/pyxis.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            152,
+            220
+          ],
+          "hip": 41723
+        },
+        {
+          "pos": [
+            94,
+            159
+          ],
+          "hip": 42828
+        },
+        {
+          "pos": [
+            44,
+            202
+          ],
+          "hip": 42515
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Pyxis.md",
+      "title": "Pyxis",
+      "aliases": [
+        "Compass",
+        "Mariner's Compass"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Boo": {
+    "iau": "Boo",
+    "name": "Bootes",
+    "english": "Herdsman",
+    "starCount": 9,
+    "connectionCount": 9,
+    "stars": [
+      71795,
+      69673,
+      72105,
+      74666,
+      73555,
+      71075,
+      71053,
+      67927,
+      67459
+    ],
+    "lines": [
+      [
+        71795,
+        69673,
+        72105,
+        74666,
+        73555,
+        71075,
+        71053,
+        69673,
+        67927,
+        67459
+      ]
+    ],
+    "connections": [
+      [
+        71795,
+        69673
+      ],
+      [
+        69673,
+        72105
+      ],
+      [
+        72105,
+        74666
+      ],
+      [
+        74666,
+        73555
+      ],
+      [
+        73555,
+        71075
+      ],
+      [
+        71075,
+        71053
+      ],
+      [
+        71053,
+        69673
+      ],
+      [
+        69673,
+        67927
+      ],
+      [
+        67927,
+        67459
+      ]
+    ],
+    "image": {
+      "file": "illustrations/bootes.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            225,
+            222
+          ],
+          "hip": 72105
+        },
+        {
+          "pos": [
+            365,
+            184
+          ],
+          "hip": 71075
+        },
+        {
+          "pos": [
+            207,
+            401
+          ],
+          "hip": 67927
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Bootes.md",
+      "title": "Bootes",
+      "aliases": [
+        "Herdsman"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cae": {
+    "iau": "Cae",
+    "name": "Caelum",
+    "english": "Engraving Tool",
+    "starCount": 3,
+    "connectionCount": 2,
+    "stars": [
+      21060,
+      21770,
+      21861
+    ],
+    "lines": [
+      [
+        21060,
+        21770,
+        21861
+      ]
+    ],
+    "connections": [
+      [
+        21060,
+        21770
+      ],
+      [
+        21770,
+        21861
+      ]
+    ],
+    "image": {
+      "file": "illustrations/caelum.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            16,
+            231
+          ],
+          "hip": 21060
+        },
+        {
+          "pos": [
+            76,
+            145
+          ],
+          "hip": 21770
+        },
+        {
+          "pos": [
+            199,
+            75
+          ],
+          "hip": 21861
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Caelum.md",
+      "title": "Caelum",
+      "aliases": [
+        "Engraving Tool"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cha": {
+    "iau": "Cha",
+    "name": "Chamaeleon",
+    "english": "Chameleon",
+    "starCount": 3,
+    "connectionCount": 2,
+    "stars": [
+      40702,
+      51839,
+      60000
+    ],
+    "lines": [
+      [
+        40702,
+        51839,
+        60000
+      ]
+    ],
+    "connections": [
+      [
+        40702,
+        51839
+      ],
+      [
+        51839,
+        60000
+      ]
+    ],
+    "image": {
+      "file": "illustrations/chamaeleon.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            29,
+            214
+          ],
+          "hip": 60000
+        },
+        {
+          "pos": [
+            73,
+            123
+          ],
+          "hip": 51839
+        },
+        {
+          "pos": [
+            184,
+            33
+          ],
+          "hip": 40702
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Chamaeleon.md",
+      "title": "Chamaeleon",
+      "aliases": [
+        "Chameleon"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cnc": {
+    "iau": "Cnc",
+    "name": "Cancer",
+    "english": "Crab",
+    "starCount": 6,
+    "connectionCount": 5,
+    "stars": [
+      43103,
+      42806,
+      40843,
+      42911,
+      40526,
+      44066
+    ],
+    "lines": [
+      [
+        43103,
+        42806,
+        40843
+      ],
+      [
+        42806,
+        42911,
+        40526
+      ],
+      [
+        42911,
+        44066
+      ]
+    ],
+    "connections": [
+      [
+        43103,
+        42806
+      ],
+      [
+        42806,
+        40843
+      ],
+      [
+        42806,
+        42911
+      ],
+      [
+        42911,
+        40526
+      ],
+      [
+        42911,
+        44066
+      ]
+    ],
+    "image": {
+      "file": "illustrations/cancer.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            29,
+            166
+          ],
+          "hip": 44066
+        },
+        {
+          "pos": [
+            101,
+            255
+          ],
+          "hip": 40526
+        },
+        {
+          "pos": [
+            206,
+            91
+          ],
+          "hip": 40843
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Cancer.md",
+      "title": "Cancer",
+      "aliases": [
+        "Crab"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cap": {
+    "iau": "Cap",
+    "name": "Capricornus",
+    "english": "Sea Goat",
+    "starCount": 9,
+    "connectionCount": 9,
+    "stars": [
+      100064,
+      100345,
+      104139,
+      105515,
+      106985,
+      107556,
+      105881,
+      102485,
+      102978
+    ],
+    "lines": [
+      [
+        100064,
+        100345,
+        104139,
+        105515,
+        106985,
+        107556
+      ],
+      [
+        105515,
+        105881,
+        104139
+      ],
+      [
+        100345,
+        102485
+      ],
+      [
+        104139,
+        102978
+      ]
+    ],
+    "connections": [
+      [
+        100064,
+        100345
+      ],
+      [
+        100345,
+        104139
+      ],
+      [
+        104139,
+        105515
+      ],
+      [
+        105515,
+        106985
+      ],
+      [
+        106985,
+        107556
+      ],
+      [
+        105515,
+        105881
+      ],
+      [
+        105881,
+        104139
+      ],
+      [
+        100345,
+        102485
+      ],
+      [
+        104139,
+        102978
+      ]
+    ],
+    "image": {
+      "file": "illustrations/capricornus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            15,
+            436
+          ],
+          "hip": 107556
+        },
+        {
+          "pos": [
+            403,
+            7
+          ],
+          "hip": 100064
+        },
+        {
+          "pos": [
+            460,
+            438
+          ],
+          "hip": 102978
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Capricornus.md",
+      "title": "Capricornus",
+      "aliases": [
+        "Sea Goat"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Car": {
+    "iau": "Car",
+    "name": "Carina",
+    "english": "Keel",
+    "starCount": 15,
+    "connectionCount": 14,
+    "stars": [
+      45238,
+      50099,
+      52419,
+      52468,
+      54463,
+      53253,
+      51232,
+      50371,
+      45556,
+      42568,
+      41037,
+      30438,
+      45080,
+      31685,
+      39429
+    ],
+    "lines": [
+      [
+        45238,
+        50099,
+        52419,
+        52468,
+        54463,
+        53253,
+        51232,
+        50371,
+        45556
+      ],
+      [
+        42568,
+        41037,
+        30438
+      ],
+      [
+        45080,
+        45556
+      ],
+      [
+        45080,
+        42568
+      ],
+      [
+        30438,
+        31685
+      ],
+      [
+        41037,
+        39429
+      ]
+    ],
+    "connections": [
+      [
+        45238,
+        50099
+      ],
+      [
+        50099,
+        52419
+      ],
+      [
+        52419,
+        52468
+      ],
+      [
+        52468,
+        54463
+      ],
+      [
+        54463,
+        53253
+      ],
+      [
+        53253,
+        51232
+      ],
+      [
+        51232,
+        50371
+      ],
+      [
+        50371,
+        45556
+      ],
+      [
+        42568,
+        41037
+      ],
+      [
+        41037,
+        30438
+      ],
+      [
+        45080,
+        45556
+      ],
+      [
+        45080,
+        42568
+      ],
+      [
+        30438,
+        31685
+      ],
+      [
+        41037,
+        39429
+      ]
+    ],
+    "image": {
+      "file": "illustrations/argonavis.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            202,
+            455
+          ],
+          "hip": 45238
+        },
+        {
+          "pos": [
+            62,
+            216
+          ],
+          "hip": 50191
+        },
+        {
+          "pos": [
+            298,
+            22
+          ],
+          "hip": 39757
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Carina.md",
+      "title": "Carina",
+      "aliases": [
+        "Keel"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cas": {
+    "iau": "Cas",
+    "name": "Cassiopeia",
+    "english": "Seated Queen",
+    "starCount": 5,
+    "connectionCount": 4,
+    "stars": [
+      8886,
+      6686,
+      4427,
+      3179,
+      746
+    ],
+    "lines": [
+      [
+        8886,
+        6686,
+        4427,
+        3179,
+        746
+      ]
+    ],
+    "connections": [
+      [
+        8886,
+        6686
+      ],
+      [
+        6686,
+        4427
+      ],
+      [
+        4427,
+        3179
+      ],
+      [
+        3179,
+        746
+      ]
+    ],
+    "image": {
+      "file": "illustrations/cassiopeia.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            390,
+            336
+          ],
+          "hip": 8886
+        },
+        {
+          "pos": [
+            163,
+            156
+          ],
+          "hip": 3179
+        },
+        {
+          "pos": [
+            73,
+            243
+          ],
+          "hip": 746
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Cassiopeia.md",
+      "title": "Cassiopeia",
+      "aliases": [
+        "Seated Queen"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cen": {
+    "iau": "Cen",
+    "name": "Centaurus",
+    "english": "Centaur",
+    "starCount": 17,
+    "connectionCount": 16,
+    "stars": [
+      71683,
+      68702,
+      66657,
+      68002,
+      68282,
+      67472,
+      67464,
+      65936,
+      65109,
+      68933,
+      71352,
+      73334,
+      61932,
+      60823,
+      59196,
+      56480,
+      56561
+    ],
+    "lines": [
+      [
+        71683,
+        68702,
+        66657,
+        68002,
+        68282,
+        67472,
+        67464,
+        65936,
+        65109
+      ],
+      [
+        67464,
+        68933
+      ],
+      [
+        67472,
+        71352,
+        73334
+      ],
+      [
+        68002,
+        61932,
+        60823,
+        59196,
+        56480,
+        56561
+      ]
+    ],
+    "connections": [
+      [
+        71683,
+        68702
+      ],
+      [
+        68702,
+        66657
+      ],
+      [
+        66657,
+        68002
+      ],
+      [
+        68002,
+        68282
+      ],
+      [
+        68282,
+        67472
+      ],
+      [
+        67472,
+        67464
+      ],
+      [
+        67464,
+        65936
+      ],
+      [
+        65936,
+        65109
+      ],
+      [
+        67464,
+        68933
+      ],
+      [
+        67472,
+        71352
+      ],
+      [
+        71352,
+        73334
+      ],
+      [
+        68002,
+        61932
+      ],
+      [
+        61932,
+        60823
+      ],
+      [
+        60823,
+        59196
+      ],
+      [
+        59196,
+        56480
+      ],
+      [
+        56480,
+        56561
+      ]
+    ],
+    "image": {
+      "file": "illustrations/centaurus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            118,
+            157
+          ],
+          "hip": 68933
+        },
+        {
+          "pos": [
+            194,
+            444
+          ],
+          "hip": 71683
+        },
+        {
+          "pos": [
+            463,
+            412
+          ],
+          "hip": 56561
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Centaurus.md",
+      "title": "Centaurus",
+      "aliases": [
+        "Centaur"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cep": {
+    "iau": "Cep",
+    "name": "Cepheus",
+    "english": "King",
+    "starCount": 5,
+    "connectionCount": 6,
+    "stars": [
+      109492,
+      112724,
+      106032,
+      105199,
+      116727
+    ],
+    "lines": [
+      [
+        109492,
+        112724,
+        106032,
+        105199,
+        109492
+      ],
+      [
+        112724,
+        116727,
+        106032
+      ]
+    ],
+    "connections": [
+      [
+        109492,
+        112724
+      ],
+      [
+        112724,
+        106032
+      ],
+      [
+        106032,
+        105199
+      ],
+      [
+        105199,
+        109492
+      ],
+      [
+        112724,
+        116727
+      ],
+      [
+        116727,
+        106032
+      ]
+    ],
+    "image": {
+      "file": "illustrations/cepheus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            60,
+            335
+          ],
+          "hip": 116727
+        },
+        {
+          "pos": [
+            125,
+            170
+          ],
+          "hip": 106032
+        },
+        {
+          "pos": [
+            335,
+            147
+          ],
+          "hip": 109492
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Cepheus.md",
+      "title": "Cepheus",
+      "aliases": [
+        "King"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Com": {
+    "iau": "Com",
+    "name": "Coma Berenices",
+    "english": "Bernice's Hair",
+    "starCount": 3,
+    "connectionCount": 2,
+    "stars": [
+      64241,
+      64394,
+      60742
+    ],
+    "lines": [
+      [
+        64241,
+        64394,
+        60742
+      ]
+    ],
+    "connections": [
+      [
+        64241,
+        64394
+      ],
+      [
+        64394,
+        60742
+      ]
+    ],
+    "image": {
+      "file": "illustrations/coma-berenices.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            27,
+            199
+          ],
+          "hip": 64241
+        },
+        {
+          "pos": [
+            38,
+            58
+          ],
+          "hip": 64394
+        },
+        {
+          "pos": [
+            172,
+            64
+          ],
+          "hip": 60742
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Coma Berenices.md",
+      "title": "Coma Berenices",
+      "aliases": [
+        "Bernice's Hair"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cvn": {
+    "iau": "Cvn",
+    "name": "Canes Venatici",
+    "english": "Hunting Dogs",
+    "starCount": 2,
+    "connectionCount": 1,
+    "stars": [
+      61317,
+      63125
+    ],
+    "lines": [
+      [
+        61317,
+        63125
+      ]
+    ],
+    "connections": [
+      [
+        61317,
+        63125
+      ]
+    ],
+    "image": {
+      "file": "illustrations/canes-venatici.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            117,
+            113
+          ],
+          "hip": 63901
+        },
+        {
+          "pos": [
+            206,
+            40
+          ],
+          "hip": 61317
+        },
+        {
+          "pos": [
+            207,
+            152
+          ],
+          "hip": 61309
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Canes Venatici.md",
+      "title": "Canes Venatici",
+      "aliases": [
+        "Hunting Dogs"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Aur": {
+    "iau": "Aur",
+    "name": "Auriga",
+    "english": "Charioteer",
+    "starCount": 6,
+    "connectionCount": 6,
+    "stars": [
+      28380,
+      28360,
+      24608,
+      23453,
+      23015,
+      25428
+    ],
+    "lines": [
+      [
+        28380,
+        28360,
+        24608,
+        23453,
+        23015
+      ],
+      [
+        25428,
+        23015
+      ],
+      [
+        25428,
+        28380
+      ]
+    ],
+    "connections": [
+      [
+        28380,
+        28360
+      ],
+      [
+        28360,
+        24608
+      ],
+      [
+        24608,
+        23453
+      ],
+      [
+        23453,
+        23015
+      ],
+      [
+        25428,
+        23015
+      ],
+      [
+        25428,
+        28380
+      ]
+    ],
+    "image": {
+      "file": "illustrations/auriga.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            196,
+            189
+          ],
+          "hip": 28380
+        },
+        {
+          "pos": [
+            419,
+            208
+          ],
+          "hip": 24608
+        },
+        {
+          "pos": [
+            290,
+            423
+          ],
+          "hip": 23015
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Auriga.md",
+      "title": "Auriga",
+      "aliases": [
+        "Charioteer"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Col": {
+    "iau": "Col",
+    "name": "Columba",
+    "english": "Dove",
+    "starCount": 7,
+    "connectionCount": 6,
+    "stars": [
+      30277,
+      29807,
+      28199,
+      27628,
+      28328,
+      26634,
+      25859
+    ],
+    "lines": [
+      [
+        30277,
+        29807,
+        28199,
+        27628,
+        28328
+      ],
+      [
+        27628,
+        26634,
+        25859
+      ]
+    ],
+    "connections": [
+      [
+        30277,
+        29807
+      ],
+      [
+        29807,
+        28199
+      ],
+      [
+        28199,
+        27628
+      ],
+      [
+        27628,
+        28328
+      ],
+      [
+        27628,
+        26634
+      ],
+      [
+        26634,
+        25859
+      ]
+    ],
+    "image": {
+      "file": "illustrations/columba.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            139,
+            29
+          ],
+          "hip": 30277
+        },
+        {
+          "pos": [
+            40,
+            190
+          ],
+          "hip": 28328
+        },
+        {
+          "pos": [
+            204,
+            211
+          ],
+          "hip": 25859
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Columba.md",
+      "title": "Columba",
+      "aliases": [
+        "Dove"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cir": {
+    "iau": "Cir",
+    "name": "Circinus",
+    "english": "Compass",
+    "starCount": 3,
+    "connectionCount": 2,
+    "stars": [
+      71908,
+      75323,
+      74824
+    ],
+    "lines": [
+      [
+        71908,
+        75323
+      ],
+      [
+        71908,
+        74824
+      ]
+    ],
+    "connections": [
+      [
+        71908,
+        75323
+      ],
+      [
+        71908,
+        74824
+      ]
+    ],
+    "image": {
+      "file": "illustrations/circinus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            5,
+            36
+          ],
+          "hip": 75323
+        },
+        {
+          "pos": [
+            39,
+            11
+          ],
+          "hip": 74824
+        },
+        {
+          "pos": [
+            235,
+            239
+          ],
+          "hip": 71908
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Circinus.md",
+      "title": "Circinus",
+      "aliases": [
+        "Compass"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Crt": {
+    "iau": "Crt",
+    "name": "Crater",
+    "english": "Cup",
+    "starCount": 8,
+    "connectionCount": 9,
+    "stars": [
+      53740,
+      54682,
+      55705,
+      55282,
+      55687,
+      56633,
+      58188,
+      57283
+    ],
+    "lines": [
+      [
+        53740,
+        54682,
+        55705,
+        55282,
+        53740
+      ],
+      [
+        55282,
+        55687,
+        56633,
+        58188,
+        57283,
+        55705
+      ]
+    ],
+    "connections": [
+      [
+        53740,
+        54682
+      ],
+      [
+        54682,
+        55705
+      ],
+      [
+        55705,
+        55282
+      ],
+      [
+        55282,
+        53740
+      ],
+      [
+        55282,
+        55687
+      ],
+      [
+        55687,
+        56633
+      ],
+      [
+        56633,
+        58188
+      ],
+      [
+        58188,
+        57283
+      ],
+      [
+        57283,
+        55705
+      ]
+    ],
+    "image": {
+      "file": "illustrations/crater.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            45,
+            41
+          ],
+          "hip": 58188
+        },
+        {
+          "pos": [
+            160,
+            149
+          ],
+          "hip": 55282
+        },
+        {
+          "pos": [
+            55,
+            242
+          ],
+          "hip": 54682
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Crater.md",
+      "title": "Crater",
+      "aliases": [
+        "Cup"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "CrA": {
+    "iau": "CrA",
+    "name": "Corona Australis",
+    "english": "Southern Crown",
+    "starCount": 10,
+    "connectionCount": 9,
+    "stars": [
+      91875,
+      92989,
+      93174,
+      93825,
+      94114,
+      94160,
+      94005,
+      93542,
+      92953,
+      90887
+    ],
+    "lines": [
+      [
+        91875,
+        92989,
+        93174,
+        93825,
+        94114,
+        94160,
+        94005,
+        93542,
+        92953
+      ],
+      [
+        91875,
+        90887
+      ]
+    ],
+    "connections": [
+      [
+        91875,
+        92989
+      ],
+      [
+        92989,
+        93174
+      ],
+      [
+        93174,
+        93825
+      ],
+      [
+        93825,
+        94114
+      ],
+      [
+        94114,
+        94160
+      ],
+      [
+        94160,
+        94005
+      ],
+      [
+        94005,
+        93542
+      ],
+      [
+        93542,
+        92953
+      ],
+      [
+        91875,
+        90887
+      ]
+    ],
+    "image": {
+      "file": "illustrations/corona-australis.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            14,
+            142
+          ],
+          "hip": 93825
+        },
+        {
+          "pos": [
+            218,
+            34
+          ],
+          "hip": 90887
+        },
+        {
+          "pos": [
+            195,
+            208
+          ],
+          "hip": 92953
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Corona Australis.md",
+      "title": "Corona Australis",
+      "aliases": [
+        "Southern Crown"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "CrB": {
+    "iau": "CrB",
+    "name": "Corona Borealis",
+    "english": "Northern Crown",
+    "starCount": 7,
+    "connectionCount": 6,
+    "stars": [
+      76127,
+      75695,
+      76267,
+      76952,
+      77512,
+      78159,
+      78493
+    ],
+    "lines": [
+      [
+        76127,
+        75695,
+        76267,
+        76952,
+        77512,
+        78159,
+        78493
+      ]
+    ],
+    "connections": [
+      [
+        76127,
+        75695
+      ],
+      [
+        75695,
+        76267
+      ],
+      [
+        76267,
+        76952
+      ],
+      [
+        76952,
+        77512
+      ],
+      [
+        77512,
+        78159
+      ],
+      [
+        78159,
+        78493
+      ]
+    ],
+    "image": {
+      "file": "illustrations/corona-borealis.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            16,
+            186
+          ],
+          "hip": 78493
+        },
+        {
+          "pos": [
+            201,
+            203
+          ],
+          "hip": 76952
+        },
+        {
+          "pos": [
+            157,
+            20
+          ],
+          "hip": 76127
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Corona Borealis.md",
+      "title": "Corona Borealis",
+      "aliases": [
+        "Northern Crown"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Crv": {
+    "iau": "Crv",
+    "name": "Corvus",
+    "english": "Crow",
+    "starCount": 6,
+    "connectionCount": 6,
+    "stars": [
+      61174,
+      60965,
+      59803,
+      59316,
+      59199,
+      61359
+    ],
+    "lines": [
+      [
+        61174,
+        60965,
+        59803,
+        59316,
+        59199
+      ],
+      [
+        59316,
+        61359,
+        60965
+      ]
+    ],
+    "connections": [
+      [
+        61174,
+        60965
+      ],
+      [
+        60965,
+        59803
+      ],
+      [
+        59803,
+        59316
+      ],
+      [
+        59316,
+        59199
+      ],
+      [
+        59316,
+        61359
+      ],
+      [
+        61359,
+        60965
+      ]
+    ],
+    "image": {
+      "file": "illustrations/corvus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            65,
+            59
+          ],
+          "hip": 60965
+        },
+        {
+          "pos": [
+            77,
+            235
+          ],
+          "hip": 61359
+        },
+        {
+          "pos": [
+            213,
+            187
+          ],
+          "hip": 59316
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Corvus.md",
+      "title": "Corvus",
+      "aliases": [
+        "Crow"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cru": {
+    "iau": "Cru",
+    "name": "Crux",
+    "english": "Southern Cross",
+    "starCount": 4,
+    "connectionCount": 2,
+    "stars": [
+      61084,
+      60718,
+      62434,
+      59747
+    ],
+    "lines": [
+      [
+        61084,
+        60718
+      ],
+      [
+        62434,
+        59747
+      ]
+    ],
+    "connections": [
+      [
+        61084,
+        60718
+      ],
+      [
+        62434,
+        59747
+      ]
+    ],
+    "image": {
+      "file": "illustrations/crux.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchors": [
+        {
+          "pos": [
+            112,
+            21
+          ],
+          "hip": 61084
+        },
+        {
+          "pos": [
+            42,
+            20
+          ],
+          "hip": 62434
+        },
+        {
+          "pos": [
+            21,
+            106
+          ],
+          "hip": 60718
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Crux.md",
+      "title": "Crux",
+      "aliases": [
+        "Southern Cross"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cyg": {
+    "iau": "Cyg",
+    "name": "Cygnus",
+    "english": "Swan",
+    "starCount": 10,
+    "connectionCount": 9,
+    "stars": [
+      94779,
+      95853,
+      97165,
+      100453,
+      102098,
+      102488,
+      104732,
+      107310,
+      98110,
+      95947
+    ],
+    "lines": [
+      [
+        94779,
+        95853,
+        97165,
+        100453,
+        102098
+      ],
+      [
+        100453,
+        102488,
+        104732,
+        107310
+      ],
+      [
+        100453,
+        98110,
+        95947
+      ]
+    ],
+    "connections": [
+      [
+        94779,
+        95853
+      ],
+      [
+        95853,
+        97165
+      ],
+      [
+        97165,
+        100453
+      ],
+      [
+        100453,
+        102098
+      ],
+      [
+        100453,
+        102488
+      ],
+      [
+        102488,
+        104732
+      ],
+      [
+        104732,
+        107310
+      ],
+      [
+        100453,
+        98110
+      ],
+      [
+        98110,
+        95947
+      ]
+    ],
+    "image": {
+      "file": "illustrations/cygnus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            7,
+            382
+          ],
+          "hip": 107310
+        },
+        {
+          "pos": [
+            474,
+            46
+          ],
+          "hip": 94779
+        },
+        {
+          "pos": [
+            467,
+            453
+          ],
+          "hip": 95947
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Cygnus.md",
+      "title": "Cygnus",
+      "aliases": [
+        "Swan"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Del": {
+    "iau": "Del",
+    "name": "Delphinus",
+    "english": "Dolphin",
+    "starCount": 5,
+    "connectionCount": 5,
+    "stars": [
+      101421,
+      101769,
+      101958,
+      102532,
+      102281
+    ],
+    "lines": [
+      [
+        101421,
+        101769,
+        101958,
+        102532,
+        102281,
+        101769
+      ]
+    ],
+    "connections": [
+      [
+        101421,
+        101769
+      ],
+      [
+        101769,
+        101958
+      ],
+      [
+        101958,
+        102532
+      ],
+      [
+        102532,
+        102281
+      ],
+      [
+        102281,
+        101769
+      ]
+    ],
+    "image": {
+      "file": "illustrations/delphinus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            59,
+            31
+          ],
+          "hip": 102532
+        },
+        {
+          "pos": [
+            75,
+            148
+          ],
+          "hip": 102805
+        },
+        {
+          "pos": [
+            211,
+            143
+          ],
+          "hip": 101421
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Delphinus.md",
+      "title": "Delphinus",
+      "aliases": [
+        "Dolphin"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Dor": {
+    "iau": "Dor",
+    "name": "Dorado",
+    "english": "Swordfish",
+    "starCount": 5,
+    "connectionCount": 5,
+    "stars": [
+      27100,
+      27890,
+      26069,
+      21281,
+      19893
+    ],
+    "lines": [
+      [
+        27100,
+        27890,
+        26069,
+        27100
+      ],
+      [
+        26069,
+        21281,
+        19893
+      ]
+    ],
+    "connections": [
+      [
+        27100,
+        27890
+      ],
+      [
+        27890,
+        26069
+      ],
+      [
+        26069,
+        27100
+      ],
+      [
+        26069,
+        21281
+      ],
+      [
+        21281,
+        19893
+      ]
+    ],
+    "image": {
+      "file": "illustrations/dorado.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            56,
+            197
+          ],
+          "hip": 27890
+        },
+        {
+          "pos": [
+            75,
+            228
+          ],
+          "hip": 27100
+        },
+        {
+          "pos": [
+            219,
+            46
+          ],
+          "hip": 19893
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Dorado.md",
+      "title": "Dorado",
+      "aliases": [
+        "Swordfish"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Dra": {
+    "iau": "Dra",
+    "name": "Draco",
+    "english": "Dragon",
+    "starCount": 15,
+    "connectionCount": 15,
+    "stars": [
+      87585,
+      87833,
+      85670,
+      85829,
+      94376,
+      97433,
+      94648,
+      89937,
+      83895,
+      80331,
+      78527,
+      75458,
+      68756,
+      61281,
+      56211
+    ],
+    "lines": [
+      [
+        87585,
+        87833,
+        85670,
+        85829,
+        87585,
+        94376,
+        97433,
+        94648,
+        89937,
+        83895,
+        80331,
+        78527,
+        75458,
+        68756,
+        61281,
+        56211
+      ]
+    ],
+    "connections": [
+      [
+        87585,
+        87833
+      ],
+      [
+        87833,
+        85670
+      ],
+      [
+        85670,
+        85829
+      ],
+      [
+        85829,
+        87585
+      ],
+      [
+        87585,
+        94376
+      ],
+      [
+        94376,
+        97433
+      ],
+      [
+        97433,
+        94648
+      ],
+      [
+        94648,
+        89937
+      ],
+      [
+        89937,
+        83895
+      ],
+      [
+        83895,
+        80331
+      ],
+      [
+        80331,
+        78527
+      ],
+      [
+        78527,
+        75458
+      ],
+      [
+        75458,
+        68756
+      ],
+      [
+        68756,
+        61281
+      ],
+      [
+        61281,
+        56211
+      ]
+    ],
+    "image": {
+      "file": "illustrations/draco.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            13,
+            411
+          ],
+          "hip": 56211
+        },
+        {
+          "pos": [
+            361,
+            154
+          ],
+          "hip": 85670
+        },
+        {
+          "pos": [
+            449,
+            429
+          ],
+          "hip": 97433
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Draco.md",
+      "title": "Draco",
+      "aliases": [
+        "Dragon"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Nor": {
+    "iau": "Nor",
+    "name": "Norma",
+    "english": "Carpenter's Square",
+    "starCount": 4,
+    "connectionCount": 5,
+    "stars": [
+      79509,
+      80000,
+      80582,
+      78639
+    ],
+    "lines": [
+      [
+        79509,
+        80000,
+        80582,
+        78639,
+        80000
+      ],
+      [
+        78639,
+        79509
+      ]
+    ],
+    "connections": [
+      [
+        79509,
+        80000
+      ],
+      [
+        80000,
+        80582
+      ],
+      [
+        80582,
+        78639
+      ],
+      [
+        78639,
+        80000
+      ],
+      [
+        78639,
+        79509
+      ]
+    ],
+    "image": {
+      "file": "illustrations/norma.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchors": [
+        {
+          "pos": [
+            17,
+            45
+          ],
+          "hip": 78639
+        },
+        {
+          "pos": [
+            101,
+            38
+          ],
+          "hip": 79509
+        },
+        {
+          "pos": [
+            16,
+            112
+          ],
+          "hip": 80582
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Norma.md",
+      "title": "Norma",
+      "aliases": [
+        "Carpenter's Square"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Eri": {
+    "iau": "Eri",
+    "name": "Eridanus",
+    "english": "River",
+    "starCount": 28,
+    "connectionCount": 27,
+    "stars": [
+      7588,
+      9007,
+      10602,
+      11407,
+      12413,
+      12486,
+      13847,
+      15510,
+      17797,
+      17874,
+      20042,
+      20535,
+      21393,
+      17651,
+      16611,
+      15474,
+      14146,
+      12843,
+      13701,
+      15197,
+      16537,
+      17378,
+      21444,
+      22109,
+      22701,
+      23875,
+      23972,
+      21594
+    ],
+    "lines": [
+      [
+        7588,
+        9007,
+        10602,
+        11407,
+        12413,
+        12486,
+        13847,
+        15510,
+        17797,
+        17874,
+        20042,
+        20535,
+        21393,
+        17651,
+        16611,
+        15474,
+        14146,
+        12843,
+        13701,
+        15197,
+        16537,
+        17378,
+        21444,
+        22109,
+        22701,
+        23875,
+        23972,
+        21594
+      ]
+    ],
+    "connections": [
+      [
+        7588,
+        9007
+      ],
+      [
+        9007,
+        10602
+      ],
+      [
+        10602,
+        11407
+      ],
+      [
+        11407,
+        12413
+      ],
+      [
+        12413,
+        12486
+      ],
+      [
+        12486,
+        13847
+      ],
+      [
+        13847,
+        15510
+      ],
+      [
+        15510,
+        17797
+      ],
+      [
+        17797,
+        17874
+      ],
+      [
+        17874,
+        20042
+      ],
+      [
+        20042,
+        20535
+      ],
+      [
+        20535,
+        21393
+      ],
+      [
+        21393,
+        17651
+      ],
+      [
+        17651,
+        16611
+      ],
+      [
+        16611,
+        15474
+      ],
+      [
+        15474,
+        14146
+      ],
+      [
+        14146,
+        12843
+      ],
+      [
+        12843,
+        13701
+      ],
+      [
+        13701,
+        15197
+      ],
+      [
+        15197,
+        16537
+      ],
+      [
+        16537,
+        17378
+      ],
+      [
+        17378,
+        21444
+      ],
+      [
+        21444,
+        22109
+      ],
+      [
+        22109,
+        22701
+      ],
+      [
+        22701,
+        23875
+      ],
+      [
+        23875,
+        23972
+      ],
+      [
+        23972,
+        21594
+      ]
+    ],
+    "image": {
+      "file": "illustrations/eridanus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            41,
+            95
+          ],
+          "hip": 22109
+        },
+        {
+          "pos": [
+            296,
+            44
+          ],
+          "hip": 13701
+        },
+        {
+          "pos": [
+            493,
+            490
+          ],
+          "hip": 7588
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Eridanus.md",
+      "title": "Eridanus",
+      "aliases": [
+        "River"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Sge": {
+    "iau": "Sge",
+    "name": "Sagitta",
+    "english": "Arrow",
+    "starCount": 5,
+    "connectionCount": 4,
+    "stars": [
+      96837,
+      97365,
+      96757,
+      98337,
+      98920
+    ],
+    "lines": [
+      [
+        96837,
+        97365,
+        96757
+      ],
+      [
+        97365,
+        98337,
+        98920
+      ]
+    ],
+    "connections": [
+      [
+        96837,
+        97365
+      ],
+      [
+        97365,
+        96757
+      ],
+      [
+        97365,
+        98337
+      ],
+      [
+        98337,
+        98920
+      ]
+    ],
+    "image": {
+      "file": "illustrations/sagitta.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            6,
+            12
+          ],
+          "hip": 98920
+        },
+        {
+          "pos": [
+            249,
+            213
+          ],
+          "hip": 96757
+        },
+        {
+          "pos": [
+            218,
+            243
+          ],
+          "hip": 96837
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Sagitta.md",
+      "title": "Sagitta",
+      "aliases": [
+        "Arrow"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "For": {
+    "iau": "For",
+    "name": "Fornax",
+    "english": "Furnace",
+    "starCount": 2,
+    "connectionCount": 1,
+    "stars": [
+      13147,
+      14879
+    ],
+    "lines": [
+      [
+        13147,
+        14879
+      ]
+    ],
+    "connections": [
+      [
+        13147,
+        14879
+      ]
+    ],
+    "image": {
+      "file": "illustrations/fornax.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            42,
+            125
+          ],
+          "hip": 14879
+        },
+        {
+          "pos": [
+            128,
+            37
+          ],
+          "hip": 13202
+        },
+        {
+          "pos": [
+            190,
+            129
+          ],
+          "hip": 13147
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Fornax.md",
+      "title": "Fornax",
+      "aliases": [
+        "Furnace"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Gem": {
+    "iau": "Gem",
+    "name": "Gemini",
+    "english": "Twins",
+    "starCount": 17,
+    "connectionCount": 16,
+    "stars": [
+      31681,
+      34088,
+      35550,
+      35350,
+      32362,
+      36962,
+      37740,
+      37826,
+      36046,
+      34693,
+      36850,
+      33018,
+      32246,
+      30883,
+      30343,
+      29655,
+      28734
+    ],
+    "lines": [
+      [
+        31681,
+        34088,
+        35550,
+        35350,
+        32362
+      ],
+      [
+        35550,
+        36962,
+        37740
+      ],
+      [
+        36962,
+        37826
+      ],
+      [
+        36962,
+        36046,
+        34693,
+        36850
+      ],
+      [
+        34693,
+        33018
+      ],
+      [
+        34693,
+        32246,
+        30883
+      ],
+      [
+        32246,
+        30343,
+        29655,
+        28734
+      ]
+    ],
+    "connections": [
+      [
+        31681,
+        34088
+      ],
+      [
+        34088,
+        35550
+      ],
+      [
+        35550,
+        35350
+      ],
+      [
+        35350,
+        32362
+      ],
+      [
+        35550,
+        36962
+      ],
+      [
+        36962,
+        37740
+      ],
+      [
+        36962,
+        37826
+      ],
+      [
+        36962,
+        36046
+      ],
+      [
+        36046,
+        34693
+      ],
+      [
+        34693,
+        36850
+      ],
+      [
+        34693,
+        33018
+      ],
+      [
+        34693,
+        32246
+      ],
+      [
+        32246,
+        30883
+      ],
+      [
+        32246,
+        30343
+      ],
+      [
+        30343,
+        29655
+      ],
+      [
+        29655,
+        28734
+      ]
+    ],
+    "image": {
+      "file": "illustrations/gemini.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            14,
+            81
+          ],
+          "hip": 37740
+        },
+        {
+          "pos": [
+            117,
+            252
+          ],
+          "hip": 32362
+        },
+        {
+          "pos": [
+            249,
+            165
+          ],
+          "hip": 28734
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Gemini.md",
+      "title": "Gemini",
+      "aliases": [
+        "Twins"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Cam": {
+    "iau": "Cam",
+    "name": "Camelopardalis",
+    "english": "Giraffe",
+    "starCount": 5,
+    "connectionCount": 5,
+    "stars": [
+      16228,
+      18505,
+      22783,
+      17959,
+      25110
+    ],
+    "lines": [
+      [
+        16228,
+        18505,
+        22783
+      ],
+      [
+        16228,
+        17959,
+        22783
+      ],
+      [
+        17959,
+        25110
+      ]
+    ],
+    "connections": [
+      [
+        16228,
+        18505
+      ],
+      [
+        18505,
+        22783
+      ],
+      [
+        16228,
+        17959
+      ],
+      [
+        17959,
+        22783
+      ],
+      [
+        17959,
+        25110
+      ]
+    ],
+    "image": {
+      "file": "illustrations/camelopardalis.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            77,
+            46
+          ],
+          "hip": 25110
+        },
+        {
+          "pos": [
+            128,
+            135
+          ],
+          "hip": 22783
+        },
+        {
+          "pos": [
+            219,
+            136
+          ],
+          "hip": 16228
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Camelopardalis.md",
+      "title": "Camelopardalis",
+      "aliases": [
+        "Giraffe"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "CMa": {
+    "iau": "CMa",
+    "name": "Canis Major",
+    "english": "Great Dog",
+    "starCount": 16,
+    "connectionCount": 17,
+    "stars": [
+      33160,
+      34045,
+      33347,
+      32349,
+      33977,
+      34444,
+      35037,
+      35904,
+      33579,
+      33856,
+      33152,
+      31592,
+      31416,
+      30324,
+      32759,
+      30122
+    ],
+    "lines": [
+      [
+        33160,
+        34045,
+        33347,
+        32349,
+        33977,
+        34444,
+        35037,
+        35904
+      ],
+      [
+        33579,
+        33856,
+        34444
+      ],
+      [
+        33856,
+        33152,
+        31592,
+        31416
+      ],
+      [
+        31592,
+        30324
+      ],
+      [
+        31592,
+        32349
+      ],
+      [
+        33579,
+        32759
+      ],
+      [
+        30122,
+        33579
+      ],
+      [
+        33347,
+        33160
+      ]
+    ],
+    "connections": [
+      [
+        33160,
+        34045
+      ],
+      [
+        34045,
+        33347
+      ],
+      [
+        33347,
+        32349
+      ],
+      [
+        32349,
+        33977
+      ],
+      [
+        33977,
+        34444
+      ],
+      [
+        34444,
+        35037
+      ],
+      [
+        35037,
+        35904
+      ],
+      [
+        33579,
+        33856
+      ],
+      [
+        33856,
+        34444
+      ],
+      [
+        33856,
+        33152
+      ],
+      [
+        33152,
+        31592
+      ],
+      [
+        31592,
+        31416
+      ],
+      [
+        31592,
+        30324
+      ],
+      [
+        31592,
+        32349
+      ],
+      [
+        33579,
+        32759
+      ],
+      [
+        30122,
+        33579
+      ],
+      [
+        33347,
+        33160
+      ]
+    ],
+    "image": {
+      "file": "illustrations/canis-major.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            21,
+            347
+          ],
+          "hip": 35904
+        },
+        {
+          "pos": [
+            321,
+            24
+          ],
+          "hip": 33160
+        },
+        {
+          "pos": [
+            318,
+            492
+          ],
+          "hip": 30122
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Canis Major.md",
+      "title": "Canis Major",
+      "aliases": [
+        "Great Dog"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "UMa": {
+    "iau": "UMa",
+    "name": "Ursa Major",
+    "english": "Great Bear",
+    "starCount": 18,
+    "connectionCount": 19,
+    "stars": [
+      67301,
+      65378,
+      62956,
+      59774,
+      54061,
+      53910,
+      58001,
+      57399,
+      54539,
+      50372,
+      50801,
+      48402,
+      46853,
+      44471,
+      44127,
+      48319,
+      41704,
+      46733
+    ],
+    "lines": [
+      [
+        67301,
+        65378,
+        62956,
+        59774,
+        54061,
+        53910,
+        58001,
+        59774
+      ],
+      [
+        58001,
+        57399,
+        54539,
+        50372
+      ],
+      [
+        54539,
+        50801
+      ],
+      [
+        53910,
+        48402,
+        46853,
+        44471
+      ],
+      [
+        46853,
+        44127
+      ],
+      [
+        48402,
+        48319,
+        41704,
+        46733,
+        54061
+      ]
+    ],
+    "connections": [
+      [
+        67301,
+        65378
+      ],
+      [
+        65378,
+        62956
+      ],
+      [
+        62956,
+        59774
+      ],
+      [
+        59774,
+        54061
+      ],
+      [
+        54061,
+        53910
+      ],
+      [
+        53910,
+        58001
+      ],
+      [
+        58001,
+        59774
+      ],
+      [
+        58001,
+        57399
+      ],
+      [
+        57399,
+        54539
+      ],
+      [
+        54539,
+        50372
+      ],
+      [
+        54539,
+        50801
+      ],
+      [
+        53910,
+        48402
+      ],
+      [
+        48402,
+        46853
+      ],
+      [
+        46853,
+        44471
+      ],
+      [
+        46853,
+        44127
+      ],
+      [
+        48402,
+        48319
+      ],
+      [
+        48319,
+        41704
+      ],
+      [
+        41704,
+        46733
+      ],
+      [
+        46733,
+        54061
+      ]
+    ],
+    "image": {
+      "file": "illustrations/ursa-major.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            26,
+            75
+          ],
+          "hip": 67301
+        },
+        {
+          "pos": [
+            452,
+            272
+          ],
+          "hip": 41704
+        },
+        {
+          "pos": [
+            258,
+            394
+          ],
+          "hip": 50372
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Ursa Major.md",
+      "title": "Ursa Major",
+      "aliases": [
+        "Great Bear"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Gru": {
+    "iau": "Gru",
+    "name": "Grus",
+    "english": "Crane",
+    "starCount": 9,
+    "connectionCount": 9,
+    "stars": [
+      114131,
+      110997,
+      109268,
+      112122,
+      114421,
+      113638,
+      112623,
+      109111,
+      108085
+    ],
+    "lines": [
+      [
+        114131,
+        110997,
+        109268,
+        112122,
+        114421,
+        114131
+      ],
+      [
+        112122,
+        113638
+      ],
+      [
+        112122,
+        112623
+      ],
+      [
+        109268,
+        109111,
+        108085
+      ]
+    ],
+    "connections": [
+      [
+        114131,
+        110997
+      ],
+      [
+        110997,
+        109268
+      ],
+      [
+        109268,
+        112122
+      ],
+      [
+        112122,
+        114421
+      ],
+      [
+        114421,
+        114131
+      ],
+      [
+        112122,
+        113638
+      ],
+      [
+        112122,
+        112623
+      ],
+      [
+        109268,
+        109111
+      ],
+      [
+        109111,
+        108085
+      ]
+    ],
+    "image": {
+      "file": "illustrations/grus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            49,
+            109
+          ],
+          "hip": 114131
+        },
+        {
+          "pos": [
+            85,
+            206
+          ],
+          "hip": 112623
+        },
+        {
+          "pos": [
+            220,
+            45
+          ],
+          "hip": 108085
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Grus.md",
+      "title": "Grus",
+      "aliases": [
+        "Crane"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Her": {
+    "iau": "Her",
+    "name": "Hercules",
+    "english": "Hercules",
+    "starCount": 18,
+    "connectionCount": 18,
+    "stars": [
+      86414,
+      87808,
+      85112,
+      84606,
+      84380,
+      81833,
+      81126,
+      79992,
+      77760,
+      81693,
+      80816,
+      80170,
+      83207,
+      85693,
+      84379,
+      86974,
+      87933,
+      88794
+    ],
+    "lines": [
+      [
+        86414,
+        87808,
+        85112,
+        84606,
+        84380,
+        81833,
+        81126,
+        79992,
+        77760
+      ],
+      [
+        81833,
+        81693,
+        80816,
+        80170
+      ],
+      [
+        81693,
+        83207,
+        85693,
+        84379
+      ],
+      [
+        86974,
+        87933,
+        88794
+      ],
+      [
+        83207,
+        84380
+      ],
+      [
+        86974,
+        85693
+      ]
+    ],
+    "connections": [
+      [
+        86414,
+        87808
+      ],
+      [
+        87808,
+        85112
+      ],
+      [
+        85112,
+        84606
+      ],
+      [
+        84606,
+        84380
+      ],
+      [
+        84380,
+        81833
+      ],
+      [
+        81833,
+        81126
+      ],
+      [
+        81126,
+        79992
+      ],
+      [
+        79992,
+        77760
+      ],
+      [
+        81833,
+        81693
+      ],
+      [
+        81693,
+        80816
+      ],
+      [
+        80816,
+        80170
+      ],
+      [
+        81693,
+        83207
+      ],
+      [
+        83207,
+        85693
+      ],
+      [
+        85693,
+        84379
+      ],
+      [
+        86974,
+        87933
+      ],
+      [
+        87933,
+        88794
+      ],
+      [
+        83207,
+        84380
+      ],
+      [
+        86974,
+        85693
+      ]
+    ],
+    "image": {
+      "file": "illustrations/hercules.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            44,
+            115
+          ],
+          "hip": 80170
+        },
+        {
+          "pos": [
+            254,
+            477
+          ],
+          "hip": 79992
+        },
+        {
+          "pos": [
+            441,
+            102
+          ],
+          "hip": 88794
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Hercules.md",
+      "title": "Hercules",
+      "aliases": [],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Hor": {
+    "iau": "Hor",
+    "name": "Horologium",
+    "english": "Clock",
+    "starCount": 3,
+    "connectionCount": 2,
+    "stars": [
+      19747,
+      12484,
+      14240
+    ],
+    "lines": [
+      [
+        19747,
+        12484,
+        14240
+      ]
+    ],
+    "connections": [
+      [
+        19747,
+        12484
+      ],
+      [
+        12484,
+        14240
+      ]
+    ],
+    "image": {
+      "file": "illustrations/horlogium.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            16,
+            235
+          ],
+          "hip": 19747
+        },
+        {
+          "pos": [
+            184,
+            67
+          ],
+          "hip": 12484
+        },
+        {
+          "pos": [
+            235,
+            119
+          ],
+          "hip": 14240
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Horologium.md",
+      "title": "Horologium",
+      "aliases": [
+        "Clock"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Hya": {
+    "iau": "Hya",
+    "name": "Hydra",
+    "english": "Female Water Snake",
+    "starCount": 18,
+    "connectionCount": 18,
+    "stars": [
+      42799,
+      42402,
+      42313,
+      43109,
+      43234,
+      43813,
+      45336,
+      46776,
+      46509,
+      46390,
+      48356,
+      49841,
+      51069,
+      52943,
+      56343,
+      57936,
+      64166,
+      64962
+    ],
+    "lines": [
+      [
+        42799,
+        42402,
+        42313,
+        43109,
+        43234,
+        42799
+      ],
+      [
+        43234,
+        43813,
+        45336,
+        46776,
+        46509,
+        46390,
+        48356,
+        49841,
+        51069,
+        52943,
+        56343,
+        57936,
+        64166,
+        64962
+      ]
+    ],
+    "connections": [
+      [
+        42799,
+        42402
+      ],
+      [
+        42402,
+        42313
+      ],
+      [
+        42313,
+        43109
+      ],
+      [
+        43109,
+        43234
+      ],
+      [
+        43234,
+        42799
+      ],
+      [
+        43234,
+        43813
+      ],
+      [
+        43813,
+        45336
+      ],
+      [
+        45336,
+        46776
+      ],
+      [
+        46776,
+        46509
+      ],
+      [
+        46509,
+        46390
+      ],
+      [
+        46390,
+        48356
+      ],
+      [
+        48356,
+        49841
+      ],
+      [
+        49841,
+        51069
+      ],
+      [
+        51069,
+        52943
+      ],
+      [
+        52943,
+        56343
+      ],
+      [
+        56343,
+        57936
+      ],
+      [
+        57936,
+        64166
+      ],
+      [
+        64166,
+        64962
+      ]
+    ],
+    "image": {
+      "file": "illustrations/hydra.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            26,
+            491
+          ],
+          "hip": 64962
+        },
+        {
+          "pos": [
+            111,
+            149
+          ],
+          "hip": 55434
+        },
+        {
+          "pos": [
+            401,
+            33
+          ],
+          "hip": 43813
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Hydra.md",
+      "title": "Hydra",
+      "aliases": [
+        "Female Water Snake"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Hyi": {
+    "iau": "Hyi",
+    "name": "Hydrus",
+    "english": "Male Water Snake",
+    "starCount": 5,
+    "connectionCount": 4,
+    "stars": [
+      2021,
+      17678,
+      12394,
+      11001,
+      9236
+    ],
+    "lines": [
+      [
+        2021,
+        17678,
+        12394,
+        11001,
+        9236
+      ]
+    ],
+    "connections": [
+      [
+        2021,
+        17678
+      ],
+      [
+        17678,
+        12394
+      ],
+      [
+        12394,
+        11001
+      ],
+      [
+        11001,
+        9236
+      ]
+    ],
+    "image": {
+      "file": "illustrations/hydrus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            14,
+            204
+          ],
+          "hip": 9236
+        },
+        {
+          "pos": [
+            201,
+            43
+          ],
+          "hip": 2021
+        },
+        {
+          "pos": [
+            241,
+            215
+          ],
+          "hip": 17678
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Hydrus.md",
+      "title": "Hydrus",
+      "aliases": [
+        "Male Water Snake"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Ind": {
+    "iau": "Ind",
+    "name": "Indus",
+    "english": "Indian",
+    "starCount": 3,
+    "connectionCount": 3,
+    "stars": [
+      105319,
+      101772,
+      103227
+    ],
+    "lines": [
+      [
+        105319,
+        101772,
+        103227,
+        105319
+      ]
+    ],
+    "connections": [
+      [
+        105319,
+        101772
+      ],
+      [
+        101772,
+        103227
+      ],
+      [
+        103227,
+        105319
+      ]
+    ],
+    "image": {
+      "file": "illustrations/indus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            64,
+            143
+          ],
+          "hip": 101772
+        },
+        {
+          "pos": [
+            154,
+            20
+          ],
+          "hip": 103227
+        },
+        {
+          "pos": [
+            175,
+            98
+          ],
+          "hip": 105319
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Indus.md",
+      "title": "Indus",
+      "aliases": [
+        "Indian"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Lac": {
+    "iau": "Lac",
+    "name": "Lacerta",
+    "english": "Lizard",
+    "starCount": 6,
+    "connectionCount": 6,
+    "stars": [
+      109937,
+      111104,
+      111022,
+      110609,
+      110538,
+      111169
+    ],
+    "lines": [
+      [
+        109937,
+        111104,
+        111022,
+        110609,
+        110538,
+        111169,
+        111022
+      ]
+    ],
+    "connections": [
+      [
+        109937,
+        111104
+      ],
+      [
+        111104,
+        111022
+      ],
+      [
+        111022,
+        110609
+      ],
+      [
+        110609,
+        110538
+      ],
+      [
+        110538,
+        111169
+      ],
+      [
+        111169,
+        111022
+      ]
+    ],
+    "image": {
+      "file": "illustrations/lacerta.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            249,
+            42
+          ],
+          "hip": 110538
+        },
+        {
+          "pos": [
+            108,
+            123
+          ],
+          "hip": 111104
+        },
+        {
+          "pos": [
+            67,
+            215
+          ],
+          "hip": 109937
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Lacerta.md",
+      "title": "Lacerta",
+      "aliases": [
+        "Lizard"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Mon": {
+    "iau": "Mon",
+    "name": "Monoceros",
+    "english": "Unicorn",
+    "starCount": 7,
+    "connectionCount": 6,
+    "stars": [
+      29651,
+      30867,
+      34769,
+      30419,
+      29151,
+      39863,
+      37447
+    ],
+    "lines": [
+      [
+        29651,
+        30867,
+        34769,
+        30419,
+        29151
+      ],
+      [
+        34769,
+        39863,
+        37447
+      ]
+    ],
+    "connections": [
+      [
+        29651,
+        30867
+      ],
+      [
+        30867,
+        34769
+      ],
+      [
+        34769,
+        30419
+      ],
+      [
+        30419,
+        29151
+      ],
+      [
+        34769,
+        39863
+      ],
+      [
+        39863,
+        37447
+      ]
+    ],
+    "image": {
+      "file": "illustrations/monoceros.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            20,
+            306
+          ],
+          "hip": 39863
+        },
+        {
+          "pos": [
+            394,
+            80
+          ],
+          "hip": 31978
+        },
+        {
+          "pos": [
+            509,
+            359
+          ],
+          "hip": 29651
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Monoceros.md",
+      "title": "Monoceros",
+      "aliases": [
+        "Unicorn"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Lep": {
+    "iau": "Lep",
+    "name": "Lepus",
+    "english": "Hare",
+    "starCount": 13,
+    "connectionCount": 14,
+    "stars": [
+      28910,
+      28103,
+      27288,
+      25985,
+      24305,
+      27654,
+      27072,
+      25606,
+      23685,
+      24845,
+      24327,
+      24244,
+      24873
+    ],
+    "lines": [
+      [
+        28910,
+        28103,
+        27288,
+        25985,
+        24305
+      ],
+      [
+        25985,
+        27654,
+        27072,
+        25606,
+        23685
+      ],
+      [
+        25985,
+        25606
+      ],
+      [
+        24305,
+        24845
+      ],
+      [
+        24305,
+        24327
+      ],
+      [
+        23685,
+        24305
+      ],
+      [
+        24327,
+        24244
+      ],
+      [
+        24845,
+        24873
+      ]
+    ],
+    "connections": [
+      [
+        28910,
+        28103
+      ],
+      [
+        28103,
+        27288
+      ],
+      [
+        27288,
+        25985
+      ],
+      [
+        25985,
+        24305
+      ],
+      [
+        25985,
+        27654
+      ],
+      [
+        27654,
+        27072
+      ],
+      [
+        27072,
+        25606
+      ],
+      [
+        25606,
+        23685
+      ],
+      [
+        25985,
+        25606
+      ],
+      [
+        24305,
+        24845
+      ],
+      [
+        24305,
+        24327
+      ],
+      [
+        23685,
+        24305
+      ],
+      [
+        24327,
+        24244
+      ],
+      [
+        24845,
+        24873
+      ]
+    ],
+    "image": {
+      "file": "illustrations/lepus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            21,
+            48
+          ],
+          "hip": 28910
+        },
+        {
+          "pos": [
+            246,
+            62
+          ],
+          "hip": 24244
+        },
+        {
+          "pos": [
+            213,
+            235
+          ],
+          "hip": 23685
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Lepus.md",
+      "title": "Lepus",
+      "aliases": [
+        "Hare"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Leo": {
+    "iau": "Leo",
+    "name": "Leo",
+    "english": "Lion",
+    "starCount": 9,
+    "connectionCount": 10,
+    "stars": [
+      57632,
+      54879,
+      49669,
+      49583,
+      50583,
+      54872,
+      50335,
+      48455,
+      47908
+    ],
+    "lines": [
+      [
+        57632,
+        54879,
+        49669,
+        49583,
+        50583,
+        54872,
+        57632
+      ],
+      [
+        50583,
+        50335,
+        48455,
+        47908
+      ],
+      [
+        54872,
+        54879
+      ]
+    ],
+    "connections": [
+      [
+        57632,
+        54879
+      ],
+      [
+        54879,
+        49669
+      ],
+      [
+        49669,
+        49583
+      ],
+      [
+        49583,
+        50583
+      ],
+      [
+        50583,
+        54872
+      ],
+      [
+        54872,
+        57632
+      ],
+      [
+        50583,
+        50335
+      ],
+      [
+        50335,
+        48455
+      ],
+      [
+        48455,
+        47908
+      ],
+      [
+        54872,
+        54879
+      ]
+    ],
+    "image": {
+      "file": "illustrations/leo.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            69,
+            411
+          ],
+          "hip": 57632
+        },
+        {
+          "pos": [
+            383,
+            186
+          ],
+          "hip": 49669
+        },
+        {
+          "pos": [
+            321,
+            32
+          ],
+          "hip": 47908
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Leo.md",
+      "title": "Leo",
+      "aliases": [
+        "Lion"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Lup": {
+    "iau": "Lup",
+    "name": "Lupus",
+    "english": "Wolf",
+    "starCount": 12,
+    "connectionCount": 13,
+    "stars": [
+      77634,
+      78970,
+      78384,
+      76297,
+      75141,
+      75177,
+      73273,
+      76552,
+      74395,
+      71860,
+      71536,
+      70576
+    ],
+    "lines": [
+      [
+        77634,
+        78970,
+        78384,
+        77634
+      ],
+      [
+        78384,
+        76297,
+        75141,
+        75177
+      ],
+      [
+        75141,
+        73273
+      ],
+      [
+        76297,
+        76552,
+        74395,
+        71860
+      ],
+      [
+        74395,
+        71536
+      ],
+      [
+        71860,
+        70576
+      ],
+      [
+        71860,
+        73273
+      ]
+    ],
+    "connections": [
+      [
+        77634,
+        78970
+      ],
+      [
+        78970,
+        78384
+      ],
+      [
+        78384,
+        77634
+      ],
+      [
+        78384,
+        76297
+      ],
+      [
+        76297,
+        75141
+      ],
+      [
+        75141,
+        75177
+      ],
+      [
+        75141,
+        73273
+      ],
+      [
+        76297,
+        76552
+      ],
+      [
+        76552,
+        74395
+      ],
+      [
+        74395,
+        71860
+      ],
+      [
+        74395,
+        71536
+      ],
+      [
+        71860,
+        70576
+      ],
+      [
+        71860,
+        73273
+      ]
+    ],
+    "image": {
+      "file": "illustrations/lupus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            90,
+            257
+          ],
+          "hip": 74395
+        },
+        {
+          "pos": [
+            207,
+            435
+          ],
+          "hip": 70576
+        },
+        {
+          "pos": [
+            425,
+            239
+          ],
+          "hip": 75177
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Lupus.md",
+      "title": "Lupus",
+      "aliases": [
+        "Wolf"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Lyn": {
+    "iau": "Lyn",
+    "name": "Lynx",
+    "english": "Lynx",
+    "starCount": 8,
+    "connectionCount": 7,
+    "stars": [
+      45860,
+      45688,
+      44700,
+      44248,
+      41075,
+      36145,
+      33449,
+      30060
+    ],
+    "lines": [
+      [
+        45860,
+        45688,
+        44700,
+        44248,
+        41075,
+        36145,
+        33449,
+        30060
+      ]
+    ],
+    "connections": [
+      [
+        45860,
+        45688
+      ],
+      [
+        45688,
+        44700
+      ],
+      [
+        44700,
+        44248
+      ],
+      [
+        44248,
+        41075
+      ],
+      [
+        41075,
+        36145
+      ],
+      [
+        36145,
+        33449
+      ],
+      [
+        33449,
+        30060
+      ]
+    ],
+    "image": {
+      "file": "illustrations/lynx.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            100,
+            216
+          ],
+          "hip": 44248
+        },
+        {
+          "pos": [
+            337,
+            212
+          ],
+          "hip": 36145
+        },
+        {
+          "pos": [
+            472,
+            119
+          ],
+          "hip": 30060
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Lynx.md",
+      "title": "Lynx",
+      "aliases": [],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Lyr": {
+    "iau": "Lyr",
+    "name": "Lyra",
+    "english": "Lyre",
+    "starCount": 5,
+    "connectionCount": 5,
+    "stars": [
+      91262,
+      91971,
+      92420,
+      93194,
+      92791
+    ],
+    "lines": [
+      [
+        91262,
+        91971,
+        92420,
+        93194,
+        92791,
+        91971
+      ]
+    ],
+    "connections": [
+      [
+        91262,
+        91971
+      ],
+      [
+        91971,
+        92420
+      ],
+      [
+        92420,
+        93194
+      ],
+      [
+        93194,
+        92791
+      ],
+      [
+        92791,
+        91971
+      ]
+    ],
+    "image": {
+      "file": "illustrations/lyra.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            100,
+            96
+          ],
+          "hip": 92791
+        },
+        {
+          "pos": [
+            157,
+            38
+          ],
+          "hip": 91262
+        },
+        {
+          "pos": [
+            139,
+            162
+          ],
+          "hip": 92420
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Lyra.md",
+      "title": "Lyra",
+      "aliases": [
+        "Lyre"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Ant": {
+    "iau": "Ant",
+    "name": "Antlia",
+    "english": "Air Pump",
+    "starCount": 2,
+    "connectionCount": 1,
+    "stars": [
+      51172,
+      48926
+    ],
+    "lines": [
+      [
+        51172,
+        48926
+      ]
+    ],
+    "connections": [
+      [
+        51172,
+        48926
+      ]
+    ],
+    "image": {
+      "file": "illustrations/antlia.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchors": [
+        {
+          "pos": [
+            4,
+            84
+          ],
+          "hip": 51172
+        },
+        {
+          "pos": [
+            72,
+            69
+          ],
+          "hip": 47758
+        },
+        {
+          "pos": [
+            42,
+            120
+          ],
+          "hip": 48926
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Antlia.md",
+      "title": "Antlia",
+      "aliases": [
+        "Air Pump"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Mic": {
+    "iau": "Mic",
+    "name": "Microscopium",
+    "english": "Microscope",
+    "starCount": 3,
+    "connectionCount": 2,
+    "stars": [
+      105140,
+      103738,
+      102831
+    ],
+    "lines": [
+      [
+        105140,
+        103738,
+        102831
+      ]
+    ],
+    "connections": [
+      [
+        105140,
+        103738
+      ],
+      [
+        103738,
+        102831
+      ]
+    ],
+    "image": {
+      "file": "illustrations/microscopium.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            122,
+            226
+          ],
+          "hip": 105140
+        },
+        {
+          "pos": [
+            168,
+            148
+          ],
+          "hip": 103738
+        },
+        {
+          "pos": [
+            234,
+            115
+          ],
+          "hip": 102831
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Microscopium.md",
+      "title": "Microscopium",
+      "aliases": [
+        "Microscope"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Mus": {
+    "iau": "Mus",
+    "name": "Musca",
+    "english": "Fly",
+    "starCount": 4,
+    "connectionCount": 4,
+    "stars": [
+      62322,
+      57363,
+      61199,
+      61585
+    ],
+    "lines": [
+      [
+        62322,
+        57363,
+        61199,
+        61585,
+        62322
+      ]
+    ],
+    "connections": [
+      [
+        62322,
+        57363
+      ],
+      [
+        57363,
+        61199
+      ],
+      [
+        61199,
+        61585
+      ],
+      [
+        61585,
+        62322
+      ]
+    ],
+    "image": {
+      "file": "illustrations/musca.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            57,
+            52
+          ],
+          "hip": 61199
+        },
+        {
+          "pos": [
+            177,
+            68
+          ],
+          "hip": 62322
+        },
+        {
+          "pos": [
+            129,
+            236
+          ],
+          "hip": 57363
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Musca.md",
+      "title": "Musca",
+      "aliases": [
+        "Fly"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Oct": {
+    "iau": "Oct",
+    "name": "Octans",
+    "english": "Octant",
+    "starCount": 3,
+    "connectionCount": 3,
+    "stars": [
+      107089,
+      112405,
+      70638
+    ],
+    "lines": [
+      [
+        107089,
+        112405,
+        70638,
+        107089
+      ]
+    ],
+    "connections": [
+      [
+        107089,
+        112405
+      ],
+      [
+        112405,
+        70638
+      ],
+      [
+        70638,
+        107089
+      ]
+    ],
+    "image": {
+      "file": "illustrations/octans.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            15,
+            16
+          ],
+          "hip": 70638
+        },
+        {
+          "pos": [
+            236,
+            239
+          ],
+          "hip": 107089
+        },
+        {
+          "pos": [
+            247,
+            140
+          ],
+          "hip": 112405
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Octans.md",
+      "title": "Octans",
+      "aliases": [
+        "Octant"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Aps": {
+    "iau": "Aps",
+    "name": "Apus",
+    "english": "Bird of Paradise",
+    "starCount": 3,
+    "connectionCount": 2,
+    "stars": [
+      72370,
+      81065,
+      81852
+    ],
+    "lines": [
+      [
+        72370,
+        81065,
+        81852
+      ]
+    ],
+    "connections": [
+      [
+        72370,
+        81065
+      ],
+      [
+        81065,
+        81852
+      ]
+    ],
+    "image": {
+      "file": "illustrations/apus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            66,
+            60
+          ],
+          "hip": 81852
+        },
+        {
+          "pos": [
+            76,
+            87
+          ],
+          "hip": 81065
+        },
+        {
+          "pos": [
+            163,
+            110
+          ],
+          "hip": 72370
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Apus.md",
+      "title": "Apus",
+      "aliases": [
+        "Bird of Paradise"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Oph": {
+    "iau": "Oph",
+    "name": "Ophiuchus",
+    "english": "Serpent Bearer",
+    "starCount": 7,
+    "connectionCount": 7,
+    "stars": [
+      86032,
+      86742,
+      84012,
+      83000,
+      79882,
+      81377,
+      85755
+    ],
+    "lines": [
+      [
+        86032,
+        86742
+      ],
+      [
+        84012,
+        86742
+      ],
+      [
+        86032,
+        83000,
+        79882,
+        81377,
+        84012,
+        85755
+      ]
+    ],
+    "connections": [
+      [
+        86032,
+        86742
+      ],
+      [
+        84012,
+        86742
+      ],
+      [
+        86032,
+        83000
+      ],
+      [
+        83000,
+        79882
+      ],
+      [
+        79882,
+        81377
+      ],
+      [
+        81377,
+        84012
+      ],
+      [
+        84012,
+        85755
+      ]
+    ],
+    "image": {
+      "file": "illustrations/ophiuchus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            5,
+            183
+          ],
+          "hip": 92946
+        },
+        {
+          "pos": [
+            452,
+            47
+          ],
+          "hip": 77233
+        },
+        {
+          "pos": [
+            238,
+            453
+          ],
+          "hip": 85755
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Ophiuchus.md",
+      "title": "Ophiuchus",
+      "aliases": [
+        "Serpent Bearer"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Ori": {
+    "iau": "Ori",
+    "name": "Orion",
+    "english": "Hunter",
+    "starCount": 19,
+    "connectionCount": 21,
+    "stars": [
+      26727,
+      26311,
+      25930,
+      28691,
+      29426,
+      29038,
+      27913,
+      28614,
+      27989,
+      27366,
+      24436,
+      25336,
+      26207,
+      22449,
+      22549,
+      22730,
+      23123,
+      22509,
+      22845
+    ],
+    "lines": [
+      [
+        26727,
+        26311,
+        25930
+      ],
+      [
+        28691,
+        29426,
+        29038,
+        27913
+      ],
+      [
+        29426,
+        28614,
+        27989,
+        26727,
+        27366,
+        24436,
+        25930,
+        25336,
+        26207,
+        27989
+      ],
+      [
+        25336,
+        22449,
+        22549,
+        22730,
+        23123
+      ],
+      [
+        22449,
+        22509,
+        22845
+      ],
+      [
+        29038,
+        28614
+      ]
+    ],
+    "connections": [
+      [
+        26727,
+        26311
+      ],
+      [
+        26311,
+        25930
+      ],
+      [
+        28691,
+        29426
+      ],
+      [
+        29426,
+        29038
+      ],
+      [
+        29038,
+        27913
+      ],
+      [
+        29426,
+        28614
+      ],
+      [
+        28614,
+        27989
+      ],
+      [
+        27989,
+        26727
+      ],
+      [
+        26727,
+        27366
+      ],
+      [
+        27366,
+        24436
+      ],
+      [
+        24436,
+        25930
+      ],
+      [
+        25930,
+        25336
+      ],
+      [
+        25336,
+        26207
+      ],
+      [
+        26207,
+        27989
+      ],
+      [
+        25336,
+        22449
+      ],
+      [
+        22449,
+        22549
+      ],
+      [
+        22549,
+        22730
+      ],
+      [
+        22730,
+        23123
+      ],
+      [
+        22449,
+        22509
+      ],
+      [
+        22509,
+        22845
+      ],
+      [
+        29038,
+        28614
+      ]
+    ],
+    "image": {
+      "file": "illustrations/orion.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            59,
+            11
+          ],
+          "hip": 27913
+        },
+        {
+          "pos": [
+            329,
+            477
+          ],
+          "hip": 27366
+        },
+        {
+          "pos": [
+            421,
+            91
+          ],
+          "hip": 22449
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Orion.md",
+      "title": "Orion",
+      "aliases": [
+        "Hunter"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Pav": {
+    "iau": "Pav",
+    "name": "Pavo",
+    "english": "Peacock",
+    "starCount": 11,
+    "connectionCount": 13,
+    "stars": [
+      100751,
+      105858,
+      102395,
+      99240,
+      98495,
+      91792,
+      93015,
+      92609,
+      90098,
+      88866,
+      86929
+    ],
+    "lines": [
+      [
+        100751,
+        105858,
+        102395,
+        99240,
+        100751
+      ],
+      [
+        99240,
+        98495,
+        91792,
+        93015,
+        99240
+      ],
+      [
+        93015,
+        92609,
+        90098,
+        88866,
+        92609
+      ],
+      [
+        88866,
+        86929
+      ]
+    ],
+    "connections": [
+      [
+        100751,
+        105858
+      ],
+      [
+        105858,
+        102395
+      ],
+      [
+        102395,
+        99240
+      ],
+      [
+        99240,
+        100751
+      ],
+      [
+        99240,
+        98495
+      ],
+      [
+        98495,
+        91792
+      ],
+      [
+        91792,
+        93015
+      ],
+      [
+        93015,
+        99240
+      ],
+      [
+        93015,
+        92609
+      ],
+      [
+        92609,
+        90098
+      ],
+      [
+        90098,
+        88866
+      ],
+      [
+        88866,
+        92609
+      ],
+      [
+        88866,
+        86929
+      ]
+    ],
+    "image": {
+      "file": "illustrations/pavo.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            55,
+            60
+          ],
+          "hip": 100751
+        },
+        {
+          "pos": [
+            110,
+            208
+          ],
+          "hip": 98495
+        },
+        {
+          "pos": [
+            235,
+            146
+          ],
+          "hip": 86929
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Pavo.md",
+      "title": "Pavo",
+      "aliases": [
+        "Peacock"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Peg": {
+    "iau": "Peg",
+    "name": "Pegasus",
+    "english": "Winged Horse",
+    "starCount": 14,
+    "connectionCount": 14,
+    "stars": [
+      1067,
+      113963,
+      113881,
+      112158,
+      109352,
+      112748,
+      112440,
+      109176,
+      107354,
+      112447,
+      112029,
+      109427,
+      107315,
+      677
+    ],
+    "lines": [
+      [
+        1067,
+        113963
+      ],
+      [
+        113881,
+        112158,
+        109352
+      ],
+      [
+        113881,
+        112748,
+        112440,
+        109176,
+        107354
+      ],
+      [
+        113963,
+        112447,
+        112029,
+        109427,
+        107315
+      ],
+      [
+        677,
+        113881
+      ],
+      [
+        677,
+        1067
+      ],
+      [
+        113881,
+        113963
+      ]
+    ],
+    "connections": [
+      [
+        1067,
+        113963
+      ],
+      [
+        113881,
+        112158
+      ],
+      [
+        112158,
+        109352
+      ],
+      [
+        113881,
+        112748
+      ],
+      [
+        112748,
+        112440
+      ],
+      [
+        112440,
+        109176
+      ],
+      [
+        109176,
+        107354
+      ],
+      [
+        113963,
+        112447
+      ],
+      [
+        112447,
+        112029
+      ],
+      [
+        112029,
+        109427
+      ],
+      [
+        109427,
+        107315
+      ],
+      [
+        677,
+        113881
+      ],
+      [
+        677,
+        1067
+      ],
+      [
+        113881,
+        113963
+      ]
+    ],
+    "image": {
+      "file": "illustrations/pegasus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            164,
+            41
+          ],
+          "hip": 107315
+        },
+        {
+          "pos": [
+            47,
+            283
+          ],
+          "hip": 109410
+        },
+        {
+          "pos": [
+            409,
+            349
+          ],
+          "hip": 1067
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Pegasus.md",
+      "title": "Pegasus",
+      "aliases": [
+        "Winged Horse"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Pic": {
+    "iau": "Pic",
+    "name": "Pictor",
+    "english": "Painter's Easel",
+    "starCount": 3,
+    "connectionCount": 2,
+    "stars": [
+      32607,
+      27530,
+      27321
+    ],
+    "lines": [
+      [
+        32607,
+        27530,
+        27321
+      ]
+    ],
+    "connections": [
+      [
+        32607,
+        27530
+      ],
+      [
+        27530,
+        27321
+      ]
+    ],
+    "image": {
+      "file": "illustrations/pictor.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            4,
+            252
+          ],
+          "hip": 32607
+        },
+        {
+          "pos": [
+            148,
+            138
+          ],
+          "hip": 27530
+        },
+        {
+          "pos": [
+            167,
+            38
+          ],
+          "hip": 27321
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Pictor.md",
+      "title": "Pictor",
+      "aliases": [
+        "Painter's Easel"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Per": {
+    "iau": "Per",
+    "name": "Perseus",
+    "english": "Hero",
+    "starCount": 11,
+    "connectionCount": 10,
+    "stars": [
+      17448,
+      18246,
+      18614,
+      18532,
+      17358,
+      15863,
+      14328,
+      13268,
+      14576,
+      14354,
+      13254
+    ],
+    "lines": [
+      [
+        17448,
+        18246,
+        18614,
+        18532,
+        17358,
+        15863,
+        14328,
+        13268
+      ],
+      [
+        15863,
+        14576,
+        14354,
+        13254
+      ]
+    ],
+    "connections": [
+      [
+        17448,
+        18246
+      ],
+      [
+        18246,
+        18614
+      ],
+      [
+        18614,
+        18532
+      ],
+      [
+        18532,
+        17358
+      ],
+      [
+        17358,
+        15863
+      ],
+      [
+        15863,
+        14328
+      ],
+      [
+        14328,
+        13268
+      ],
+      [
+        15863,
+        14576
+      ],
+      [
+        14576,
+        14354
+      ],
+      [
+        14354,
+        13254
+      ]
+    ],
+    "image": {
+      "file": "illustrations/perseus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            164,
+            323
+          ],
+          "hip": 18532
+        },
+        {
+          "pos": [
+            299,
+            175
+          ],
+          "hip": 15863
+        },
+        {
+          "pos": [
+            385,
+            386
+          ],
+          "hip": 13254
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Perseus.md",
+      "title": "Perseus",
+      "aliases": [
+        "Hero"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Equ": {
+    "iau": "Equ",
+    "name": "Equuleus",
+    "english": "Little Horse",
+    "starCount": 4,
+    "connectionCount": 4,
+    "stars": [
+      104521,
+      104858,
+      105570,
+      104987
+    ],
+    "lines": [
+      [
+        104521,
+        104858,
+        105570,
+        104987,
+        104521
+      ]
+    ],
+    "connections": [
+      [
+        104521,
+        104858
+      ],
+      [
+        104858,
+        105570
+      ],
+      [
+        105570,
+        104987
+      ],
+      [
+        104987,
+        104521
+      ]
+    ],
+    "image": {
+      "file": "illustrations/equuleus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            17,
+            180
+          ],
+          "hip": 104521
+        },
+        {
+          "pos": [
+            149,
+            86
+          ],
+          "hip": 104987
+        },
+        {
+          "pos": [
+            160,
+            160
+          ],
+          "hip": 105570
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Equuleus.md",
+      "title": "Equuleus",
+      "aliases": [
+        "Little Horse"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "CMi": {
+    "iau": "CMi",
+    "name": "Canis Minor",
+    "english": "Lesser Dog",
+    "starCount": 2,
+    "connectionCount": 1,
+    "stars": [
+      37279,
+      36188
+    ],
+    "lines": [
+      [
+        37279,
+        36188
+      ]
+    ],
+    "connections": [
+      [
+        37279,
+        36188
+      ]
+    ],
+    "image": {
+      "file": "illustrations/canis-minor.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            96,
+            43
+          ],
+          "hip": 37921
+        },
+        {
+          "pos": [
+            101,
+            171
+          ],
+          "hip": 37279
+        },
+        {
+          "pos": [
+            184,
+            124
+          ],
+          "hip": 36188
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Canis Minor.md",
+      "title": "Canis Minor",
+      "aliases": [
+        "Lesser Dog"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "LMi": {
+    "iau": "LMi",
+    "name": "Leo Minor",
+    "english": "Lesser Lion",
+    "starCount": 4,
+    "connectionCount": 4,
+    "stars": [
+      53229,
+      51233,
+      49593,
+      46952
+    ],
+    "lines": [
+      [
+        53229,
+        51233,
+        49593,
+        46952
+      ],
+      [
+        49593,
+        53229
+      ]
+    ],
+    "connections": [
+      [
+        53229,
+        51233
+      ],
+      [
+        51233,
+        49593
+      ],
+      [
+        49593,
+        46952
+      ],
+      [
+        49593,
+        53229
+      ]
+    ],
+    "image": {
+      "file": "illustrations/leo-minor.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            8,
+            40
+          ],
+          "hip": 53229
+        },
+        {
+          "pos": [
+            214,
+            127
+          ],
+          "hip": 46952
+        },
+        {
+          "pos": [
+            61,
+            155
+          ],
+          "hip": 50303
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Leo Minor.md",
+      "title": "Leo Minor",
+      "aliases": [
+        "Lesser Lion"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Vul": {
+    "iau": "Vul",
+    "name": "Vulpecula",
+    "english": "Fox",
+    "starCount": 2,
+    "connectionCount": 1,
+    "stars": [
+      95771,
+      98543
+    ],
+    "lines": [
+      [
+        95771,
+        98543
+      ]
+    ],
+    "connections": [
+      [
+        95771,
+        98543
+      ]
+    ],
+    "image": {
+      "file": "illustrations/vulpecula.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            35,
+            133
+          ],
+          "hip": 98543
+        },
+        {
+          "pos": [
+            174,
+            111
+          ],
+          "hip": 95771
+        },
+        {
+          "pos": [
+            242,
+            135
+          ],
+          "hip": 94703
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Vulpecula.md",
+      "title": "Vulpecula",
+      "aliases": [
+        "Fox"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "UMi": {
+    "iau": "UMi",
+    "name": "Ursa Minor",
+    "english": "Little Bear",
+    "starCount": 7,
+    "connectionCount": 7,
+    "stars": [
+      11767,
+      85822,
+      82080,
+      77055,
+      79822,
+      75097,
+      72607
+    ],
+    "lines": [
+      [
+        11767,
+        85822,
+        82080,
+        77055,
+        79822,
+        75097,
+        72607,
+        77055
+      ]
+    ],
+    "connections": [
+      [
+        11767,
+        85822
+      ],
+      [
+        85822,
+        82080
+      ],
+      [
+        82080,
+        77055
+      ],
+      [
+        77055,
+        79822
+      ],
+      [
+        79822,
+        75097
+      ],
+      [
+        75097,
+        72607
+      ],
+      [
+        72607,
+        77055
+      ]
+    ],
+    "image": {
+      "file": "illustrations/ursa-minor.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            15,
+            20
+          ],
+          "hip": 11767
+        },
+        {
+          "pos": [
+            193,
+            51
+          ],
+          "hip": 59504
+        },
+        {
+          "pos": [
+            93,
+            209
+          ],
+          "hip": 79822
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Ursa Minor.md",
+      "title": "Ursa Minor",
+      "aliases": [
+        "Little Bear"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Phe": {
+    "iau": "Phe",
+    "name": "Phoenix",
+    "english": "Phoenix",
+    "starCount": 8,
+    "connectionCount": 11,
+    "stars": [
+      5348,
+      5165,
+      2072,
+      7083,
+      8837,
+      6867,
+      2081,
+      765
+    ],
+    "lines": [
+      [
+        5348,
+        5165,
+        2072,
+        5348
+      ],
+      [
+        5165,
+        7083,
+        8837,
+        5165,
+        6867,
+        2072,
+        2081,
+        765,
+        2072
+      ]
+    ],
+    "connections": [
+      [
+        5348,
+        5165
+      ],
+      [
+        5165,
+        2072
+      ],
+      [
+        2072,
+        5348
+      ],
+      [
+        5165,
+        7083
+      ],
+      [
+        7083,
+        8837
+      ],
+      [
+        8837,
+        5165
+      ],
+      [
+        5165,
+        6867
+      ],
+      [
+        6867,
+        2072
+      ],
+      [
+        2072,
+        2081
+      ],
+      [
+        2081,
+        765
+      ],
+      [
+        765,
+        2072
+      ]
+    ],
+    "image": {
+      "file": "illustrations/phoenix.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            55,
+            243
+          ],
+          "hip": 8837
+        },
+        {
+          "pos": [
+            209,
+            15
+          ],
+          "hip": 765
+        },
+        {
+          "pos": [
+            229,
+            214
+          ],
+          "hip": 5348
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Phoenix.md",
+      "title": "Phoenix",
+      "aliases": [],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Psc": {
+    "iau": "Psc",
+    "name": "Pisces",
+    "english": "Fishes",
+    "starCount": 18,
+    "connectionCount": 19,
+    "stars": [
+      4889,
+      5742,
+      6193,
+      7097,
+      8198,
+      9487,
+      8833,
+      7884,
+      7007,
+      4906,
+      3760,
+      1645,
+      118268,
+      116771,
+      116928,
+      115738,
+      114971,
+      115830
+    ],
+    "lines": [
+      [
+        4889,
+        5742
+      ],
+      [
+        4889,
+        6193,
+        5742,
+        7097,
+        8198,
+        9487,
+        8833,
+        7884,
+        7007,
+        4906,
+        3760,
+        1645,
+        118268,
+        116771,
+        116928,
+        115738,
+        114971,
+        115830,
+        116771
+      ]
+    ],
+    "connections": [
+      [
+        4889,
+        5742
+      ],
+      [
+        4889,
+        6193
+      ],
+      [
+        6193,
+        5742
+      ],
+      [
+        5742,
+        7097
+      ],
+      [
+        7097,
+        8198
+      ],
+      [
+        8198,
+        9487
+      ],
+      [
+        9487,
+        8833
+      ],
+      [
+        8833,
+        7884
+      ],
+      [
+        7884,
+        7007
+      ],
+      [
+        7007,
+        4906
+      ],
+      [
+        4906,
+        3760
+      ],
+      [
+        3760,
+        1645
+      ],
+      [
+        1645,
+        118268
+      ],
+      [
+        118268,
+        116771
+      ],
+      [
+        116771,
+        116928
+      ],
+      [
+        116928,
+        115738
+      ],
+      [
+        115738,
+        114971
+      ],
+      [
+        114971,
+        115830
+      ],
+      [
+        115830,
+        116771
+      ]
+    ],
+    "image": {
+      "file": "illustrations/pisces.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            24,
+            104
+          ],
+          "hip": 4889
+        },
+        {
+          "pos": [
+            111,
+            489
+          ],
+          "hip": 9487
+        },
+        {
+          "pos": [
+            481,
+            155
+          ],
+          "hip": 114971
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Pisces.md",
+      "title": "Pisces",
+      "aliases": [
+        "Fishes"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "PsA": {
+    "iau": "PsA",
+    "name": "Piscis Austrinus",
+    "english": "Southern Fish",
+    "starCount": 7,
+    "connectionCount": 6,
+    "stars": [
+      113368,
+      111954,
+      108661,
+      107608,
+      109422,
+      111188,
+      113246
+    ],
+    "lines": [
+      [
+        113368,
+        111954,
+        108661,
+        107608,
+        109422,
+        111188,
+        113246
+      ]
+    ],
+    "connections": [
+      [
+        113368,
+        111954
+      ],
+      [
+        111954,
+        108661
+      ],
+      [
+        108661,
+        107608
+      ],
+      [
+        107608,
+        109422
+      ],
+      [
+        109422,
+        111188
+      ],
+      [
+        111188,
+        113246
+      ]
+    ],
+    "image": {
+      "file": "illustrations/piscis-austrinus.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            190,
+            5
+          ],
+          "hip": 113246
+        },
+        {
+          "pos": [
+            82,
+            202
+          ],
+          "hip": 107608
+        },
+        {
+          "pos": [
+            236,
+            92
+          ],
+          "hip": 111954
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Piscis Austrinus.md",
+      "title": "Piscis Austrinus",
+      "aliases": [
+        "Southern Fish"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Vol": {
+    "iau": "Vol",
+    "name": "Volans",
+    "english": "Flying Fish",
+    "starCount": 6,
+    "connectionCount": 7,
+    "stars": [
+      37504,
+      34481,
+      39794,
+      35228,
+      41312,
+      44382
+    ],
+    "lines": [
+      [
+        37504,
+        34481,
+        39794,
+        37504
+      ],
+      [
+        39794,
+        35228
+      ],
+      [
+        39794,
+        41312,
+        44382,
+        39794
+      ]
+    ],
+    "connections": [
+      [
+        37504,
+        34481
+      ],
+      [
+        34481,
+        39794
+      ],
+      [
+        39794,
+        37504
+      ],
+      [
+        39794,
+        35228
+      ],
+      [
+        39794,
+        41312
+      ],
+      [
+        41312,
+        44382
+      ],
+      [
+        44382,
+        39794
+      ]
+    ],
+    "image": {
+      "file": "illustrations/volans.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            55,
+            85
+          ],
+          "hip": 44382
+        },
+        {
+          "pos": [
+            210,
+            122
+          ],
+          "hip": 35228
+        },
+        {
+          "pos": [
+            207,
+            163
+          ],
+          "hip": 34481
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Volans.md",
+      "title": "Volans",
+      "aliases": [
+        "Flying Fish"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Pup": {
+    "iau": "Pup",
+    "name": "Puppis",
+    "english": "Stern",
+    "starCount": 7,
+    "connectionCount": 7,
+    "stars": [
+      39757,
+      38146,
+      35264,
+      31685,
+      32768,
+      36377,
+      39429
+    ],
+    "lines": [
+      [
+        39757,
+        38146,
+        35264,
+        31685,
+        32768,
+        36377,
+        39429,
+        39757
+      ]
+    ],
+    "connections": [
+      [
+        39757,
+        38146
+      ],
+      [
+        38146,
+        35264
+      ],
+      [
+        35264,
+        31685
+      ],
+      [
+        31685,
+        32768
+      ],
+      [
+        32768,
+        36377
+      ],
+      [
+        36377,
+        39429
+      ],
+      [
+        39429,
+        39757
+      ]
+    ],
+    "image": null,
+    "note": {
+      "path": "constellations/Puppis.md",
+      "title": "Puppis",
+      "aliases": [
+        "Stern"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Ret": {
+    "iau": "Ret",
+    "name": "Reticulum",
+    "english": "Reticle",
+    "starCount": 4,
+    "connectionCount": 4,
+    "stars": [
+      19780,
+      19921,
+      18597,
+      17440
+    ],
+    "lines": [
+      [
+        19780,
+        19921,
+        18597,
+        17440,
+        19780
+      ]
+    ],
+    "connections": [
+      [
+        19780,
+        19921
+      ],
+      [
+        19921,
+        18597
+      ],
+      [
+        18597,
+        17440
+      ],
+      [
+        17440,
+        19780
+      ]
+    ],
+    "image": {
+      "file": "illustrations/reticulum.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchors": [
+        {
+          "pos": [
+            47,
+            56
+          ],
+          "hip": 18597
+        },
+        {
+          "pos": [
+            78,
+            88
+          ],
+          "hip": 19780
+        },
+        {
+          "pos": [
+            16,
+            111
+          ],
+          "hip": 19921
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Reticulum.md",
+      "title": "Reticulum",
+      "aliases": [
+        "Reticle"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Sgr": {
+    "iau": "Sgr",
+    "name": "Sagittarius",
+    "english": "Archer",
+    "starCount": 21,
+    "connectionCount": 24,
+    "stars": [
+      89931,
+      90496,
+      89642,
+      90185,
+      88635,
+      87072,
+      93506,
+      92041,
+      89341,
+      93864,
+      92855,
+      93085,
+      93683,
+      94820,
+      95168,
+      96406,
+      98688,
+      98412,
+      98032,
+      95347,
+      95294
+    ],
+    "lines": [
+      [
+        89931,
+        90496
+      ],
+      [
+        89642,
+        90185,
+        88635,
+        87072
+      ],
+      [
+        88635,
+        89931,
+        90185,
+        93506,
+        92041,
+        89931
+      ],
+      [
+        92041,
+        90496,
+        89341
+      ],
+      [
+        93506,
+        93864,
+        92855,
+        92041
+      ],
+      [
+        92855,
+        93085,
+        93683,
+        94820,
+        95168
+      ],
+      [
+        93864,
+        96406,
+        98688,
+        98412,
+        98032,
+        95347
+      ],
+      [
+        98032,
+        95294
+      ]
+    ],
+    "connections": [
+      [
+        89931,
+        90496
+      ],
+      [
+        89642,
+        90185
+      ],
+      [
+        90185,
+        88635
+      ],
+      [
+        88635,
+        87072
+      ],
+      [
+        88635,
+        89931
+      ],
+      [
+        89931,
+        90185
+      ],
+      [
+        90185,
+        93506
+      ],
+      [
+        93506,
+        92041
+      ],
+      [
+        92041,
+        89931
+      ],
+      [
+        92041,
+        90496
+      ],
+      [
+        90496,
+        89341
+      ],
+      [
+        93506,
+        93864
+      ],
+      [
+        93864,
+        92855
+      ],
+      [
+        92855,
+        92041
+      ],
+      [
+        92855,
+        93085
+      ],
+      [
+        93085,
+        93683
+      ],
+      [
+        93683,
+        94820
+      ],
+      [
+        94820,
+        95168
+      ],
+      [
+        93864,
+        96406
+      ],
+      [
+        96406,
+        98688
+      ],
+      [
+        98688,
+        98412
+      ],
+      [
+        98412,
+        98032
+      ],
+      [
+        98032,
+        95347
+      ],
+      [
+        98032,
+        95294
+      ]
+    ],
+    "image": {
+      "file": "illustrations/sagittarius.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            96,
+            82
+          ],
+          "hip": 95168
+        },
+        {
+          "pos": [
+            307,
+            492
+          ],
+          "hip": 95294
+        },
+        {
+          "pos": [
+            506,
+            100
+          ],
+          "hip": 87072
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Sagittarius.md",
+      "title": "Sagittarius",
+      "aliases": [
+        "Archer"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Sco": {
+    "iau": "Sco",
+    "name": "Scorpius",
+    "english": "Scorpion",
+    "starCount": 13,
+    "connectionCount": 12,
+    "stars": [
+      85927,
+      86670,
+      87073,
+      86228,
+      84143,
+      82671,
+      82514,
+      82396,
+      81266,
+      80763,
+      78401,
+      78265,
+      78820
+    ],
+    "lines": [
+      [
+        85927,
+        86670,
+        87073,
+        86228,
+        84143,
+        82671,
+        82514,
+        82396,
+        81266,
+        80763,
+        78401
+      ],
+      [
+        80763,
+        78265
+      ],
+      [
+        80763,
+        78820
+      ]
+    ],
+    "connections": [
+      [
+        85927,
+        86670
+      ],
+      [
+        86670,
+        87073
+      ],
+      [
+        87073,
+        86228
+      ],
+      [
+        86228,
+        84143
+      ],
+      [
+        84143,
+        82671
+      ],
+      [
+        82671,
+        82514
+      ],
+      [
+        82514,
+        82396
+      ],
+      [
+        82396,
+        81266
+      ],
+      [
+        81266,
+        80763
+      ],
+      [
+        80763,
+        78401
+      ],
+      [
+        80763,
+        78265
+      ],
+      [
+        80763,
+        78820
+      ]
+    ],
+    "image": {
+      "file": "illustrations/scorpius.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            447,
+            29
+          ],
+          "hip": 78820
+        },
+        {
+          "pos": [
+            62,
+            365
+          ],
+          "hip": 85927
+        },
+        {
+          "pos": [
+            217,
+            462
+          ],
+          "hip": 82729
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Scorpius.md",
+      "title": "Scorpius",
+      "aliases": [
+        "Scorpion"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Ser": {
+    "iau": "Ser",
+    "name": "Serpens",
+    "english": "Serpent",
+    "starCount": 12,
+    "connectionCount": 11,
+    "stars": [
+      77516,
+      77622,
+      77070,
+      76276,
+      77233,
+      78072,
+      77450,
+      92946,
+      89962,
+      86565,
+      86263,
+      84880
+    ],
+    "lines": [
+      [
+        77516,
+        77622,
+        77070,
+        76276,
+        77233,
+        78072,
+        77450,
+        77233
+      ],
+      [
+        92946,
+        89962,
+        86565,
+        86263,
+        84880
+      ]
+    ],
+    "connections": [
+      [
+        77516,
+        77622
+      ],
+      [
+        77622,
+        77070
+      ],
+      [
+        77070,
+        76276
+      ],
+      [
+        76276,
+        77233
+      ],
+      [
+        77233,
+        78072
+      ],
+      [
+        78072,
+        77450
+      ],
+      [
+        77450,
+        77233
+      ],
+      [
+        92946,
+        89962
+      ],
+      [
+        89962,
+        86565
+      ],
+      [
+        86565,
+        86263
+      ],
+      [
+        86263,
+        84880
+      ]
+    ],
+    "image": null,
+    "note": {
+      "path": "constellations/Serpens.md",
+      "title": "Serpens",
+      "aliases": [
+        "Serpent"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Sex": {
+    "iau": "Sex",
+    "name": "Sextans",
+    "english": "Sextant",
+    "starCount": 2,
+    "connectionCount": 1,
+    "stars": [
+      51437,
+      49641
+    ],
+    "lines": [
+      [
+        51437,
+        49641
+      ]
+    ],
+    "connections": [
+      [
+        51437,
+        49641
+      ]
+    ],
+    "image": {
+      "file": "illustrations/sextans.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchors": [
+        {
+          "pos": [
+            26,
+            54
+          ],
+          "hip": 51437
+        },
+        {
+          "pos": [
+            68,
+            36
+          ],
+          "hip": 49641
+        },
+        {
+          "pos": [
+            118,
+            84
+          ],
+          "hip": 48437
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Sextans.md",
+      "title": "Sextans",
+      "aliases": [
+        "Sextant"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Men": {
+    "iau": "Men",
+    "name": "Mensa",
+    "english": "Table Mountain",
+    "starCount": 2,
+    "connectionCount": 1,
+    "stars": [
+      25918,
+      21949
+    ],
+    "lines": [
+      [
+        25918,
+        21949
+      ]
+    ],
+    "connections": [
+      [
+        25918,
+        21949
+      ]
+    ],
+    "image": {
+      "file": "illustrations/mensa.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            100,
+            67
+          ],
+          "hip": 21949
+        },
+        {
+          "pos": [
+            179,
+            136
+          ],
+          "hip": 25918
+        },
+        {
+          "pos": [
+            54,
+            183
+          ],
+          "hip": 29134
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Mensa.md",
+      "title": "Mensa",
+      "aliases": [
+        "Table Mountain"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Tau": {
+    "iau": "Tau",
+    "name": "Taurus",
+    "english": "Bull",
+    "starCount": 12,
+    "connectionCount": 12,
+    "stars": [
+      25428,
+      21881,
+      20889,
+      21421,
+      26451,
+      20205,
+      20455,
+      18724,
+      15900,
+      20894,
+      20648,
+      17847
+    ],
+    "lines": [
+      [
+        25428,
+        21881,
+        20889
+      ],
+      [
+        21421,
+        26451
+      ],
+      [
+        20205,
+        20455
+      ],
+      [
+        20205,
+        18724,
+        15900
+      ],
+      [
+        21421,
+        20889
+      ],
+      [
+        21421,
+        20894,
+        20205
+      ],
+      [
+        20889,
+        20648,
+        20455,
+        17847
+      ]
+    ],
+    "connections": [
+      [
+        25428,
+        21881
+      ],
+      [
+        21881,
+        20889
+      ],
+      [
+        21421,
+        26451
+      ],
+      [
+        20205,
+        20455
+      ],
+      [
+        20205,
+        18724
+      ],
+      [
+        18724,
+        15900
+      ],
+      [
+        21421,
+        20889
+      ],
+      [
+        21421,
+        20894
+      ],
+      [
+        20894,
+        20205
+      ],
+      [
+        20889,
+        20648
+      ],
+      [
+        20648,
+        20455
+      ],
+      [
+        20455,
+        17847
+      ]
+    ],
+    "image": {
+      "file": "illustrations/taurus.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            13,
+            92
+          ],
+          "hip": 26451
+        },
+        {
+          "pos": [
+            399,
+            438
+          ],
+          "hip": 15900
+        },
+        {
+          "pos": [
+            382,
+            192
+          ],
+          "hip": 17847
+        }
+      ]
+    },
+    "note": null
+  },
+  "Tel": {
+    "iau": "Tel",
+    "name": "Telescopium",
+    "english": "Telescope",
+    "starCount": 2,
+    "connectionCount": 1,
+    "stars": [
+      90568,
+      90422
+    ],
+    "lines": [
+      [
+        90568,
+        90422
+      ]
+    ],
+    "connections": [
+      [
+        90568,
+        90422
+      ]
+    ],
+    "image": {
+      "file": "illustrations/telescopium.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchors": [
+        {
+          "pos": [
+            30,
+            66
+          ],
+          "hip": 91589
+        },
+        {
+          "pos": [
+            101,
+            40
+          ],
+          "hip": 90422
+        },
+        {
+          "pos": [
+            106,
+            92
+          ],
+          "hip": 90568
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Telescopium.md",
+      "title": "Telescopium",
+      "aliases": [
+        "Telescope"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Tuc": {
+    "iau": "Tuc",
+    "name": "Tucana",
+    "english": "Toucan",
+    "starCount": 4,
+    "connectionCount": 3,
+    "stars": [
+      110130,
+      114996,
+      1599,
+      2484
+    ],
+    "lines": [
+      [
+        110130,
+        114996,
+        1599
+      ],
+      [
+        114996,
+        2484
+      ]
+    ],
+    "connections": [
+      [
+        110130,
+        114996
+      ],
+      [
+        114996,
+        1599
+      ],
+      [
+        114996,
+        2484
+      ]
+    ],
+    "image": {
+      "file": "illustrations/tucana.webp",
+      "size": [
+        256,
+        256
+      ],
+      "anchors": [
+        {
+          "pos": [
+            53,
+            121
+          ],
+          "hip": 2484
+        },
+        {
+          "pos": [
+            154,
+            86
+          ],
+          "hip": 114996
+        },
+        {
+          "pos": [
+            224,
+            141
+          ],
+          "hip": 110130
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Tucana.md",
+      "title": "Tucana",
+      "aliases": [
+        "Toucan"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Tri": {
+    "iau": "Tri",
+    "name": "Triangulum",
+    "english": "Triangle",
+    "starCount": 3,
+    "connectionCount": 3,
+    "stars": [
+      10670,
+      10064,
+      8796
+    ],
+    "lines": [
+      [
+        10670,
+        10064,
+        8796,
+        10670
+      ]
+    ],
+    "connections": [
+      [
+        10670,
+        10064
+      ],
+      [
+        10064,
+        8796
+      ],
+      [
+        8796,
+        10670
+      ]
+    ],
+    "image": {
+      "file": "illustrations/triangulum.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchors": [
+        {
+          "pos": [
+            16,
+            42
+          ],
+          "hip": 10064
+        },
+        {
+          "pos": [
+            13,
+            70
+          ],
+          "hip": 10559
+        },
+        {
+          "pos": [
+            97,
+            78
+          ],
+          "hip": 8796
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Triangulum.md",
+      "title": "Triangulum",
+      "aliases": [
+        "Triangle"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Tra": {
+    "iau": "Tra",
+    "name": "Triangulum Australe",
+    "english": "Southern Triangle",
+    "starCount": 3,
+    "connectionCount": 3,
+    "stars": [
+      82273,
+      74946,
+      77952
+    ],
+    "lines": [
+      [
+        82273,
+        74946,
+        77952,
+        82273
+      ]
+    ],
+    "connections": [
+      [
+        82273,
+        74946
+      ],
+      [
+        74946,
+        77952
+      ],
+      [
+        77952,
+        82273
+      ]
+    ],
+    "image": {
+      "file": "illustrations/triangulum-australe.webp",
+      "size": [
+        128,
+        128
+      ],
+      "anchors": [
+        {
+          "pos": [
+            26,
+            12
+          ],
+          "hip": 77952
+        },
+        {
+          "pos": [
+            108,
+            15
+          ],
+          "hip": 74946
+        },
+        {
+          "pos": [
+            60,
+            106
+          ],
+          "hip": 82273
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Triangulum Australe.md",
+      "title": "Triangulum Australe",
+      "aliases": [
+        "Southern Triangle"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Aqr": {
+    "iau": "Aqr",
+    "name": "Aquarius",
+    "english": "Water Bearer",
+    "starCount": 15,
+    "connectionCount": 14,
+    "stars": [
+      106278,
+      109074,
+      110395,
+      110960,
+      111497,
+      112961,
+      114855,
+      115438,
+      110003,
+      109139,
+      111123,
+      112716,
+      113136,
+      114341,
+      102618
+    ],
+    "lines": [
+      [
+        106278,
+        109074,
+        110395,
+        110960,
+        111497,
+        112961,
+        114855,
+        115438
+      ],
+      [
+        109074,
+        110003,
+        109139
+      ],
+      [
+        110003,
+        111123,
+        112716,
+        113136,
+        114341
+      ],
+      [
+        102618,
+        106278
+      ]
+    ],
+    "connections": [
+      [
+        106278,
+        109074
+      ],
+      [
+        109074,
+        110395
+      ],
+      [
+        110395,
+        110960
+      ],
+      [
+        110960,
+        111497
+      ],
+      [
+        111497,
+        112961
+      ],
+      [
+        112961,
+        114855
+      ],
+      [
+        114855,
+        115438
+      ],
+      [
+        109074,
+        110003
+      ],
+      [
+        110003,
+        109139
+      ],
+      [
+        110003,
+        111123
+      ],
+      [
+        111123,
+        112716
+      ],
+      [
+        112716,
+        113136
+      ],
+      [
+        113136,
+        114341
+      ],
+      [
+        102618,
+        106278
+      ]
+    ],
+    "image": {
+      "file": "illustrations/aquarius.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            144,
+            464
+          ],
+          "hip": 115438
+        },
+        {
+          "pos": [
+            179,
+            98
+          ],
+          "hip": 109074
+        },
+        {
+          "pos": [
+            465,
+            49
+          ],
+          "hip": 102618
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Aquarius.md",
+      "title": "Aquarius",
+      "aliases": [
+        "Water Bearer"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Vir": {
+    "iau": "Vir",
+    "name": "Virgo",
+    "english": "Maiden",
+    "starCount": 12,
+    "connectionCount": 12,
+    "stars": [
+      57380,
+      60030,
+      61941,
+      65474,
+      69427,
+      69701,
+      71957,
+      66249,
+      68520,
+      72220,
+      63090,
+      63608
+    ],
+    "lines": [
+      [
+        57380,
+        60030,
+        61941,
+        65474,
+        69427,
+        69701,
+        71957
+      ],
+      [
+        65474,
+        66249,
+        68520,
+        72220
+      ],
+      [
+        66249,
+        63090,
+        63608
+      ],
+      [
+        63090,
+        61941
+      ]
+    ],
+    "connections": [
+      [
+        57380,
+        60030
+      ],
+      [
+        60030,
+        61941
+      ],
+      [
+        61941,
+        65474
+      ],
+      [
+        65474,
+        69427
+      ],
+      [
+        69427,
+        69701
+      ],
+      [
+        69701,
+        71957
+      ],
+      [
+        65474,
+        66249
+      ],
+      [
+        66249,
+        68520
+      ],
+      [
+        68520,
+        72220
+      ],
+      [
+        66249,
+        63090
+      ],
+      [
+        63090,
+        63608
+      ],
+      [
+        63090,
+        61941
+      ]
+    ],
+    "image": {
+      "file": "illustrations/virgo.webp",
+      "size": [
+        512,
+        512
+      ],
+      "anchors": [
+        {
+          "pos": [
+            65,
+            389
+          ],
+          "hip": 72220
+        },
+        {
+          "pos": [
+            454,
+            57
+          ],
+          "hip": 57380
+        },
+        {
+          "pos": [
+            338,
+            382
+          ],
+          "hip": 65474
+        }
+      ]
+    },
+    "note": {
+      "path": "constellations/Virgo.md",
+      "title": "Virgo",
+      "aliases": [
+        "Maiden"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  },
+  "Vel": {
+    "iau": "Vel",
+    "name": "Vela",
+    "english": "Sails",
+    "starCount": 10,
+    "connectionCount": 10,
+    "stars": [
+      39953,
+      42536,
+      42913,
+      45941,
+      48774,
+      52727,
+      51986,
+      50191,
+      46651,
+      44816
+    ],
+    "lines": [
+      [
+        39953,
+        42536,
+        42913,
+        45941,
+        48774,
+        52727,
+        51986,
+        50191,
+        46651,
+        44816,
+        39953
+      ]
+    ],
+    "connections": [
+      [
+        39953,
+        42536
+      ],
+      [
+        42536,
+        42913
+      ],
+      [
+        42913,
+        45941
+      ],
+      [
+        45941,
+        48774
+      ],
+      [
+        48774,
+        52727
+      ],
+      [
+        52727,
+        51986
+      ],
+      [
+        51986,
+        50191
+      ],
+      [
+        50191,
+        46651
+      ],
+      [
+        46651,
+        44816
+      ],
+      [
+        44816,
+        39953
+      ]
+    ],
+    "image": null,
+    "note": {
+      "path": "constellations/Vela.md",
+      "title": "Vela",
+      "aliases": [
+        "Sails"
+      ],
+      "tags": [
+        "constellation"
+      ],
+      "harvested": "2026-09-09",
+      "hasIau": true
+    }
+  }
+}
