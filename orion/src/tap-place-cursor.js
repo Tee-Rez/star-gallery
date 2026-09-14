@@ -1,4 +1,13 @@
 // tap-place-cursor.js - Star-shaped cursor for wall placement
+//
+// The cursor entity is a CHILD OF THE CAMERA, parked straight ahead at placementDistance.
+// That is the whole trick: parented to the camera it stays pinned to the centre of the
+// screen and faces the viewer by construction, with no per-frame work and nothing to drift.
+//
+// It used to raycast against an invisible plane instead, and that plane was a child of the
+// camera while being positioned in WORLD space every frame - so the camera's own transform
+// was applied to it twice and the hit point wandered as you moved. The cursor, and the spot
+// the constellation landed on, wandered with it.
 const tapPlaceCursorComponent = {
   schema: {
     placementDistance: {type: 'number', default: 2.5},  // Distance from camera to place cursor
@@ -7,18 +16,10 @@ const tapPlaceCursorComponent = {
   init() {
     console.log('tap-place-cursor component initializing...')
 
-    this.raycaster = new THREE.Raycaster()
     this.camera = document.getElementById('camera')
 
     if (!this.camera) {
       console.error('Camera not found!')
-      return
-    }
-
-    this.threeCamera = this.camera.getObject3D('camera')
-
-    if (!this.threeCamera) {
-      console.error('Three.js camera not found!')
       return
     }
 
@@ -27,14 +28,9 @@ const tapPlaceCursorComponent = {
     // Track if constellation has been placed
     this.hasPlaced = false
 
-    // 2D coordinates of the raycast origin (center of screen)
-    this.rayOrigin = new THREE.Vector2(0, 0)
-
-    this.cursorLocation = new THREE.Vector3(0, 0, 0)
-    this.cursorNormal = new THREE.Vector3(0, 0, 1)
-
-    // Create invisible plane for raycasting when no surface detected
-    this.createVirtualWall()
+    // Sit dead ahead of the camera. Set here rather than trusting the markup so
+    // placementDistance stays the single source of truth for where this lands.
+    this.el.object3D.position.set(0, 0, -this.data.placementDistance)
 
     // Bind handlers
     this.handleClick = this.handleClick.bind(this)
@@ -166,33 +162,17 @@ const tapPlaceCursorComponent = {
     }
   },
 
-  createVirtualWall() {
-    console.log('Creating virtual wall...')
-
-    try {
-      // Create an invisible plane in front of camera for cursor placement
-      this.virtualWall = document.createElement('a-plane')
-      this.virtualWall.setAttribute('id', 'virtual-wall')
-      this.virtualWall.setAttribute('width', '100')
-      this.virtualWall.setAttribute('height', '100')
-      this.virtualWall.setAttribute('position', `0 0 -${this.data.placementDistance}`)
-      this.virtualWall.setAttribute('rotation', '90 0 0')
-      this.virtualWall.setAttribute('visible', 'false')
-      this.virtualWall.setAttribute('material', {
-        opacity: 0,
-        transparent: true,
-      })
-
-      this.camera.appendChild(this.virtualWall)
-      console.log('Virtual wall created successfully')
-    } catch (error) {
-      console.error('Error creating virtual wall:', error)
-    }
+  // Where the cursor is right now, in world space: straight out from the camera. Read from
+  // the object3D rather than recomputed, so it is exactly the spot the viewer is looking at.
+  cursorWorldPosition() {
+    return this.el.object3D.getWorldPosition(new THREE.Vector3())
   },
 
   placeConstellation() {
     console.log('========== PLACING CONSTELLATION ==========')
-    console.log('Cursor location:', this.cursorLocation)
+
+    const cursorLocation = this.cursorWorldPosition()
+    console.log('Cursor location:', cursorLocation)
 
     this.hasPlaced = true
 
@@ -215,18 +195,18 @@ const tapPlaceCursorComponent = {
 
     // Position at cursor location
     root.setAttribute('position', {
-      x: this.cursorLocation.x,
-      y: this.cursorLocation.y,
-      z: this.cursorLocation.z,
+      x: cursorLocation.x,
+      y: cursorLocation.y,
+      z: cursorLocation.z,
     })
-    console.log('Root positioned at:', this.cursorLocation)
+    console.log('Root positioned at:', cursorLocation)
 
     // Calculate rotation to face the camera
     const cameraPosition = new THREE.Vector3()
-    this.threeCamera.getWorldPosition(cameraPosition)
+    this.camera.object3D.getWorldPosition(cameraPosition)
 
     const direction = new THREE.Vector3()
-    direction.subVectors(cameraPosition, this.cursorLocation).normalize()
+    direction.subVectors(cameraPosition, cursorLocation).normalize()
 
     // Calculate angle for Y rotation (yaw)
     const angle = Math.atan2(direction.x, direction.z) * 180 / Math.PI
@@ -243,48 +223,6 @@ const tapPlaceCursorComponent = {
     console.log('constellationPlaced event emitted')
 
     console.log('========== CONSTELLATION PLACED SUCCESSFULLY ==========')
-  },
-
-  tick() {
-    if (this.hasPlaced) return
-
-    if (!this.virtualWall || !this.threeCamera) return
-
-    // Update virtual wall position to always be in front of camera
-    const cameraWorldPos = new THREE.Vector3()
-    this.threeCamera.getWorldPosition(cameraWorldPos)
-
-    const cameraForward = new THREE.Vector3(0, 0, -1)
-    cameraForward.applyQuaternion(this.threeCamera.quaternion)
-
-    const wallPosition = cameraWorldPos.clone()
-    wallPosition.addScaledVector(cameraForward, this.data.placementDistance)
-
-    this.virtualWall.object3D.position.copy(wallPosition)
-    this.virtualWall.object3D.quaternion.copy(this.threeCamera.quaternion)
-
-    // Raycast from camera center to find surface
-    this.raycaster.setFromCamera(this.rayOrigin, this.threeCamera)
-
-    // Try to intersect with virtual wall
-    const intersects = this.raycaster.intersectObject(this.virtualWall.object3D, true)
-
-    if (intersects.length > 0) {
-      const [intersect] = intersects
-      this.cursorLocation.copy(intersect.point)
-      this.cursorNormal.copy(intersect.face.normal)
-    }
-
-    // Update cursor position and rotation
-    this.el.object3D.position.copy(this.cursorLocation)
-
-    // Make cursor face camera (billboard effect)
-    this.el.object3D.quaternion.copy(this.threeCamera.quaternion)
-
-    // Offset slightly toward camera to avoid z-fighting
-    const offset = new THREE.Vector3(0, 0, 0.01)
-    offset.applyQuaternion(this.threeCamera.quaternion)
-    this.el.object3D.position.add(offset)
   },
 
   remove() {

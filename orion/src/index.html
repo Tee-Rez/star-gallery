@@ -172,6 +172,38 @@
     position="0 1.6 0"
     raycaster="objects: .cantap, .clickable"
     cursor="fuse: false; rayOrigin: mouse;">
+    <!-- Star-shaped cursor for placement -->
+    <a-entity id="star-cursor" tap-place-cursor="placementDistance: 5" position="0 0 -5">
+      <!-- Outer ring -->
+      <a-plane
+        width="1"
+        height="1"
+        material="shader: flat; src: #star-burst; blending: additive; side: front; transparent: true"
+        position="0 0 0">
+      </a-plane>
+      <!-- <a-ring radius-inner="0.04" radius-outer="0.08"
+        material="color: #00ff00; shader: flat; opacity: 0.6; transparent: true; side: double" position="0 0 0">
+      </a-ring>
+
+      <a-plane width="0.02" height="0.15" position="0 0 0.001"
+        material="color: #00ff00; shader: flat; opacity: 0.9; transparent: true; side: double">
+      </a-plane>
+
+      <a-plane width="0.15" height="0.02" position="0 0 0.001"
+        material="color: #00ff00; shader: flat; opacity: 0.9; transparent: true; side: double">
+      </a-plane>
+      <a-plane width="0.02" height="0.12" position="0 0 0.001" rotation="0 0 45"
+        material="color: #00ff00; shader: flat; opacity: 0.9; transparent: true; side: double">
+      </a-plane>
+
+      <a-plane width="0.02" height="0.12" position="0 0 0.001" rotation="0 0 -45"
+        material="color: #00ff00; shader: flat; opacity: 0.9; transparent: true; side: double">
+      </a-plane>
+
+      <a-animation attribute="scale" from="0.8 0.8 0.8" to="1.2 1.2 1.2" dur="1000" easing="ease-in-out-sine"
+        direction="alternate" repeat="indefinite">
+      </a-animation> -->
+    </a-entity>
   </a-camera>
 
   <a-assets>
@@ -187,39 +219,6 @@
 
   <a-light type="directional" intensity="0.5" position="1 1 1"></a-light>
   <a-light type="ambient" intensity="0.7"></a-light>
-
-  <!-- Star-shaped cursor for placement -->
-  <a-entity id="star-cursor" tap-place-cursor="placementDistance: 5" position="0 0 -2.5">
-    <!-- Outer ring -->
-    <a-plane
-      width="1"
-      height="1"
-      material="shader: flat; src: #star-burst; blending: additive; side: front; transparent: true"
-      position="0 0 0">
-    </a-plane>
-    <!-- <a-ring radius-inner="0.04" radius-outer="0.08"
-      material="color: #00ff00; shader: flat; opacity: 0.6; transparent: true; side: double" position="0 0 0">
-    </a-ring>
-
-    <a-plane width="0.02" height="0.15" position="0 0 0.001"
-      material="color: #00ff00; shader: flat; opacity: 0.9; transparent: true; side: double">
-    </a-plane>
-
-    <a-plane width="0.15" height="0.02" position="0 0 0.001"
-      material="color: #00ff00; shader: flat; opacity: 0.9; transparent: true; side: double">
-    </a-plane>
-    <a-plane width="0.02" height="0.12" position="0 0 0.001" rotation="0 0 45"
-      material="color: #00ff00; shader: flat; opacity: 0.9; transparent: true; side: double">
-    </a-plane>
-
-    <a-plane width="0.02" height="0.12" position="0 0 0.001" rotation="0 0 -45"
-      material="color: #00ff00; shader: flat; opacity: 0.9; transparent: true; side: double">
-    </a-plane>
-
-    <a-animation attribute="scale" from="0.8 0.8 0.8" to="1.2 1.2 1.2" dur="1000" easing="ease-in-out-sine"
-      direction="alternate" repeat="indefinite">
-    </a-animation> -->
-  </a-entity>
 
   <!-- Root entity - initially hidden until placement -->
   <a-entity id="root" position="0 0 -10" visible="false">
