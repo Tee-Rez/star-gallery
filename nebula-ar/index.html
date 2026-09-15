@@ -103,7 +103,7 @@
       <button id="clear">Clear</button>
     </div>
     <div id="results"></div>
-    <p class="note"><b>clouds</b> splits the gas into that many separate, smaller clouds; the second takes the complementary hue (+180&deg;) and later ones fan out from there. <b>arrangement</b> reshuffles where they sit. The nebula is placed 1.5 m ahead when tracking starts &mdash; walk around it. "Place here" drops it in front of you again. Benchmark measures 8s including the camera feed, which is the number that matters. 1% low is the worst frames.</p>
+    <p class="note"><b>clouds</b> splits the gas into that many separate, smaller clouds; the second takes the complementary hue (+180&deg;) and later ones fan out from there. <b>arrangement</b> reshuffles where they sit. <b>clumping</b> makes some regions of a cloud far denser than others (<b>clump size</b> sets how big those regions are), and <b>colour spread</b> widens the hue gradient and varies it across the cloud instead of only where it is dense. The nebula is placed 1.5 m ahead when tracking starts &mdash; walk around it. "Place here" drops it in front of you again. Benchmark measures 8s including the camera feed, which is the number that matters. 1% low is the worst frames.</p>
   </div>
 
   <script>
@@ -152,6 +152,23 @@
         LAYOUT = out; LAYOUT_KEY = key
         return LAYOUT
       }
+      // A slow, large-scale field used twice: to make some regions of a cloud much denser
+      // than others, and (baked separately) to vary colour independently of density.
+      function lowFreq(x, y, z, scale, seed) {
+        return fbm(x * scale + seed, y * scale + seed * 0.7, z * scale + seed * 1.3, 2)
+      }
+      function tintAt(x, y, z, P) {
+        var L = LAYOUT.length ? LAYOUT[0] : {seed: 0}, best = -1, t = 0.5
+        for (var i = 0; i < LAYOUT.length; i++) {
+          var c = LAYOUT[i]
+          var dx = x - c.x, dy = y - c.y, dz = z - c.z
+          var q = 1 - Math.min(1, (dx * dx + dy * dy + dz * dz) / (c.r * c.r))
+          if (q > best) { best = q; L = c }
+        }
+        t = lowFreq(x, y, z, P.turbulence * 0.55, L.seed + 61.7)
+        return Math.max(0, Math.min(1, (t - 0.28) / 0.44))
+      }
+
       function densityAt(x, y, z, P) {
         var best = 0, bestCore = 0, bestIdx = 0
         for (var ci = 0; ci < LAYOUT.length; ci++) {
@@ -169,6 +186,11 @@
           d *= Math.pow(fbm(x * t + 11.3 + sd, y * t + 4.7 + sd, z * t + 19.1 + sd, 4), P.contrast)
           var du = ridged(x * t * .65 + 51.2 + sd, y * t * .65 + 8.4 + sd, z * t * .65 + 33.9 + sd, 3)
           d *= 1 - P.dust * du * du
+          // Patchiness: some parts of the same cloud come out far denser than others.
+          if (P.clump > 0) {
+            var cl = lowFreq(x, y, z, t * P.clumpScale, sd + 137.1)
+            d *= (1 - P.clump) + P.clump * 2.15 * cl
+          }
           if (d > best) { best = d; bestCore = Math.min(1, b); bestIdx = ci }
         }
         return {d: Math.max(0, best), core: bestCore, cloud: bestIdx}
@@ -193,7 +215,7 @@
           'in vec3 vLocal;', 'out vec4 fragColor;',
           'uniform vec3 uCamLocal, uHa, uOiii;',
           'uniform float uSteps,uDensity,uAbsorb,uEmission,uTurb,uContrast,uDust,uCoreGain,uFrame,uLight;',
-          useTex ? 'uniform vec3 uCloudA[6]; uniform vec3 uCloudB[6]; uniform int uCloudN;' : '',
+          useTex ? 'uniform vec3 uCloudA[6]; uniform vec3 uCloudB[6]; uniform int uCloudN; uniform float uSpread;' : '',
           useTex ? 'uniform sampler3D uVol;' : NOISE,
           'const vec4 C0=vec4(0.06,0.04,-0.03,0.20); const vec4 C1=vec4(-0.13,-0.06,0.07,0.15);',
           'const vec4 C2=vec4(0.02,-0.11,0.10,0.13); const vec4 C3=vec4(-0.05,0.12,0.04,0.11);',
@@ -224,10 +246,14 @@
           '  if(d>0.002){',
           '   float a=1.0-exp(-d*uAbsorb*dt);',
           useTex ? [
-            '   float raw = texture(uVol, p+0.5).r;',
-            // Densest gas reads as the core colour - that is where the hot stars are.
-            '   float c = smoothstep(0.30, 0.85, raw);',
-            '   float g = texture(uVol, p+0.5).g * float(max(1, uCloudN - 1));',
+            '   vec4 vol = texture(uVol, p+0.5);',
+            '   float raw = vol.r;',
+            // Density still drives colour, but uSpread widens that gradient and blends in
+            // a baked tint field so hue varies across the cloud, not only where it is dense.
+            '   float lo = 0.30 - uSpread * 0.26, hi = 0.85 - uSpread * 0.45;',
+            '   float cd = smoothstep(lo, max(lo + 0.05, hi), raw);',
+            '   float c = clamp(mix(cd, vol.b, uSpread * 0.65), 0.0, 1.0);',
+            '   float g = vol.g * float(max(1, uCloudN - 1));',
             '   int k0 = clamp(int(floor(g)), 0, uCloudN - 1);',
             '   int k1 = clamp(k0 + 1, 0, uCloudN - 1);',
             '   float kf = fract(g);',
@@ -297,7 +323,7 @@
           count: 5000, sizeRatio: 0.04, opacity: 0.24, dustAmount: 0.55,
           steps: 40, density: 4.0, absorb: 2.6, emission: 2.0, light: 1, texSize: 64,
           turbulence: 3.6, contrast: 3.2, dust: 0.8, coreGain: 0.9, scale: 1.0,
-          clouds: 1, layout: 0,
+          clouds: 1, layout: 0, clump: 0.45, clumpScale: 0.35, spread: 0.5,
           baseHue: 6, coreHue: 168, sat: 0.72, partCount: 1200, partSize: 2.2,
           partHue: 40, partTwinkle: 0.6, partDrift: 0.006
         },
@@ -361,20 +387,23 @@
 
         bake: function (size) {
           var P = window.NEBULA.P
-          var key = size + ':' + P.turbulence + ':' + P.contrast + ':' + P.dust + ':' + P.coreGain + ':' + P.clouds + ':' + P.layout
+          var key = size + ':' + P.turbulence + ':' + P.contrast + ':' + P.dust + ':' + P.coreGain + ':' + P.clouds + ':' + P.layout + ':' + P.clump + ':' + P.clumpScale
           if (this.volTex && this.volKey === key) return this.volTex
           ensureLayout(P)
-          var t0 = performance.now(), data = new Uint8Array(size * size * size * 2), i = 0
+          var t0 = performance.now(), data = new Uint8Array(size * size * size * 4), i = 0
           var span = Math.max(1, Math.round(P.clouds) - 1)
           for (var z = 0; z < size; z++) for (var y = 0; y < size; y++) for (var x = 0; x < size; x++) {
             var s = densityAt(x / (size - 1) - .5, y / (size - 1) - .5, z / (size - 1) - .5, P)
+            var px = x / (size - 1) - .5, py = y / (size - 1) - .5, pz = z / (size - 1) - .5
             data[i++] = Math.max(0, Math.min(255, Math.round(s.d * 255)))
             data[i++] = Math.round(255 * s.cloud / span)
+            data[i++] = Math.round(255 * tintAt(px, py, pz, P))
+            data[i++] = 255
           }
           var Tex3D = THREE.Data3DTexture || THREE.DataTexture3D
           if (this.volTex) this.volTex.dispose()
           var t = new Tex3D(data, size, size, size)
-          t.format = THREE.RGFormat; t.type = THREE.UnsignedByteType
+          t.format = THREE.RGBAFormat; t.type = THREE.UnsignedByteType
           t.minFilter = t.magFilter = THREE.LinearFilter; t.unpackAlignment = 1; t.needsUpdate = true
           this.volTex = t; this.volKey = key
           window.NEBULA.loadNote = 'bake ' + size + '³ x' + Math.round(P.clouds) + ' ' + Math.round(performance.now() - t0) + 'ms'
@@ -418,7 +447,8 @@
               uOiii: {value: new THREE.Vector3().fromArray(hsl(P.coreHue, P.sat, 0.62))},
               uCloudN: {value: Math.max(1, Math.round(P.clouds))},
               uCloudA: {value: cloudPalette(P, 0.55, 'baseHue')},
-              uCloudB: {value: cloudPalette(P, 0.62, 'coreHue')}
+              uCloudB: {value: cloudPalette(P, 0.62, 'coreHue')},
+              uSpread: {value: P.spread}
             }
             if (useTex) u.uVol = {value: this.bake(P.texSize)}
             else window.NEBULA.loadNote = 'procedural'
@@ -454,6 +484,10 @@
             if (s.d <= 0 || Math.random() > Math.min(1, s.d * 2.6)) continue
             pos.push(x, y, z)
             var warm = warms[Math.min(5, s.cloud || 0)]
+            if (P.spread > 0) {
+              var tv = (tintAt(x, y, z, P) - 0.5) * P.spread
+              warm = [warm[0] * (1 - tv * 0.5), warm[1] * (1 + tv * 0.15), warm[2] * (1 + tv * 0.6)]
+            }
             var thick = Math.min(1, s.d * 1.8)
             var hot = Math.min(1, s.core * 0.8)
             col.push(
@@ -511,8 +545,8 @@
     (function () {
       'use strict'
       var N = window.NEBULA
-      var COLOUR = ['baseHue', 'coreHue', 'sat']
-      var SHAPE = ['clouds', 'layout']
+      var COLOUR = ['baseHue', 'coreHue', 'sat', 'spread']
+      var SHAPE = ['clouds', 'layout', 'clump', 'clumpScale']
       var MODES = [
         {id: 'points', name: 'Points', sub: 'additive (today)', ctls: ['count', 'sizeRatio', 'opacity', 'contrast', 'dust', 'scale'].concat(SHAPE)},
         {id: 'dust', name: 'Points + Dust', sub: 'absorption pass', ctls: ['count', 'sizeRatio', 'opacity', 'dustAmount', 'scale'].concat(SHAPE)},
@@ -538,7 +572,8 @@
         baseHue: [0, 360, 2, 'cloud hue'], coreHue: [0, 360, 2, 'core hue'], sat: [0, 1, .05, 'saturation'],
         partCount: [0, 6000, 100, 'particles'], partSize: [.5, 8, .1, 'particle size'],
         partHue: [0, 360, 2, 'particle hue'], partTwinkle: [0, 1, .05, 'twinkle'], partDrift: [0, .03, .002, 'drift'],
-        clouds: [1, 6, 1, 'clouds'], layout: [0, 9, 1, 'arrangement']
+        clouds: [1, 6, 1, 'clouds'], layout: [0, 9, 1, 'arrangement'],
+        clump: [0, 1, .05, 'clumping'], clumpScale: [.1, 1.2, .05, 'clump size'], spread: [0, 1, .05, 'colour spread']
       }
       var UNIFORM = {steps: 'uSteps', density: 'uDensity', absorb: 'uAbsorb', emission: 'uEmission',
         light: 'uLight', turbulence: 'uTurb', contrast: 'uContrast', dust: 'uDust'}
@@ -588,15 +623,16 @@
             if (key === 'scale' && c) { var o = host.getObject3D('mesh'); if (o) { o.scale.setScalar(N.P.scale); return } }
             // Shader uniforms update live; anything that changes geometry or the texture rebuilds.
             if (c && c.march && UNIFORM[key]) { c.march.material.uniforms[UNIFORM[key]].value = N.P[key]; return }
-            if (c && c.march && (key === 'baseHue' || key === 'coreHue' || key === 'sat')) {
+            if (c && c.march && (key === 'baseHue' || key === 'coreHue' || key === 'sat' || key === 'spread')) {
               var u = c.march.material.uniforms
               u.uHa.value.fromArray(N.hsl(N.P.baseHue, N.P.sat, 0.55))
               u.uOiii.value.fromArray(N.hsl(N.P.coreHue, N.P.sat, 0.62))
+              if (u.uSpread) u.uSpread.value = N.P.spread
               if (u.uCloudA) {
                 u.uCloudA.value = N.cloudPalette(N.P, 0.55, 'baseHue')
                 u.uCloudB.value = N.cloudPalette(N.P, 0.62, 'coreHue')
               }
-              if (N.modeId !== 'particles') return
+              if (N.modeId !== 'particles' || key !== 'spread') return
             }
             if (c && c.partMat && (key === 'partSize' || key === 'partTwinkle' || key === 'partDrift')) {
               c.partMat.uniforms[key === 'partSize' ? 'uSize' : key === 'partTwinkle' ? 'uTwinkle' : 'uDrift'].value = N.P[key]
