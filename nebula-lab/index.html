@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Nebula Lab</title>
+
+  <!-- three.js comes from the app's own vendored A-Frame build (r137), not a CDN: it is the
+       version the app actually ships, and it cannot fail to load from a third party. -->
+  <script crossorigin="anonymous" src="../app/external/scripts/8frame-1.3.0.min.js"></script>
+
+  <!-- Engine and panel shared with nebula-ar, so the two harnesses cannot drift. -->
+  <link rel="stylesheet" href="../nebula-shared/nebula-ui.css">
+  <script src="../nebula-shared/nebula-core.js"></script>
+</head>
+
+<body>
+  <div id="hud">
+    <div id="fps">--<small>fps</small></div>
+    <div class="bar"><i id="fpsbar"></i></div>
+    <div class="row"><span>frame</span><b id="ms">--</b></div>
+    <div class="row"><span>mode</span><b id="mode">--</b></div>
+    <div class="row"><span>build</span><b id="load">--</b></div>
+    <div class="row"><span>gl</span><b id="gl">--</b></div>
+    <div class="row"><span>render</span><b id="res">--</b></div>
+    <div class="row"><span>cover</span><b id="cover">--</b></div>
+    <div id="bench"></div>
+  </div>
+
+  <button id="toggle">Settings</button>
+  <button id="place">Spin: on</button>
+
+  <div id="panel" class="hidden">
+    <div class="tabs" id="tabs"></div>
+    <div id="ctls"></div>
+    <div class="actions">
+      <button id="run" class="primary">Benchmark 8s</button>
+      <button id="copy">Copy results</button>
+      <button id="clear">Clear</button>
+    </div>
+    <div id="results"></div>
+    <p class="note">Desktop twin of the <a href="../nebula-ar/">AR test</a> &mdash; same engine, same controls, black background instead of a camera feed. Drag to orbit, pinch or scroll to zoom. In <b>Volume + Particles</b> the gas is one cloud marched through procedural fBm and <b>clusters</b> sets how many particle groups sit inside it, each taking the complementary hue. <b>clumping</b> makes some regions far denser; <b>colour spread</b> varies hue across the cloud rather than only where it is dense. Keep <b>cover</b> similar between benchmark runs or the numbers are not comparable.</p>
+  </div>
+
+  <script>
+    (function () {
+      'use strict'
+      var THREE = window.THREE || (window.AFRAME && window.AFRAME.THREE)
+      if (!THREE || !window.NebulaCore) {
+        document.body.insertAdjacentHTML('afterbegin',
+          '<p style="position:fixed;top:40%;left:0;right:0;text-align:center;color:#e4483f;font:16px system-ui;z-index:99">' +
+          'Engine failed to load. Serve this page over HTTP rather than opening the file directly.</p>')
+        return
+      }
+
+      var N = {P: NebulaCore.params(), modeId: 'points', loadNote: '', isGL2: false}
+      var state = {}, current = null, march = null
+
+      var renderer = new THREE.WebGLRenderer({antialias: false, alpha: false, powerPreference: 'high-performance'})
+      renderer.domElement.className = 'nebula-host'
+      renderer.setClearColor(0x06070b, 1)
+      document.body.appendChild(renderer.domElement)
+      N.isGL2 = renderer.capabilities.isWebGL2
+
+      var scene = new THREE.Scene()
+      var camera = new THREE.PerspectiveCamera(55, 1, 0.01, 100)
+      var group = new THREE.Group()
+      scene.add(group)
+
+      // ---- orbit: touch first, mouse second ----
+      var yaw = 0.5, pitch = 0.12, dist = 2.1, spin = true, drag = null, pinch = 0
+      renderer.domElement.addEventListener('pointerdown', function (e) { drag = {x: e.clientX, y: e.clientY} })
+      window.addEventListener('pointerup', function () { drag = null })
+      window.addEventListener('pointermove', function (e) {
+        if (!drag) return
+        yaw -= (e.clientX - drag.x) * 0.006
+        pitch = Math.max(-1.4, Math.min(1.4, pitch + (e.clientY - drag.y) * 0.006))
+        drag = {x: e.clientX, y: e.clientY}
+      })
+      renderer.domElement.addEventListener('touchstart', function (e) {
+        if (e.touches.length === 2) pinch = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY)
+      }, {passive: true})
+      renderer.domElement.addEventListener('touchmove', function (e) {
+        if (e.touches.length === 2 && pinch) {
+          var d = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY)
+          dist = Math.max(0.6, Math.min(8, dist * pinch / d))
+          pinch = d
+        }
+      }, {passive: true})
+      renderer.domElement.addEventListener('wheel', function (e) {
+        dist = Math.max(0.6, Math.min(8, dist * (1 + e.deltaY * 0.001)))
+      }, {passive: true})
+
+      function rebuild() {
+        if (current) { NebulaCore.dispose(current); group.remove(current) }
+        current = null
+        march = null
+        var out = NebulaCore.build(N.P, N.modeId, state, N.isGL2)
+        N.loadNote = out.note
+        window.__lab = {current: null, march: null, state: state}
+        if (!out.object3D) return
+        out.object3D.scale.setScalar(N.P.scale)
+        group.add(out.object3D)
+        current = out.object3D
+        march = out.march
+        window.__lab = {current: current, march: march, state: state}
+      }
+
+      NebulaCore.initUI({
+        tabs: document.getElementById('tabs'),
+        ctls: document.getElementById('ctls'),
+        P: N.P,
+        getMode: function () { return N.modeId },
+        setMode: function (id) { N.modeId = id },
+        rebuild: rebuild,
+        runtime: function () { return {march: march, partMat: state.partMat, object3D: current} }
+      })
+
+      document.getElementById('toggle').onclick = function () { document.getElementById('panel').classList.toggle('hidden') }
+      document.getElementById('place').onclick = function () {
+        spin = !spin
+        this.textContent = 'Spin: ' + (spin ? 'on' : 'off')
+      }
+
+      // Same measure as the AR page, so a coverage figure means the same thing in both.
+      function coverage() {
+        if (!current) return {d: 0, pct: 0}
+        var d = Math.max(0.15, dist)
+        var rpx = (0.5 * N.P.scale * 0.87 / (d * Math.tan(camera.fov * Math.PI / 360))) * (window.innerHeight / 2)
+        return {d: d, pct: Math.min(100, 100 * Math.PI * rpx * rpx / (window.innerWidth * window.innerHeight))}
+      }
+
+      var bench = NebulaCore.Bench('nebula-lab')
+      function drawResults() {
+        var el = document.getElementById('results'), rs = bench.results()
+        el.innerHTML = rs.length ? '<table>' + rs.map(function (r) {
+          return '<tr><td>' + r.name + '</td><td class="n">' + r.avg + ' fps</td><td class="n">' +
+            r.low + ' low</td><td class="n">' + r.ms + ' ms</td><td class="n">' + r.detail + '</td></tr>'
+        }).join('') + '</table>' : ''
+      }
+      drawResults()
+      document.getElementById('run').onclick = function () {
+        var m = NebulaCore.MODES.filter(function (x) { return x.id === N.modeId })[0]
+        bench.start(m.name + ' / ' + m.sub)
+        document.getElementById('bench').textContent = 'warming up...'
+      }
+      document.getElementById('clear').onclick = function () { bench.clear(); drawResults() }
+      document.getElementById('copy').onclick = function () {
+        if (navigator.clipboard) navigator.clipboard.writeText(bench.text())
+        var b = this
+        b.textContent = 'Copied'
+        setTimeout(function () { b.textContent = 'Copy results' }, 1200)
+      }
+
+      function resize() {
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+        renderer.setSize(window.innerWidth, window.innerHeight, false)
+        camera.aspect = window.innerWidth / window.innerHeight
+        camera.updateProjectionMatrix()
+        var s = renderer.getDrawingBufferSize(new THREE.Vector2())
+        document.getElementById('res').textContent = Math.round(s.x) + 'x' + Math.round(s.y)
+      }
+      window.addEventListener('resize', resize)
+
+      var last = performance.now(), acc = [], frame = 0
+      function loop(now) {
+        requestAnimationFrame(loop)
+        var dt = now - last
+        last = now
+        frame++
+        acc.push(dt)
+        if (acc.length > 40) acc.shift()
+
+        if (spin && !bench.running()) yaw += dt * 0.00012
+        camera.position.set(
+          Math.cos(pitch) * Math.sin(yaw) * dist,
+          Math.sin(pitch) * dist,
+          Math.cos(pitch) * Math.cos(yaw) * dist)
+        camera.lookAt(0, 0, 0)
+
+        if (march) {
+          var u = march.material.uniforms
+          march.updateWorldMatrix(true, false)
+          u.uCamLocal.value.copy(march.worldToLocal(camera.position.clone()))
+          u.uFrame.value = (u.uFrame.value + 1) % 64
+        }
+        if (state.partMat) state.partMat.uniforms.uTime.value = now / 1000
+        if (state.partMat) state.partMat.uniforms.uPixH.value = renderer.getDrawingBufferSize(new THREE.Vector2()).y * 0.5
+
+        renderer.render(scene, camera)
+
+        var cv = coverage()
+        if (frame % 10 === 0) {
+          var mean = acc.reduce(function (a, b) { return a + b }, 0) / acc.length, fps = 1000 / mean
+          document.getElementById('fps').innerHTML = fps.toFixed(0) + '<small>fps</small>'
+          document.getElementById('ms').textContent = mean.toFixed(1) + ' ms'
+          var bar = document.getElementById('fpsbar')
+          bar.style.width = Math.min(100, fps / 60 * 100) + '%'
+          bar.style.background = fps > 50 ? '#3fd8c0' : fps > 28 ? '#e8a33d' : '#e4483f'
+          var m = NebulaCore.MODES.filter(function (x) { return x.id === N.modeId })[0]
+          document.getElementById('mode').textContent = m.name.replace('Raymarch', 'RM') + ' ' + m.sub.split(' ')[0]
+          document.getElementById('load').textContent = N.loadNote
+          document.getElementById('gl').textContent = (N.isGL2 ? 'WebGL2' : 'WebGL1') + ' r' + THREE.REVISION
+          document.getElementById('cover').textContent = cv.pct < 0.5 ? '--' : cv.d.toFixed(1) + 'm ' + cv.pct.toFixed(0) + '%'
+        }
+
+        var r = bench.sample(dt, cv.pct, NebulaCore.detailFor(N.P, N.modeId))
+        if (r === 'warm') document.getElementById('bench').textContent = 'warming up...'
+        else if (typeof r === 'string' && r.indexOf('running:') === 0) {
+          if (frame % 10 === 0) document.getElementById('bench').textContent = 'measuring ' + r.split(':')[1] + 's'
+        } else if (r) {
+          document.getElementById('bench').textContent = 'done: ' + r.avg + ' fps'
+          setTimeout(function () { document.getElementById('bench').textContent = '' }, 4000)
+          drawResults()
+        }
+      }
+
+      rebuild()
+      resize()
+      requestAnimationFrame(loop)
+    })()
+  </script>
+</body>
+
+</html>
