@@ -129,12 +129,38 @@
           'uniform float uSeed, uStretch, uFlatten, uFalloff, uWarp;',
           'uniform vec4 uCores[4];',
           useTex ? 'uniform vec3 uCloudA[6]; uniform vec3 uCloudB[6]; uniform int uCloudN;' : '',
+          useTex ? '' : 'uniform float uIsGalaxy, uGalRadius, uGalThick, uGalFlare, uGalBulge, uGalBulgeGain, uGalArms, uGalWind, uGalArmWidth, uGalFalloff;',
           useTex ? 'uniform sampler3D uVol;' : NOISE,
           'float coreAt(vec3 p){ float b=0.0;',
           ' for(int i=0;i<4;i++){ vec3 d=p-uCores[i].xyz; b += exp(-dot(d,d)/(uCores[i].w*uCores[i].w)); }',
           ' return b; }',
+          useTex ? '' : [
+            'float galBulge(vec3 p){ float b = length(p)/max(0.001,uGalBulge); return exp(-b*b); }',
+            'float galaxyDensity(vec3 p){',
+            ' float r = length(p.xz); float rn = r/uGalRadius;',
+            ' if (rn > 1.0) return 0.0;',
+            // The disk thickens toward the rim, the way a real one flares.
+            ' float h = uGalThick * (1.0 + uGalFlare * rn * 2.0);',
+            ' float vert = exp(-(p.y*p.y)/(h*h));',
+            ' float radial = pow(max(0.0, 1.0 - rn), uGalFalloff);',
+            // Logarithmic spiral: the arm phase winds with log(radius).
+            ' float th = atan(p.z, p.x);',
+            ' float phase = th * uGalArms - log(max(rn, 0.05)) * uGalWind;',
+            ' float arm = pow(0.5 + 0.5*cos(phase), uGalArmWidth);',
+            ' float d = (radial * (0.22 + 0.78*arm) + galBulge(p) * uGalBulgeGain) * vert;',
+            ' vec3 w = p;',
+            ' if (uWarp > 0.0) { float k = uTurb*0.5;',
+            '   w += (vec3(fbm(p*k+vec3(uSeed+3.1),2), fbm(p*k+vec3(uSeed+17.7),2), fbm(p*k+vec3(uSeed+31.3),2)) - 0.5) * uWarp * 0.6; }',
+            ' d *= pow(fbm(w*uTurb+vec3(11.3+uSeed,4.7,19.1),4), uContrast);',
+            ' float du=ridged(w*uTurb*0.65+vec3(51.2+uSeed,8.4,33.9),3); d *= 1.0-uDust*du*du;',
+            ' if (uClump > 0.0) { float cl = fbm(w*uTurb*uClumpScale + vec3(137.1+uSeed,95.9,178.3), 2);',
+            '   d *= (1.0 - uClump) + uClump * 2.15 * cl; }',
+            ' return max(d,0.0);',
+            '}',
+          ].join('\n'),
           'float densityAt(vec3 p){',
           useTex ? ' return texture(uVol, p+0.5).r;' : [
+            ' if (uIsGalaxy > 0.5) return galaxyDensity(p);',
             ' vec3 q=p/vec3(0.5*uStretch, 0.36*uFlatten, 0.40); float e=dot(q,q); if(e>1.0) return 0.0;',
             ' float d=pow(1.0-e, uFalloff); d *= 1.0+coreAt(p)*uCoreGain;',
             // Domain warping bends the noise lookup, turning round clumps into strands.
@@ -177,7 +203,7 @@
             '   float kf = fract(g);',
             '   vec3 emit = mix(mix(uCloudA[k0],uCloudA[k1],kf), mix(uCloudB[k0],uCloudB[k1],kf), c) * uEmission;'
           ].join(String.fromCharCode(10)) : [
-            '   float cd = clamp(coreAt(p)*0.3, 0.0, 1.0);',
+            '   float cd = uIsGalaxy > 0.5 ? clamp(galBulge(p)*1.6, 0.0, 1.0) : clamp(coreAt(p)*0.3, 0.0, 1.0);',
             // Same idea as the baked tint: hue varies across the cloud, not only where dense.
             '   float tn = fbm(p*uTurb*0.55 + vec3(61.7,43.2,88.1), 2);',
             '   float tint = clamp((tn - 0.28) / 0.44, 0.0, 1.0);',
@@ -395,6 +421,78 @@
     return out
   }
 
+  // Mirrors galaxyDensity() in the shader, so the stars land where the gas actually is.
+  function galaxyDensityAt(x, y, z, P) {
+    var r = Math.sqrt(x * x + z * z), rn = r / P.galRadius
+    if (rn > 1) return {d: 0, bulge: 0, arm: 0}
+    var h = P.galThick * (1 + P.galFlare * rn * 2)
+    var vert = Math.exp(-(y * y) / (h * h))
+    var radial = Math.pow(Math.max(0, 1 - rn), P.galFalloff)
+    var br = Math.sqrt(x * x + y * y + z * z) / Math.max(0.001, P.galBulge)
+    var bulge = Math.exp(-br * br)
+    var th = Math.atan2(z, x)
+    var phase = th * P.galArms - Math.log(Math.max(rn, 0.05)) * P.galWind
+    var arm = Math.pow(0.5 + 0.5 * Math.cos(phase), P.galArmWidth)
+    var d = (radial * (0.22 + 0.78 * arm) + bulge * P.galBulgeGain) * vert
+    return {d: Math.max(0, d), bulge: bulge, arm: arm}
+  }
+
+  // Stars are a separate population from the gas: a thin disc biased into the arms, plus a
+  // rounder, older bulge crowd. Arms read blue (young, hot), the bulge warm - which is the
+  // single clearest colour cue that something is a spiral galaxy.
+  function buildGalaxyStars(P, state) {
+    var n = Math.round(P.starCount), pos = [], col = [], siz = [], seed = [], guard = 0
+    var armCol = hsl(P.starArmHue, P.sat * 0.9, 0.72)
+    var coreCol = hsl(P.partHue, P.sat * 0.8, 0.76)
+    var inBulge = Math.round(n * P.starBulge)
+    while (pos.length / 3 < n && guard < n * 60) {
+      guard++
+      var bulgeStar = pos.length / 3 < inBulge
+      var x, y, z
+      if (bulgeStar) {
+        var rb = P.galBulge * Math.pow(Math.random(), 0.6)
+        var a1 = Math.random() * 6.2831853, a2 = Math.acos(2 * Math.random() - 1)
+        x = rb * Math.sin(a2) * Math.cos(a1)
+        y = rb * Math.cos(a2) * 0.7
+        z = rb * Math.sin(a2) * Math.sin(a1)
+      } else {
+        x = (Math.random() * 2 - 1) * P.galRadius
+        z = (Math.random() * 2 - 1) * P.galRadius
+        y = (Math.random() * 2 - 1) * P.galThick * 3
+        var g = galaxyDensityAt(x, y, z, P)
+        // Bias toward the arms, but leave some scatter between them.
+        var keep = Math.min(1, (g.arm * (1 - P.starScatter) + P.starScatter) * g.d * 6)
+        if (g.d <= 0 || Math.random() > keep) continue
+      }
+      var gg = galaxyDensityAt(x, y, z, P)
+      var hot = bulgeStar ? 0 : Math.min(1, gg.arm)
+      var base = bulgeStar ? coreCol : [
+        armCol[0] + (coreCol[0] - armCol[0]) * (1 - hot),
+        armCol[1] + (coreCol[1] - armCol[1]) * (1 - hot),
+        armCol[2] + (coreCol[2] - armCol[2]) * (1 - hot)]
+      var b = bulgeStar ? 0.7 + Math.random() * 0.5 : 0.5 + hot * 0.8
+      pos.push(x, y, z)
+      col.push(base[0] * b, base[1] * b, base[2] * b)
+      siz.push(0.35 + Math.random() * Math.random() * 2.4 + (bulgeStar ? 0.4 : hot * 1.2))
+      seed.push(Math.random())
+    }
+    var geo = new THREE.BufferGeometry()
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+    geo.setAttribute('aColor', new THREE.Float32BufferAttribute(col, 3))
+    geo.setAttribute('aSize', new THREE.Float32BufferAttribute(siz, 1))
+    geo.setAttribute('aSeed', new THREE.Float32BufferAttribute(seed, 1))
+    state.partMat = new THREE.ShaderMaterial({
+      uniforms: {uTime: {value: 0}, uSize: {value: P.starSize}, uTwinkle: {value: P.partTwinkle},
+        uDrift: {value: P.partDrift * 0.2}, uPixH: {value: 400}},
+      vertexShader: PART_VERT, fragmentShader: PART_FRAG,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+    })
+    var pts = new THREE.Points(geo, state.partMat)
+    pts.renderOrder = -1
+    state.particleCount = pos.length / 3
+    return pts
+  }
+
   function raymarchMesh(P, useTex, state) {
     var u = {
       uCamLocal: {value: new THREE.Vector3()}, uSteps: {value: P.steps}, uDensity: {value: P.density},
@@ -405,7 +503,11 @@
       uOiii: {value: new THREE.Vector3().fromArray(hsl(P.coreHue, P.sat, 0.62))},
       uSpread: {value: P.spread}, uClump: {value: P.clump}, uClumpScale: {value: P.clumpScale},
       uSeed: {value: P.seed}, uStretch: {value: P.stretch}, uFlatten: {value: P.flatten},
-      uFalloff: {value: P.falloff}, uWarp: {value: P.warp}, uCores: {value: shaderCores(P)}
+      uFalloff: {value: P.falloff}, uWarp: {value: P.warp}, uCores: {value: shaderCores(P)},
+      uIsGalaxy: {value: P._galaxy ? 1 : 0},
+      uGalRadius: {value: P.galRadius}, uGalThick: {value: P.galThick}, uGalFlare: {value: P.galFlare},
+      uGalBulge: {value: P.galBulge}, uGalBulgeGain: {value: P.galBulgeGain}, uGalArms: {value: P.galArms},
+      uGalWind: {value: P.galWind}, uGalArmWidth: {value: P.galArmWidth}, uGalFalloff: {value: P.galFalloff}
     }
     if (useTex) {
       u.uVol = {value: bake(P, Math.round(P.texSize), state)}
@@ -448,17 +550,19 @@
         note: (modeId === 'dust' ? 'pts+dust ' : 'pts ') + Math.round(global.performance.now() - t0) + 'ms'}
     }
 
-    // 'volume' marches a baked 3D texture; 'march' and 'particles' march procedural fBm.
+    // 'volume' marches a baked 3D texture; everything else marches procedural fBm.
+    P._galaxy = modeId === 'galaxy'
     var useTex = modeId === 'volume'
     if (useTex && !isGL2) return {object3D: null, march: null, note: 'needs WebGL2'}
     var mesh = raymarchMesh(P, useTex, state)
-    if (modeId !== 'particles') {
+    if (modeId !== 'particles' && modeId !== 'galaxy') {
       return {object3D: mesh, march: mesh, note: useTex ? state.note : 'procedural'}
     }
     var group = new THREE.Group()
     group.add(mesh)
-    group.add(buildParticles(P, state))
-    return {object3D: group, march: mesh, note: 'procedural + ' + state.particleCount + 'p'}
+    group.add(modeId === 'galaxy' ? buildGalaxyStars(P, state) : buildParticles(P, state))
+    return {object3D: group, march: mesh,
+      note: (modeId === 'galaxy' ? 'disk + ' : 'procedural + ') + state.particleCount + (modeId === 'galaxy' ? ' stars' : 'p')}
   }
 
   function dispose(object3D) {
@@ -476,6 +580,9 @@
     turbulence: 3.6, contrast: 3.2, dust: 0.8, coreGain: 0.9, scale: 1.0,
     clouds: 1, layout: 0, clump: 0.45, clumpScale: 0.35, spread: 0.5,
     seed: 0, stretch: 1, flatten: 1, falloff: 1, warp: 0,
+    galRadius: 0.42, galThick: 0.045, galFlare: 0.5, galBulge: 0.11, galBulgeGain: 1.8,
+    galArms: 2, galWind: 3.2, galArmWidth: 2.2, galFalloff: 1.6,
+    starCount: 3500, starSize: 0.0028, starScatter: 0.25, starBulge: 0.22, starArmHue: 212,
     baseHue: 6, coreHue: 168, sat: 0.72, partCount: 1200, partSize: 0.004,
     partHue: 40, partTwinkle: 0.6, partDrift: 0.006
   }
@@ -488,6 +595,7 @@
     {id: 'march', name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale'].concat(SHAPE).concat(COLOUR)},
     {id: 'volume', name: 'Raymarch', sub: '3D texture', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'texSize', 'scale'].concat(SHAPE).concat(COLOUR)},
     {id: 'particles', name: 'Volume + Particles', sub: 'gas with stars in it', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'partCount', 'partSize', 'partHue', 'partTwinkle', 'partDrift', 'scale'].concat(SHAPE).concat(COLOUR)},
+    {id: 'galaxy', name: 'Galaxy', sub: 'disk, arms and stars', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'galRadius', 'galThick', 'galFlare', 'galFalloff', 'galArms', 'galWind', 'galArmWidth', 'galBulge', 'galBulgeGain', 'starCount', 'starSize', 'starScatter', 'starBulge', 'starArmHue', 'partTwinkle', 'partDrift', 'scale'].concat(['seed', 'warp', 'clump', 'clumpScale', 'turbulence', 'contrast', 'dust']).concat(COLOUR)},
     {id: 'none', name: 'Nothing', sub: 'baseline floor', ctls: []}
   ]
   var RANGE = {
@@ -502,7 +610,15 @@
     seed: [0, 99, 1, 'seed'], stretch: [0.5, 2, 0.05, 'stretch X'], flatten: [0.3, 1.5, 0.05, 'flatten Y'],
     falloff: [0.3, 3, 0.1, 'edge falloff'], warp: [0, 1, 0.05, 'filament warp'],
     partCount: [0, 6000, 100, 'particles'], partSize: [0.0005, 0.03, 0.0005, 'particle size'],
-    partHue: [0, 360, 2, 'particle hue'], partTwinkle: [0, 1, 0.05, 'twinkle'], partDrift: [0, 0.03, 0.002, 'drift']
+    partHue: [0, 360, 2, 'particle hue'], partTwinkle: [0, 1, 0.05, 'twinkle'], partDrift: [0, 0.03, 0.002, 'drift'],
+    galRadius: [0.15, 0.5, 0.01, 'disk radius'], galThick: [0.005, 0.2, 0.005, 'disk thickness'],
+    galFlare: [0, 1.5, 0.05, 'rim flare'], galBulge: [0.02, 0.3, 0.01, 'bulge size'],
+    galBulgeGain: [0, 4, 0.1, 'bulge brightness'], galArms: [1, 6, 1, 'arms'],
+    galWind: [0.5, 8, 0.1, 'arm winding'], galArmWidth: [0.5, 6, 0.1, 'arm tightness'],
+    galFalloff: [0.4, 4, 0.1, 'radial falloff'],
+    starCount: [0, 12000, 250, 'stars'], starSize: [0.0005, 0.02, 0.0005, 'star size'],
+    starScatter: [0, 1, 0.05, 'stars between arms'], starBulge: [0, 0.6, 0.02, 'bulge share'],
+    starArmHue: [0, 360, 2, 'arm star hue']
   }
   // Grounded in the emission lines: true colour is Ha red with an [O III] core; the Hubble
   // palette is the gold/teal false colour everyone recognises; reflection nebulae (the
@@ -515,6 +631,8 @@
   var UNIFORM = {steps: 'uSteps', density: 'uDensity', absorb: 'uAbsorb', emission: 'uEmission',
     light: 'uLight', turbulence: 'uTurb', contrast: 'uContrast', dust: 'uDust',
     falloff: 'uFalloff', warp: 'uWarp',
+    galRadius: 'uGalRadius', galThick: 'uGalThick', galFlare: 'uGalFlare',
+    galBulgeGain: 'uGalBulgeGain', galWind: 'uGalWind', galArmWidth: 'uGalArmWidth', galFalloff: 'uGalFalloff',
     clump: 'uClump', clumpScale: 'uClumpScale'}
 
   // ---------------------------------------------------------------- control panel
@@ -725,6 +843,7 @@
 
   function detailFor(P, modeId) {
     if (modeId === 'none') return 'baseline'
+    if (modeId === 'galaxy') return Math.round(P.steps) + 'st+' + Math.round(P.starCount) + 'stars'
     if (modeId === 'points' || modeId === 'dust') return Math.round(P.count) + 'pts'
     return Math.round(P.steps) + 'st' +
       (modeId === 'volume' ? '/' + Math.round(P.texSize) + '\u00b3' : '') +
