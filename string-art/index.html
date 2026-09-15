@@ -106,7 +106,16 @@
 
   <h2>Nails</h2>
   <label class="chk"><input type="checkbox" id="nRings"> Every ring&rsquo;s corners</label>
-  <label class="chk"><input type="checkbox" id="nStars" checked> Star points</label>
+  <label class="row"><span class="k">Points per star</span>
+    <span style="display:flex;gap:6px;align-items:center">
+      <button id="sNailsDn" style="width:28px;padding:0">−</button>
+      <span id="sNailsV" style="min-width:20px;text-align:center;font-weight:600">8</span>
+      <button id="sNailsUp" style="width:28px;padding:0">+</button>
+      <span style="color:#9aa2b0;font-size:11px">(multiples of 4)</span>
+    </span>
+    <input type="hidden" id="sNails" value="8"></label>
+  <label class="row"><span class="k">Star ring radius (in)</span>
+    <input type="number" id="sRadius" min="0.1" max="2" step="0.05" value="0.3"></label>
   <label class="row"><span class="k">Nail dot &oslash; (in)</span>
     <input type="number" id="dot" min="0.02" max="0.2" step="0.01" value="0.06"></label>
 
@@ -9340,7 +9349,8 @@ const state = () => ({
   steps: +$('steps').value,
   back: +$('back').value / 100,
   dot: +$('dot').value,
-  nRings: $('nRings').checked, nStars: $('nStars').checked,
+  nRings: $('nRings').checked,
+  sNails: +$('sNails').value, sRadius: +$('sRadius').value,
   gRings: $('gRings').checked, gWalls: $('gWalls').checked,
   gFigure: $('gFigure').checked, gNums: $('gNums').checked, gScale: $('gScale').checked,
 });
@@ -9418,22 +9428,27 @@ function build(){
 
   // ---- STARS (front plane) ----
   let starMarks = '';
-  const mags = d.stars.map(st => st.mag);
-  const magMin = Math.min(...mags), magMax = Math.max(...mags);
-  const starR = st => {
-    const t = magMax === magMin ? .5 : (magMax - st.mag)/(magMax - magMin); // brighter=bigger
-    return U(0.05 + t * 0.055);
-  };
-  if (s.nStars){
-    d.stars.forEach((st, i) => {
-      const cx = U(bx(st.x,1)), cy = U(by(st.y,1)), rr = starR(st);
-      starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${rr.toFixed(2)}" class="star"/>`
-        + `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${(r*0.6).toFixed(2)}" class="star-core"/>`;
-      if (s.gNums){
-        starMarks += `<text x="${(cx+rr+3).toFixed(2)}" y="${(cy-rr-2).toFixed(2)}" class="num">${i+1}</text>`;
+  const nPts = s.sNails;                        // points per star, multiple of 4
+  const ringSvg = U(s.sRadius);                 // ring radius in svg units
+  d.stars.forEach((st, i) => {
+    const cx = U(bx(st.x,1)), cy = U(by(st.y,1));
+    // Guide circle showing the nail ring
+    starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${ringSvg.toFixed(2)}" class="star"/>`;
+    // Centre cross-hair dot so the star position is visible
+    starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${(r*0.5).toFixed(2)}" class="star-core"/>`;
+    // N evenly-spaced nail points on the ring
+    if (nPts >= 4){
+      for (let p = 0; p < nPts; p++){
+        const angle = (2 * Math.PI * p) / nPts;
+        const px = cx + ringSvg * Math.cos(angle);
+        const py = cy + ringSvg * Math.sin(angle);
+        starMarks += `<circle cx="${px.toFixed(2)}" cy="${py.toFixed(2)}" r="${r.toFixed(2)}" class="nail"/>`;
       }
-    });
-  }
+    }
+    if (s.gNums){
+      starMarks += `<text x="${(cx+ringSvg+3).toFixed(2)}" y="${(cy-ringSvg-2).toFixed(2)}" class="num">${i+1}</text>`;
+    }
+  });
 
   // ---- registration: 1-inch scale bar + corner crop marks ----
   let reg = '';
@@ -9488,7 +9503,7 @@ function build(){
     `Recommended wood: <span class="big">${boardW.toFixed(2)}&Prime; &times; ${boardH.toFixed(2)}&Prime;</span><br>`+
     `Grid area: <b>${gridW.toFixed(2)}&Prime; &times; ${gridH.toFixed(2)}&Prime;</b> &nbsp;(${orient})<br>`+
     `Grid: <b>${cols} &times; ${rows}</b> cells &middot; front spacing <b>${frontSp.toFixed(2)}&Prime;</b>, back <b>${backSp.toFixed(2)}&Prime;</b><br>`+
-    `Nails: <b>${nail.length}</b>${s.nStars?` + <b>${d.stars.length}</b> stars`:''}`;
+    `Nails: <b>${nail.length}</b>${s.sNails>=4?` + <b>${d.stars.length*s.sNails}</b> star ring nails (${s.sNails} per star)`:' (no star ring nails)'}`;
 
   const warn = $('warn');
   if (backSp < 0.18 && s.nRings){
@@ -9533,8 +9548,18 @@ $('png').onclick = () => {
 };
 $('print').onclick = () => window.print();
 
+// star nail stepper — multiples of 4 only, minimum 0
+$('sNailsUp').onclick = () => {
+  const v = +$('sNails').value + 4;
+  $('sNails').value = v; $('sNailsV').textContent = v; build();
+};
+$('sNailsDn').onclick = () => {
+  const v = Math.max(0, +$('sNails').value - 4);
+  $('sNails').value = v; $('sNailsV').textContent = v === 0 ? 'off' : v; build();
+};
+
 // wire controls
-['c','ipu','margin','steps','back','dot','nRings','nStars',
+['c','ipu','margin','steps','back','dot','nRings','sRadius',
  'gRings','gWalls','gFigure','gNums','gScale'].forEach(id => {
   $(id).addEventListener('input', build);
   $(id).addEventListener('change', build);
