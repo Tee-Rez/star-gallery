@@ -953,7 +953,7 @@ const constellationLoaderComponent = {
               "flatten": 1.2,
               "layout": 2,
               "light": 0,
-              "partCount": 1600,
+              "partCount": 3200,
               "partDrift": 0.024,
               "partHue": 124,
               "partSize": 0.0115,
@@ -1373,7 +1373,7 @@ const constellationLoaderComponent = {
               "spread": 0.85,
               "starArmHue": 156,
               "starBulge": 0.32,
-              "starCount": 5000,
+              "starCount": 10000,
               "starScatter": 0.3,
               "starSize": 0.0075,
               "starThick": 0.25,
@@ -1992,8 +1992,8 @@ const constellationLoaderComponent = {
             "type": "open_cluster",
             "layer": "cluster",
             "position2D": {
-              "x": 2.048,
-              "y": 1.277
+              "x": 2.388,
+              "y": 1.65
             },
             "distance": 444,
             "magnitude": 1.6,

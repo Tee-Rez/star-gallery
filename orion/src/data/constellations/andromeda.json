@@ -331,7 +331,7 @@
         "spread": 0.85,
         "starArmHue": 156,
         "starBulge": 0.32,
-        "starCount": 5000,
+        "starCount": 10000,
         "starScatter": 0.3,
         "starSize": 0.0075,
         "starThick": 0.25,

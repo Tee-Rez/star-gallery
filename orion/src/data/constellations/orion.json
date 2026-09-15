@@ -763,7 +763,7 @@
         "flatten": 1.2,
         "layout": 2,
         "light": 0,
-        "partCount": 1600,
+        "partCount": 3200,
         "partDrift": 0.024,
         "partHue": 124,
         "partSize": 0.0115,
