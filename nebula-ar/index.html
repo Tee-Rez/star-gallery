@@ -87,6 +87,7 @@
     <div class="row"><span>build</span><b id="load">--</b></div>
     <div class="row"><span>gl</span><b id="gl">--</b></div>
     <div class="row"><span>ar</span><b id="ar">starting</b></div>
+    <div class="row"><span>cover</span><b id="cover">--</b></div>
     <div id="bench"></div>
   </div>
 
@@ -204,15 +205,55 @@
         ].filter(Boolean).join('\n')
       }
 
+      // HSL is the sane way to expose colour on a phone: two hues and one saturation.
+      function hsl(h, sat, l) {
+        h = ((h % 360) + 360) % 360 / 360
+        var q = l < .5 ? l * (1 + sat) : l + sat - l * sat, p = 2 * l - q
+        function c(t) { t = (t + 1) % 1
+          if (t < 1 / 6) return p + (q - p) * 6 * t
+          if (t < 1 / 2) return q
+          if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6
+          return p }
+        return [c(h + 1 / 3), c(h), c(h - 1 / 3)]
+      }
+
+      // Particles get their own tiny shader so they can drift and twinkle per-particle,
+      // which PointsMaterial cannot do.
+      var PART_VERT = [
+        'attribute float aSize; attribute float aSeed; attribute vec3 aColor;',
+        'uniform float uTime, uSize, uTwinkle, uDrift;',
+        'varying vec3 vCol; varying float vTw;',
+        'void main(){',
+        ' vec3 p = position;',
+        ' p += uDrift * vec3(sin(uTime*0.30 + aSeed*6.2), cos(uTime*0.24 + aSeed*5.1), sin(uTime*0.19 + aSeed*4.3));',
+        ' vec4 mv = modelViewMatrix * vec4(p, 1.0);',
+        ' vTw = mix(1.0, 0.65 + 0.35*sin(uTime*2.2 + aSeed*12.0), uTwinkle);',
+        ' vCol = aColor;',
+        ' gl_PointSize = uSize * aSize * (320.0 / max(0.05, -mv.z));',
+        ' gl_Position = projectionMatrix * mv;',
+        '}'].join('\n')
+      var PART_FRAG = [
+        'precision mediump float;',
+        'varying vec3 vCol; varying float vTw;',
+        'void main(){',
+        ' float r = length(gl_PointCoord - 0.5);',
+        ' if (r > 0.5) discard;',
+        ' float a = pow(1.0 - r * 2.0, 2.2);',
+        ' gl_FragColor = vec4(vCol * vTw * a, a);',
+        '}'].join('\n')
+
       // ------------------------------------------------ the component
       window.NEBULA = {
         P: {
           count: 5000, sizeRatio: 0.04, opacity: 0.24, dustAmount: 0.55,
           steps: 40, density: 4.0, absorb: 2.6, emission: 2.0, light: 1, texSize: 64,
-          turbulence: 3.6, contrast: 3.2, dust: 0.8, coreGain: 0.9, scale: 1.0
+          turbulence: 3.6, contrast: 3.2, dust: 0.8, coreGain: 0.9, scale: 1.0,
+          baseHue: 6, coreHue: 168, sat: 0.72, partCount: 1200, partSize: 2.2,
+          partHue: 40, partTwinkle: 0.6, partDrift: 0.006
         },
-        mode: 0, loadNote: '', isGL2: false
+        mode: 0, modeId: 'points', loadNote: '', isGL2: false
       }
+      window.NEBULA.hsl = hsl
 
       AFRAME.registerComponent('nebula-field', {
         init: function () {
@@ -281,7 +322,8 @@
         },
 
         build: function () {
-          var P = window.NEBULA.P, mode = window.NEBULA.mode, t0 = performance.now()
+          var P = window.NEBULA.P, id = window.NEBULA.modeId || 'points', t0 = performance.now()
+          if (id === 'none') { var prev = this.el.getObject3D('mesh'); if (prev) { prev.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose() }); this.el.removeObject3D('mesh') } this.march = null; window.NEBULA.loadNote = 'none'; return }
           var old = this.el.getObject3D('mesh')
           if (old) {
             old.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose() })
@@ -289,13 +331,13 @@
           }
           this.march = null
           var obj
-          if (mode < 2) {
+          if (id === 'points' || id === 'dust') {
             obj = new THREE.Group()
             obj.add(new THREE.Points(this.samplePoints(P.count, false), new THREE.PointsMaterial({
               size: P.sizeRatio, sizeAttenuation: true, vertexColors: true, transparent: true,
               map: this.gasSprite, opacity: P.opacity, blending: THREE.AdditiveBlending, depthWrite: false
             })))
-            if (mode === 1) {
+            if (id === 'dust') {
               var dust = new THREE.Points(this.samplePoints(Math.round(P.count * .6), true), new THREE.PointsMaterial({
                 size: P.sizeRatio * 1.8, sizeAttenuation: true, map: this.dustSprite(P.dustAmount),
                 blending: THREE.MultiplyBlending, depthWrite: false, transparent: false
@@ -303,17 +345,17 @@
               dust.renderOrder = 1
               obj.add(dust)
             }
-            window.NEBULA.loadNote = (mode === 1 ? 'pts+dust ' : 'pts ') + Math.round(performance.now() - t0) + 'ms'
+            window.NEBULA.loadNote = (id === 'dust' ? 'pts+dust ' : 'pts ') + Math.round(performance.now() - t0) + 'ms'
           } else {
-            var useTex = mode === 3
+            var useTex = (id === 'volume' || id === 'particles')
             if (useTex && !window.NEBULA.isGL2) { window.NEBULA.loadNote = 'needs WebGL2'; return }
             var u = {
               uCamLocal: {value: new THREE.Vector3()}, uSteps: {value: P.steps}, uDensity: {value: P.density},
               uAbsorb: {value: P.absorb}, uEmission: {value: P.emission}, uTurb: {value: P.turbulence},
               uContrast: {value: P.contrast}, uDust: {value: P.dust}, uCoreGain: {value: P.coreGain},
               uFrame: {value: 0}, uLight: {value: P.light},
-              uHa: {value: new THREE.Vector3(this.HA[0], this.HA[1], this.HA[2])},
-              uOiii: {value: new THREE.Vector3(this.OIII[0], this.OIII[1], this.OIII[2])}
+              uHa: {value: new THREE.Vector3().fromArray(hsl(P.baseHue, P.sat, 0.55))},
+              uOiii: {value: new THREE.Vector3().fromArray(hsl(P.coreHue, P.sat, 0.62))}
             }
             if (useTex) u.uVol = {value: this.bake(P.texSize)}
             else window.NEBULA.loadNote = 'procedural'
@@ -322,12 +364,58 @@
               transparent: true, depthWrite: false, side: THREE.BackSide, blending: THREE.NormalBlending
             }))
             this.march = obj
+            if (id === 'particles') {
+              var grp = new THREE.Group()
+              grp.add(obj)
+              grp.add(this.buildParticles())
+              obj = grp
+            }
           }
           obj.scale.setScalar(P.scale)
           this.el.setObject3D('mesh', obj)
         },
 
-        tick: function () {
+        // Particles are seeded BY the density field, so they sit in the gas rather than in a
+        // box around it, and they redden where the gas is thick - a cheap stand-in for the
+        // extinction the volume cannot apply to them.
+        buildParticles: function () {
+          var P = window.NEBULA.P, n = Math.round(P.partCount)
+          var pos = [], col = [], siz = [], seed = [], guard = 0
+          var warm = hsl(P.partHue, P.sat * 0.8, 0.72)
+          while (pos.length / 3 < n && guard < n * 80) {
+            guard++
+            var x = Math.random() - .5, y = (Math.random() - .5) * .72, z = (Math.random() - .5) * .80
+            var s = densityAt(x, y, z, P)
+            if (s.d <= 0 || Math.random() > Math.min(1, s.d * 2.6)) continue
+            pos.push(x, y, z)
+            var thick = Math.min(1, s.d * 1.8)
+            var hot = Math.min(1, s.core * 0.8)
+            col.push(
+              warm[0] * (0.55 + 0.45 * hot) + hot * 0.35,
+              warm[1] * (0.55 + 0.45 * hot) * (1.0 - thick * 0.35) + hot * 0.3,
+              warm[2] * (0.55 + 0.45 * hot) * (1.0 - thick * 0.55) + hot * 0.3)
+            siz.push(0.35 + Math.random() * Math.random() * 2.2 + hot * 1.6)
+            seed.push(Math.random())
+          }
+          var g = new THREE.BufferGeometry()
+          g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+          g.setAttribute('aColor', new THREE.Float32BufferAttribute(col, 3))
+          g.setAttribute('aSize', new THREE.Float32BufferAttribute(siz, 1))
+          g.setAttribute('aSeed', new THREE.Float32BufferAttribute(seed, 1))
+          this.partMat = new THREE.ShaderMaterial({
+            uniforms: {uTime: {value: 0}, uSize: {value: P.partSize}, uTwinkle: {value: P.partTwinkle}, uDrift: {value: P.partDrift}},
+            vertexShader: PART_VERT, fragmentShader: PART_FRAG,
+            transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+          })
+          var pts = new THREE.Points(g, this.partMat)
+          // Drawn before the volume, so gas in front of a particle dims it.
+          pts.renderOrder = -1
+          window.NEBULA.loadNote = 'vol+' + (pos.length / 3) + 'p'
+          return pts
+        },
+
+        tick: function (t) {
+          if (this.partMat) this.partMat.uniforms.uTime.value = (t || 0) / 1000
           if (!this.march) return
           var cam = this.el.sceneEl.camera
           if (!cam) return
@@ -357,18 +445,32 @@
     (function () {
       'use strict'
       var N = window.NEBULA
+      var COLOUR = ['baseHue', 'coreHue', 'sat']
       var MODES = [
-        {name: 'Points', sub: 'additive (today)', ctls: ['count', 'sizeRatio', 'opacity', 'contrast', 'dust', 'scale']},
-        {name: 'Points + Dust', sub: 'absorption pass', ctls: ['count', 'sizeRatio', 'opacity', 'dustAmount', 'scale']},
-        {name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale']},
-        {name: 'Raymarch', sub: '3D texture', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'texSize', 'scale']}
+        {id: 'points', name: 'Points', sub: 'additive (today)', ctls: ['count', 'sizeRatio', 'opacity', 'contrast', 'dust', 'scale']},
+        {id: 'dust', name: 'Points + Dust', sub: 'absorption pass', ctls: ['count', 'sizeRatio', 'opacity', 'dustAmount', 'scale']},
+        {id: 'march', name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale'].concat(COLOUR)},
+        {id: 'volume', name: 'Raymarch', sub: '3D texture', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'texSize', 'scale'].concat(COLOUR)},
+        {id: 'particles', name: 'Volume + Particles', sub: 'gas with stars in it', ctls: ['steps', 'density', 'absorb', 'emission', 'texSize', 'partCount', 'partSize', 'partHue', 'partTwinkle', 'partDrift', 'scale'].concat(COLOUR)},
+        {id: 'none', name: 'AR only', sub: 'no nebula (floor)', ctls: []}
+      ]
+      // Grounded in the emission lines: true colour is Ha red with an [O III] core; the
+      // Hubble palette is the gold/teal false colour everyone recognises; reflection
+      // nebulae (the Pleiades) are blue from dust scattering and have no core line at all.
+      var PRESETS = [
+        {name: 'True colour', baseHue: 6, coreHue: 168, sat: 0.72, partHue: 40},
+        {name: 'Hubble', baseHue: 34, coreHue: 190, sat: 0.62, partHue: 52},
+        {name: 'Reflection', baseHue: 212, coreHue: 205, sat: 0.5, partHue: 205}
       ]
       var RANGE = {
         count: [500, 20000, 500, 'points'], sizeRatio: [.005, .15, .005, 'size'], opacity: [.02, 1, .02, 'opacity'],
         dustAmount: [0, 1, .05, 'dust opacity'], steps: [8, 128, 4, 'march steps'], density: [.2, 8, .2, 'density'],
         absorb: [.2, 8, .2, 'absorption'], emission: [.1, 4, .1, 'emission'], light: [0, 1, .1, 'lighting'],
         texSize: [16, 128, 16, 'texture size'], turbulence: [1, 8, .2, 'turbulence'], contrast: [1, 6, .1, 'contrast'],
-        dust: [0, 1, .05, 'dust cut'], scale: [.3, 3, .1, 'size (m)']
+        dust: [0, 1, .05, 'dust cut'], scale: [.3, 3, .1, 'size (m)'],
+        baseHue: [0, 360, 2, 'cloud hue'], coreHue: [0, 360, 2, 'core hue'], sat: [0, 1, .05, 'saturation'],
+        partCount: [0, 6000, 100, 'particles'], partSize: [.5, 8, .1, 'particle size'],
+        partHue: [0, 360, 2, 'particle hue'], partTwinkle: [0, 1, .05, 'twinkle'], partDrift: [0, .03, .002, 'drift']
       }
       var UNIFORM = {steps: 'uSteps', density: 'uDensity', absorb: 'uAbsorb', emission: 'uEmission',
         light: 'uLight', turbulence: 'uTurb', contrast: 'uContrast', dust: 'uDust'}
@@ -382,7 +484,7 @@
         b.innerHTML = m.name + '<small>' + m.sub + '</small>'
         b.setAttribute('aria-selected', i === 0 ? 'true' : 'false')
         b.onclick = function () {
-          N.mode = i
+          N.mode = i; N.modeId = m.id
           Array.prototype.forEach.call(tabsEl.children, function (c, j) { c.setAttribute('aria-selected', i === j ? 'true' : 'false') })
           controls(); scene.emit('nebula-rebuild')
         }
@@ -390,8 +492,22 @@
       })
 
       function comp() { return host.components['nebula-field'] }
+
+      function presetRow() {
+        var wrap = document.createElement('div'); wrap.className = 'actions'; wrap.style.marginTop = '0'
+        PRESETS.forEach(function (p) {
+          var b = document.createElement('button'); b.textContent = p.name
+          b.onclick = function () {
+            N.P.baseHue = p.baseHue; N.P.coreHue = p.coreHue; N.P.sat = p.sat; N.P.partHue = p.partHue
+            controls(); scene.emit('nebula-rebuild')
+          }
+          wrap.appendChild(b)
+        })
+        return wrap
+      }
       function controls() {
         ctlsEl.innerHTML = ''
+        if (MODES[N.mode].ctls.indexOf('baseHue') !== -1) ctlsEl.appendChild(presetRow())
         MODES[N.mode].ctls.forEach(function (key) {
           var r = RANGE[key], row = document.createElement('div'); row.className = 'ctl'
           var lab = document.createElement('label'); lab.textContent = r[3]
@@ -404,6 +520,16 @@
             if (key === 'scale' && c) { var o = host.getObject3D('mesh'); if (o) { o.scale.setScalar(N.P.scale); return } }
             // Shader uniforms update live; anything that changes geometry or the texture rebuilds.
             if (c && c.march && UNIFORM[key]) { c.march.material.uniforms[UNIFORM[key]].value = N.P[key]; return }
+            if (c && c.march && (key === 'baseHue' || key === 'coreHue' || key === 'sat')) {
+              var u = c.march.material.uniforms
+              u.uHa.value.fromArray(N.hsl(N.P.baseHue, N.P.sat, 0.55))
+              u.uOiii.value.fromArray(N.hsl(N.P.coreHue, N.P.sat, 0.62))
+              if (N.modeId !== 'particles') return
+            }
+            if (c && c.partMat && (key === 'partSize' || key === 'partTwinkle' || key === 'partDrift')) {
+              c.partMat.uniforms[key === 'partSize' ? 'uSize' : key === 'partTwinkle' ? 'uTwinkle' : 'uDrift'].value = N.P[key]
+              return
+            }
             clearTimeout(inp._t); inp._t = setTimeout(function () { scene.emit('nebula-rebuild') }, 200)
           }
           row.appendChild(lab); row.appendChild(inp); row.appendChild(out)
@@ -438,6 +564,19 @@
         if (document.getElementById('ar').textContent === 'starting') document.getElementById('ar').textContent = 'no tracking'
       }, 8000)
 
+      function coverage() {
+        var cam = scene.camera
+        var vis = host.getAttribute('visible')
+        if (!cam || !(vis === true || vis === 'true')) return {d: 0, pct: 0}
+        var T = window.THREE || AFRAME.THREE
+        var cp = cam.getWorldPosition(new T.Vector3()), hp = host.object3D.getWorldPosition(new T.Vector3())
+        var d = Math.max(0.15, cp.distanceTo(hp))
+        var r = 0.5 * N.P.scale * 0.87
+        var rpx = (r / (d * Math.tan(cam.fov * Math.PI / 360))) * (window.innerHeight / 2)
+        var pct = Math.min(100, 100 * Math.PI * rpx * rpx / (window.innerWidth * window.innerHeight))
+        return {d: d, pct: pct}
+      }
+
       // ------------------------------------------------ benchmark
       var results = []
       try { results = JSON.parse(localStorage.getItem('nebula-ar') || '[]') } catch (e) {}
@@ -451,7 +590,7 @@
       }
       draw()
       document.getElementById('run').onclick = function () {
-        bench = {frames: [], start: performance.now(), warm: true, name: MODES[N.mode].name + ' / ' + MODES[N.mode].sub}
+        bench = {frames: [], start: performance.now(), warm: true, cov: [], name: MODES[N.mode].name + ' / ' + MODES[N.mode].sub}
         document.getElementById('bench').textContent = 'warming up...'
       }
       document.getElementById('clear').onclick = function () { results = []; try { localStorage.removeItem('nebula-ar') } catch (e) {} draw() }
@@ -477,6 +616,8 @@
           bar.style.background = fps > 50 ? '#3fd8c0' : fps > 28 ? '#e8a33d' : '#e4483f'
           document.getElementById('mode').textContent = MODES[N.mode].name.replace('Raymarch', 'RM') + ' ' + MODES[N.mode].sub.split(' ')[0]
           document.getElementById('load').textContent = N.loadNote
+          var cv = coverage()
+          document.getElementById('cover').textContent = cv.pct < 0.5 ? '--' : cv.d.toFixed(1) + 'm ' + cv.pct.toFixed(0) + '%'
           var TH = window.THREE || AFRAME.THREE
           document.getElementById('gl').textContent = (N.isGL2 ? 'WebGL2' : 'WebGL1') + ' r' + (TH ? TH.REVISION : '?')
         }
@@ -485,13 +626,19 @@
           var el = now - bench.start
           if (bench.warm && el > 1000) { bench.warm = false; bench.start = now; bench.frames = [] }
           else if (!bench.warm) {
-            bench.frames.push(dt)
+            bench.frames.push(dt); if (frame % 5 === 0) bench.cov.push(coverage().pct)
             var left = 8 - el / 1000
             if (left <= 0) {
               var f = bench.frames.slice().sort(function (a, b) { return a - b })
               var avg = f.reduce(function (a, b) { return a + b }, 0) / f.length
               var p99 = f[Math.floor(f.length * .99)] || f[f.length - 1]
-              var detail = N.mode < 2 ? N.P.count + 'pts' : N.P.steps + 'st' + (N.mode === 3 ? '/' + N.P.texSize + '³' : '')
+              var mid = MODES[N.mode].id
+              var detail = mid === 'none' ? 'baseline'
+                : (mid === 'points' || mid === 'dust') ? N.P.count + 'pts'
+                : N.P.steps + 'st' + (mid === 'volume' || mid === 'particles' ? '/' + N.P.texSize + '³' : '')
+                  + (mid === 'particles' ? '+' + N.P.partCount + 'p' : '')
+              var mc = bench.cov.length ? bench.cov.reduce(function (a, b) { return a + b }, 0) / bench.cov.length : 0
+              detail += ' ' + mc.toFixed(0) + '%'
               results.unshift({name: bench.name, avg: (1000 / avg).toFixed(0), low: (1000 / p99).toFixed(0), ms: avg.toFixed(1), detail: detail})
               results = results.slice(0, 12)
               try { localStorage.setItem('nebula-ar', JSON.stringify(results)) } catch (e) {}
