@@ -37,6 +37,8 @@
     <div class="actions">
       <button id="run" class="primary">Benchmark 8s</button>
       <button id="copy">Copy results</button>
+      <button id="copysettings">Copy settings</button>
+      <button id="applysettings">Apply pasted</button>
       <button id="clear">Clear</button>
     </div>
     <div id="results"></div>
@@ -107,7 +109,7 @@
         window.__lab = {current: current, march: march, state: state}
       }
 
-      NebulaCore.initUI({
+      var ui = NebulaCore.initUI({
         tabs: document.getElementById('tabs'),
         ctls: document.getElementById('ctls'),
         P: N.P,
@@ -147,10 +149,15 @@
       }
       document.getElementById('clear').onclick = function () { bench.clear(); drawResults() }
       document.getElementById('copy').onclick = function () {
-        if (navigator.clipboard) navigator.clipboard.writeText(bench.text())
-        var b = this
-        b.textContent = 'Copied'
-        setTimeout(function () { b.textContent = 'Copy results' }, 1200)
+        NebulaCore.copyResults(bench, this, document.getElementById('results'))
+      }
+      document.getElementById('copysettings').onclick = function () {
+        NebulaCore.copySettings(N.P, N.modeId, this, document.getElementById('results'))
+      }
+      document.getElementById('applysettings').onclick = function () {
+        var r = NebulaCore.applySettings(N.P, document.getElementById('results'),
+          function (id) { N.modeId = id }, this)
+        if (r) { ui.refresh(); rebuild() }
       }
 
       function resize() {

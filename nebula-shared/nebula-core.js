@@ -477,7 +477,7 @@
     clouds: 1, layout: 0, clump: 0.45, clumpScale: 0.35, spread: 0.5,
     seed: 0, stretch: 1, flatten: 1, falloff: 1, warp: 0,
     baseHue: 6, coreHue: 168, sat: 0.72, partCount: 1200, partSize: 0.004,
-    partHue: 40, partTwinkle: 0.6, partDrift: 0.006, partSizeWorld: true
+    partHue: 40, partTwinkle: 0.6, partDrift: 0.006
   }
 
   var COLOUR = ['baseHue', 'coreHue', 'sat', 'spread']
@@ -643,6 +643,86 @@
     }
   }
 
+  // Copying has to be honest about failing. The clipboard API rejects in plenty of mobile
+  // contexts, and the button used to claim success either way - so a blocked copy looked
+  // identical to a real one and you pasted whatever was on the clipboard already.
+  function copyText(txt, btn, host, emptyMsg) {
+    var label = btn.getAttribute('data-label') || btn.textContent
+    btn.setAttribute('data-label', label)
+    function flash(msg) {
+      btn.textContent = msg
+      setTimeout(function () { btn.textContent = label }, 1800)
+    }
+    if (!txt) { flash(emptyMsg || 'Nothing to copy'); return }
+    function fallback() {
+      var ta = host.querySelector('textarea.copybox')
+      if (!ta) { ta = global.document.createElement('textarea'); ta.className = 'copybox'; ta.readOnly = true; host.appendChild(ta) }
+      ta.value = txt
+      ta.focus()
+      ta.select()
+    }
+    if (global.navigator.clipboard && global.navigator.clipboard.writeText) {
+      global.navigator.clipboard.writeText(txt).then(function () { flash('Copied') },
+        function () { fallback(); flash('Copy blocked - select below') })
+    } else { fallback(); flash('Select the text below') }
+  }
+
+  function copyResults(bench, btn, host) {
+    copyText(bench.text(), btn, host, 'No results yet')
+  }
+
+  // The tuned parameter set, as JSON. Round-trips through applySettings, so a look you find
+  // on the desktop lab can be carried to the phone (and into the app) exactly.
+  function settingsText(P, modeId) {
+    var o = {mode: modeId}
+    Object.keys(DEFAULTS).sort().forEach(function (k) {
+      if (typeof DEFAULTS[k] === 'number') o[k] = P[k]
+    })
+    return JSON.stringify(o, null, 2)
+  }
+
+  function copySettings(P, modeId, btn, host) {
+    copyText(settingsText(P, modeId), btn, host, 'Nothing to copy')
+  }
+
+  // Reads the paste box, applies what it recognises, and says what it did. Unknown keys are
+  // ignored and numbers are clamped to their slider range, so a bad paste cannot wedge things.
+  function applySettings(P, host, setMode, btn) {
+    var label = btn.getAttribute('data-label') || btn.textContent
+    btn.setAttribute('data-label', label)
+    function flash(msg) {
+      btn.textContent = msg
+      setTimeout(function () { btn.textContent = label }, 2200)
+    }
+    var ta = host.querySelector('textarea.copybox')
+    if (!ta) {
+      ta = global.document.createElement('textarea')
+      ta.className = 'copybox'
+      ta.placeholder = 'Paste settings JSON here, then press Apply again'
+      host.appendChild(ta)
+      ta.focus()
+      flash('Paste, then Apply')
+      return null
+    }
+    var data
+    try { data = JSON.parse(ta.value) } catch (e) { flash('Not valid JSON'); return null }
+    var n = 0
+    Object.keys(data).forEach(function (k) {
+      if (k === 'mode') return
+      if (typeof DEFAULTS[k] !== 'number' || typeof data[k] !== 'number') return
+      var r = RANGE[k]
+      P[k] = r ? Math.max(r[0], Math.min(r[1], data[k])) : data[k]
+      n++
+    })
+    var mode = null
+    if (data.mode && MODES.filter(function (m) { return m.id === data.mode })[0]) {
+      mode = data.mode
+      setMode(mode)
+    }
+    flash('Applied ' + n + ' values')
+    return {applied: n, mode: mode}
+  }
+
   function detailFor(P, modeId) {
     if (modeId === 'none') return 'baseline'
     if (modeId === 'points' || modeId === 'dust') return Math.round(P.count) + 'pts'
@@ -656,7 +736,8 @@
     hsl: hsl, hueOffset: hueOffset, cloudPalette: cloudPalette,
     build: build, dispose: dispose, bake: bake,
     DEFAULTS: DEFAULTS, MODES: MODES, RANGE: RANGE, PRESETS: PRESETS,
-    initUI: initUI, Bench: Bench, detailFor: detailFor,
+    initUI: initUI, Bench: Bench, detailFor: detailFor, copyResults: copyResults,
+    copySettings: copySettings, applySettings: applySettings, settingsText: settingsText,
     params: function () {
       var P = {}
       for (var k in DEFAULTS) if (Object.prototype.hasOwnProperty.call(DEFAULTS, k)) P[k] = DEFAULTS[k]
