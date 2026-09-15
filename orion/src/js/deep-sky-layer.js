@@ -288,6 +288,7 @@ const deepSkyLayerComponent = {
     this.host.setAttribute('position', {x: 0, y: 0, z: 0})
 
     const fit = this.fitScale(field)
+    this.fieldFit = fit
     this.host.setAttribute('scale', '0.01 0.01 0.01')
     l.rotatingContainer.appendChild(this.host)
     this.host.setAttribute('animation__grow', {
@@ -305,8 +306,16 @@ const deepSkyLayerComponent = {
       role: 'detail',
       visited: defaultStore.isVisited(this.constellationId(), obj.id),
     })
-    this.orb.setAttribute('position', {x: 0, y: 0, z: 0})
-    l.rotatingContainer.appendChild(this.orb)
+    // Bottom-left of the portal frame rather than over the object it describes. It goes in
+    // the STATIC container: the field turns, this must not turn with it.
+    const orbR = 0.45
+    const inset = orbR + 0.35
+    this.orb.setAttribute('position', {
+      x: -((Number(l.portalWidth) || 6) / 2) + inset,
+      y: -((Number(l.portalHeight) || 6) / 2) + inset,
+      z: 0,
+    })
+    ;(l.staticContainer || l.rotatingContainer).appendChild(this.orb)
   },
 
   // Keep the object inside the portal's shaft, which is the same reason depth is clamped: an
@@ -334,14 +343,30 @@ const deepSkyLayerComponent = {
   onOrbClick() {
     if (!this.active) return
     const obj = this.active
+    // Inside a generated field the subject of the panel is the thing you are standing in, so
+    // zoom THAT rather than flying a star in to stand for it. A cluster never gets here - it
+    // has real stars to select, and they keep the star zoom.
+    const generated = this.activeLayer !== 'cluster' && !!this.host
     this.el.sceneEl.emit('deepSkyInfoRequested', {
       name: obj.name,
       designation: obj.designation || '',
       info: obj.info || {},
       sources: obj.sources || '',
+      suppressStar: generated,
     })
+    if (generated) this.zoomField(true)
     this.markVisited(obj.id)
     this.scheduleCompletion()
+  },
+
+  // Scale the field that is already there. No rebuild, no second object.
+  zoomField(on) {
+    if (!this.host || this.activeLayer === 'cluster') return
+    const fit = Number(this.fieldFit) > 0 ? Number(this.fieldFit) : 1
+    const to = on ? fit * 1.6 : fit
+    this.host.setAttribute('animation__zoom', {
+      property: 'scale', to: `${to} ${to} ${to}`, dur: 700, easing: 'easeOutCubic',
+    })
   },
 
   markVisited(id) {
@@ -406,6 +431,7 @@ const deepSkyLayerComponent = {
     this.onPanelClosed = () => {
       this.el.sceneEl.removeEventListener('starInfoClosed', this.onPanelClosed)
       this.awaitingClose = false
+      this.zoomField(false)
       if (!this.active) return
       this.completionTimer = setTimeout(() => this.exit(), this.data.completeDelay)
     }

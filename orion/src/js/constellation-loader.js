@@ -3115,7 +3115,7 @@ const constellationLoaderComponent = {
       const hit = marker.querySelector('a-sphere.cantap')
       const comp = marker.components['deep-sky-marker']
       if (!hit || !comp) return
-      const base = Math.max(comp.data.radius * 1.5, 0.25)
+      const base = comp.data.radius
       hit.setAttribute('radius', base * Math.min(Math.max(distance / 10, 1), 2))
     })
   },

@@ -334,10 +334,12 @@ const starInfoOverlayComponent = {
     if (info.basic) body += info.basic
     if (info.scientific) body += (body ? '\n\n' : '') + info.scientific
     if (d.sources) body += (body ? '\n\n' : '') + 'Sources: ' + d.sources
-    this.showInfo(d.name, body, '#8fd8ff', 0.3, 'deep_sky', d.designation || '')
+    // Inside a nebula or galaxy the object itself is zoomed by deep-sky-layer, so the
+    // stand-in star must not also fly in. A cluster's stars still get one.
+    this.showInfo(d.name, body, '#8fd8ff', 0.3, 'deep_sky', d.designation || '', !!d.suppressStar)
   },
 
-  showInfo(name, info, starColor, starSize, starType, designation) {
+  showInfo(name, info, starColor, starSize, starType, designation, suppressStar) {
     this.currentStarName = name
 
     this.header.innerHTML = `
@@ -371,12 +373,14 @@ const starInfoOverlayComponent = {
     this.content.scrollTop = 0
 
     // Emit an event with star details for dynamic star creation
-    this.el.sceneEl.emit('starInfoRequested', {
-      starName: name,
-      starColor,
-      starSize,
-      starType,
-    })
+    if (!suppressStar) {
+      this.el.sceneEl.emit('starInfoRequested', {
+        starName: name,
+        starColor,
+        starSize,
+        starType,
+      })
+    }
   },
 
   formatStarInfo(info) {
