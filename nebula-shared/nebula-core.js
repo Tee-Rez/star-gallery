@@ -30,9 +30,9 @@
       function chash(i, salt) { var v = Math.sin(i * 127.1 + salt * 311.7) * 43758.5453; return v - Math.floor(v) }
       var LAYOUT = [], LAYOUT_KEY = null
       function ensureLayout(P) {
-        var key = Math.round(P.clouds) + ':' + Math.round(P.layout)
+        var key = Math.round(P.clouds) + ':' + Math.round(P.layout) + ':' + Math.round(P.seed)
         if (key === LAYOUT_KEY) return LAYOUT
-        var n = Math.max(1, Math.round(P.clouds)), lay = Math.round(P.layout), out = []
+        var n = Math.max(1, Math.round(P.clouds)), lay = Math.round(P.layout) + Math.round(P.seed) * 7, out = []
         for (var i = 0; i < n; i++) {
           var ang = chash(i + 1, lay + 1) * 6.2831853
           var off = n === 1 ? 0 : 0.30 * Math.sqrt(chash(i + 13, lay + 5))
@@ -73,18 +73,28 @@
         var best = 0, bestCore = 0, bestIdx = 0
         for (var ci = 0; ci < LAYOUT.length; ci++) {
           var L = LAYOUT[ci]
-          var qx = (x - L.x) / L.r, qy = (y - L.y) / (L.r * .72), qz = (z - L.z) / (L.r * .80)
+          // Shape: the envelope radii are scriptable, so a cloud can be stretched, flattened
+          // or given a harder edge without touching the noise that fills it.
+          var qx = (x - L.x) / (L.r * P.stretch), qy = (y - L.y) / (L.r * .72 * P.flatten), qz = (z - L.z) / (L.r * .80)
           var e = qx * qx + qy * qy + qz * qz
           if (e > 1) continue
-          var d = 1 - e, b = 0
+          var d = Math.pow(1 - e, P.falloff), b = 0
           for (var i = 0; i < 4; i++) {
             var c = L.cores[i], dx = x - c[0], dy = y - c[1], dz = z - c[2]
             b += Math.exp(-(dx * dx + dy * dy + dz * dz) / (c[3] * c[3]))
           }
           d *= 1 + b * P.coreGain
-          var t = P.turbulence, sd = L.seed
-          d *= Math.pow(fbm(x * t + 11.3 + sd, y * t + 4.7 + sd, z * t + 19.1 + sd, 4), P.contrast)
-          var du = ridged(x * t * .65 + 51.2 + sd, y * t * .65 + 8.4 + sd, z * t * .65 + 33.9 + sd, 3)
+          var t = P.turbulence, sd = L.seed + P.seed * 13.7
+          // Domain warping bends the noise lookup, turning round clumps into strands.
+          var wx = x, wy = y, wz = z
+          if (P.warp > 0) {
+            var k = t * 0.5, w = P.warp * 0.6
+            wx += (fbm(x * k + sd + 3.1, y * k + sd, z * k + sd, 2) - 0.5) * w
+            wy += (fbm(x * k + sd + 17.7, y * k + sd, z * k + sd, 2) - 0.5) * w
+            wz += (fbm(x * k + sd + 31.3, y * k + sd, z * k + sd, 2) - 0.5) * w
+          }
+          d *= Math.pow(fbm(wx * t + 11.3 + sd, wy * t + 4.7 + sd, wz * t + 19.1 + sd, 4), P.contrast)
+          var du = ridged(wx * t * .65 + 51.2 + sd, wy * t * .65 + 8.4 + sd, wz * t * .65 + 33.9 + sd, 3)
           d *= 1 - P.dust * du * du
           // Patchiness: some parts of the same cloud come out far denser than others.
           if (P.clump > 0) {
@@ -116,21 +126,25 @@
           'uniform vec3 uCamLocal, uHa, uOiii;',
           'uniform float uSteps,uDensity,uAbsorb,uEmission,uTurb,uContrast,uDust,uCoreGain,uFrame,uLight;',
           'uniform float uSpread, uClump, uClumpScale;',
+          'uniform float uSeed, uStretch, uFlatten, uFalloff, uWarp;',
+          'uniform vec4 uCores[4];',
           useTex ? 'uniform vec3 uCloudA[6]; uniform vec3 uCloudB[6]; uniform int uCloudN;' : '',
           useTex ? 'uniform sampler3D uVol;' : NOISE,
-          'const vec4 C0=vec4(0.06,0.04,-0.03,0.20); const vec4 C1=vec4(-0.13,-0.06,0.07,0.15);',
-          'const vec4 C2=vec4(0.02,-0.11,0.10,0.13); const vec4 C3=vec4(-0.05,0.12,0.04,0.11);',
           'float coreAt(vec3 p){ float b=0.0;',
-          ' b+=exp(-dot(p-C0.xyz,p-C0.xyz)/(C0.w*C0.w)); b+=exp(-dot(p-C1.xyz,p-C1.xyz)/(C1.w*C1.w));',
-          ' b+=exp(-dot(p-C2.xyz,p-C2.xyz)/(C2.w*C2.w)); b+=exp(-dot(p-C3.xyz,p-C3.xyz)/(C3.w*C3.w)); return b; }',
+          ' for(int i=0;i<4;i++){ vec3 d=p-uCores[i].xyz; b += exp(-dot(d,d)/(uCores[i].w*uCores[i].w)); }',
+          ' return b; }',
           'float densityAt(vec3 p){',
           useTex ? ' return texture(uVol, p+0.5).r;' : [
-            ' vec3 q=p/vec3(0.5,0.36,0.40); float e=dot(q,q); if(e>1.0) return 0.0;',
-            ' float d=1.0-e; d *= 1.0+coreAt(p)*uCoreGain;',
-            ' d *= pow(fbm(p*uTurb+vec3(11.3,4.7,19.1),4), uContrast);',
-            ' float du=ridged(p*uTurb*0.65+vec3(51.2,8.4,33.9),3); d *= 1.0-uDust*du*du;',
+            ' vec3 q=p/vec3(0.5*uStretch, 0.36*uFlatten, 0.40); float e=dot(q,q); if(e>1.0) return 0.0;',
+            ' float d=pow(1.0-e, uFalloff); d *= 1.0+coreAt(p)*uCoreGain;',
+            // Domain warping bends the noise lookup, turning round clumps into strands.
+            ' vec3 w = p;',
+            ' if (uWarp > 0.0) { float k = uTurb*0.5;',
+            '   w += (vec3(fbm(p*k+vec3(uSeed+3.1),2), fbm(p*k+vec3(uSeed+17.7),2), fbm(p*k+vec3(uSeed+31.3),2)) - 0.5) * uWarp * 0.6; }',
+            ' d *= pow(fbm(w*uTurb+vec3(11.3+uSeed,4.7,19.1),4), uContrast);',
+            ' float du=ridged(w*uTurb*0.65+vec3(51.2+uSeed,8.4,33.9),3); d *= 1.0-uDust*du*du;',
             // Large-scale clumping, so parts of the cloud come out far denser than others.
-            ' if (uClump > 0.0) { float cl = fbm(p*uTurb*uClumpScale + vec3(137.1,95.9,178.3), 2);',
+            ' if (uClump > 0.0) { float cl = fbm(w*uTurb*uClumpScale + vec3(137.1+uSeed,95.9,178.3), 2);',
             '   d *= (1.0 - uClump) + uClump * 2.15 * cl; }',
             ' return max(d,0.0);'].join('\n'),
           '}',
@@ -367,6 +381,20 @@
     return pts
   }
 
+  // The four dense cores move with the seed and follow the envelope shape, so a new seed
+  // gives a genuinely different cloud rather than the same one wearing different noise.
+  function shaderCores(P) {
+    var out = []
+    for (var k = 0; k < 4; k++) {
+      out.push(new THREE.Vector4(
+        (chash(k + 2, P.seed + 1) - 0.5) * 0.5 * P.stretch,
+        (chash(k + 5, P.seed + 2) - 0.5) * 0.36 * P.flatten,
+        (chash(k + 9, P.seed + 3) - 0.5) * 0.40,
+        0.10 + 0.14 * chash(k + 11, P.seed + 4)))
+    }
+    return out
+  }
+
   function raymarchMesh(P, useTex, state) {
     var u = {
       uCamLocal: {value: new THREE.Vector3()}, uSteps: {value: P.steps}, uDensity: {value: P.density},
@@ -375,7 +403,9 @@
       uFrame: {value: 0}, uLight: {value: P.light},
       uHa: {value: new THREE.Vector3().fromArray(hsl(P.baseHue, P.sat, 0.55))},
       uOiii: {value: new THREE.Vector3().fromArray(hsl(P.coreHue, P.sat, 0.62))},
-      uSpread: {value: P.spread}, uClump: {value: P.clump}, uClumpScale: {value: P.clumpScale}
+      uSpread: {value: P.spread}, uClump: {value: P.clump}, uClumpScale: {value: P.clumpScale},
+      uSeed: {value: P.seed}, uStretch: {value: P.stretch}, uFlatten: {value: P.flatten},
+      uFalloff: {value: P.falloff}, uWarp: {value: P.warp}, uCores: {value: shaderCores(P)}
     }
     if (useTex) {
       u.uVol = {value: bake(P, Math.round(P.texSize), state)}
@@ -445,12 +475,13 @@
     steps: 40, density: 4.0, absorb: 2.6, emission: 2.0, light: 1, texSize: 64,
     turbulence: 3.6, contrast: 3.2, dust: 0.8, coreGain: 0.9, scale: 1.0,
     clouds: 1, layout: 0, clump: 0.45, clumpScale: 0.35, spread: 0.5,
+    seed: 0, stretch: 1, flatten: 1, falloff: 1, warp: 0,
     baseHue: 6, coreHue: 168, sat: 0.72, partCount: 1200, partSize: 0.004,
     partHue: 40, partTwinkle: 0.6, partDrift: 0.006, partSizeWorld: true
   }
 
   var COLOUR = ['baseHue', 'coreHue', 'sat', 'spread']
-  var SHAPE = ['clouds', 'layout', 'clump', 'clumpScale']
+  var SHAPE = ['clouds', 'seed', 'stretch', 'flatten', 'falloff', 'warp', 'layout', 'clump', 'clumpScale']
   var MODES = [
     {id: 'points', name: 'Points', sub: 'additive (today)', ctls: ['count', 'sizeRatio', 'opacity', 'contrast', 'dust', 'scale'].concat(SHAPE)},
     {id: 'dust', name: 'Points + Dust', sub: 'absorption pass', ctls: ['count', 'sizeRatio', 'opacity', 'dustAmount', 'scale'].concat(SHAPE)},
@@ -468,6 +499,8 @@
     baseHue: [0, 360, 2, 'cloud hue'], coreHue: [0, 360, 2, 'core hue'], sat: [0, 1, 0.05, 'saturation'],
     spread: [0, 1, 0.05, 'colour spread'], clouds: [1, 6, 1, 'clouds'], layout: [0, 9, 1, 'arrangement'],
     clump: [0, 1, 0.05, 'clumping'], clumpScale: [0.1, 1.2, 0.05, 'clump size'],
+    seed: [0, 99, 1, 'seed'], stretch: [0.5, 2, 0.05, 'stretch X'], flatten: [0.3, 1.5, 0.05, 'flatten Y'],
+    falloff: [0.3, 3, 0.1, 'edge falloff'], warp: [0, 1, 0.05, 'filament warp'],
     partCount: [0, 6000, 100, 'particles'], partSize: [0.0005, 0.03, 0.0005, 'particle size'],
     partHue: [0, 360, 2, 'particle hue'], partTwinkle: [0, 1, 0.05, 'twinkle'], partDrift: [0, 0.03, 0.002, 'drift']
   }
@@ -481,6 +514,7 @@
   ]
   var UNIFORM = {steps: 'uSteps', density: 'uDensity', absorb: 'uAbsorb', emission: 'uEmission',
     light: 'uLight', turbulence: 'uTurb', contrast: 'uContrast', dust: 'uDust',
+    falloff: 'uFalloff', warp: 'uWarp',
     clump: 'uClump', clumpScale: 'uClumpScale'}
 
   // ---------------------------------------------------------------- control panel
