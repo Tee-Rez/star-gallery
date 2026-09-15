@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>Nebula AR Test</title>
+
+  <!-- Vendored from the shipping app: A-Frame 1.3 (three r137) and the self-hosted 8th Wall
+       engine. Same files, same versions, same domain licence as the real experience - so what
+       this page measures is what the app would get. No CDN. -->
+  <script crossorigin="anonymous" src="../app/external/scripts/8frame-1.3.0.min.js"></script>
+  <script crossorigin="anonymous" src="../app/external/xrextras/xrextras.js"></script>
+  <script crossorigin="anonymous" src="../app/external/landing-page/landing-page.js"></script>
+  <script crossorigin="anonymous" src="../app/external/xr/xr.js" async="true" data-preload-chunks="slam"></script>
+
+  <style>
+    :root {
+      --panel: rgba(12, 14, 20, .88); --rule: #2a3040; --text: #e8e5e0; --dim: #8e8880;
+      --ha: #e4483f; --oiii: #3fd8c0; --warn: #e8a33d;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; height: 100%; overflow: hidden; }
+    body { font-family: system-ui, -apple-system, sans-serif; color: var(--text); background: #000; }
+    a-scene { position: fixed; inset: 0; }
+
+    #hud {
+      position: fixed; top: 0; left: 0; z-index: 10; background: var(--panel);
+      border-right: 1px solid var(--rule); border-bottom: 1px solid var(--rule);
+      padding: .45rem .65rem .5rem; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px; line-height: 1.45; min-width: 9.5rem; pointer-events: none;
+    }
+    #fps { font-size: 28px; line-height: 1; font-weight: 600; }
+    #fps small { font-size: 11px; color: var(--dim); margin-left: .25rem; font-weight: 400; }
+    #hud .bar { height: 3px; background: #1d2230; margin: .3rem 0 .35rem; }
+    #hud .bar i { display: block; height: 100%; width: 0; background: var(--oiii); }
+    #hud .row { display: flex; justify-content: space-between; gap: .8rem; color: var(--dim); }
+    #hud .row b { color: var(--text); font-weight: 500; }
+    #bench { color: var(--warn); margin-top: .3rem; }
+
+    #toggle, #place {
+      position: fixed; z-index: 12; background: var(--panel); color: var(--text);
+      border: 1px solid var(--rule); padding: .55rem .8rem; font-size: 13px;
+      font-weight: 600; border-radius: 3px; font-family: inherit;
+    }
+    #toggle { right: .6rem; top: .6rem; }
+    #place { right: .6rem; top: 3.1rem; }
+
+    #panel {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 11; background: var(--panel);
+      border-top: 1px solid var(--rule); padding: .6rem .8rem 1rem; max-height: 50vh;
+      overflow-y: auto; transition: transform .18s ease;
+    }
+    #panel.hidden { transform: translateY(100%); }
+    .tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: .6rem; }
+    .tabs button {
+      background: #141824; color: var(--dim); border: 1px solid var(--rule); padding: .5rem .3rem;
+      font-size: 12px; font-weight: 600; border-radius: 3px; line-height: 1.25; font-family: inherit;
+    }
+    .tabs button[aria-selected="true"] { background: var(--oiii); color: #041a17; border-color: var(--oiii); }
+    .tabs button small { display: block; font-size: 9px; opacity: .75; font-weight: 500; }
+    .ctl { display: grid; grid-template-columns: 6.6rem 1fr 3rem; align-items: center; gap: .5rem; margin-bottom: .35rem; }
+    .ctl label { font-size: 12px; color: var(--dim); }
+    .ctl output { font-family: ui-monospace, monospace; font-size: 11px; text-align: right; }
+    input[type=range] { width: 100%; accent-color: var(--oiii); height: 22px; }
+    .actions { display: flex; gap: 6px; margin-top: .6rem; flex-wrap: wrap; }
+    .actions button {
+      flex: 1 1 7rem; background: #141824; color: var(--text); border: 1px solid var(--rule);
+      padding: .6rem .4rem; font-size: 12px; font-weight: 600; border-radius: 3px; font-family: inherit;
+    }
+    .actions button.primary { background: var(--ha); border-color: var(--ha); color: #fff; }
+    #results { margin-top: .6rem; font-family: ui-monospace, monospace; font-size: 10.5px; color: var(--dim); }
+    #results table { width: 100%; border-collapse: collapse; }
+    #results td { padding: .18rem .3rem; border-bottom: 1px solid #1d2230; }
+    #results td:first-child { color: var(--text); }
+    #results td.n { text-align: right; font-variant-numeric: tabular-nums; }
+    .note { font-size: 10.5px; color: var(--dim); margin: .5rem 0 0; line-height: 1.45; }
+  </style>
+</head>
+
+<body>
+  <div id="hud">
+    <div id="fps">--<small>fps</small></div>
+    <div class="bar"><i id="fpsbar"></i></div>
+    <div class="row"><span>frame</span><b id="ms">--</b></div>
+    <div class="row"><span>mode</span><b id="mode">--</b></div>
+    <div class="row"><span>build</span><b id="load">--</b></div>
+    <div class="row"><span>gl</span><b id="gl">--</b></div>
+    <div class="row"><span>ar</span><b id="ar">starting</b></div>
+    <div id="bench"></div>
+  </div>
+
+  <button id="toggle">Settings</button>
+  <button id="place">Place here</button>
+
+  <div id="panel" class="hidden">
+    <div class="tabs" id="tabs"></div>
+    <div id="ctls"></div>
+    <div class="actions">
+      <button id="run" class="primary">Benchmark 8s</button>
+      <button id="copy">Copy results</button>
+      <button id="clear">Clear</button>
+    </div>
+    <div id="results"></div>
+    <p class="note">The nebula is placed 1.5 m ahead when tracking starts &mdash; walk around it. "Place here" drops it in front of you again. Benchmark measures 8s including the camera feed, which is the number that matters. 1% low is the worst frames.</p>
+  </div>
+
+  <script>
+    // Registered BEFORE <a-scene> is parsed, or A-Frame initialises the scene without it.
+    (function () {
+      'use strict'
+      var THREE = window.THREE || (window.AFRAME && window.AFRAME.THREE)
+
+      // ------------------------------------------------ density field (shared by all modes)
+      // Same construction as the app's deep-sky-field.js: an ellipsoidal envelope, gaussian
+      // cores, fBm to the power of contrast, minus a ridged dust term. Used to place points
+      // AND to bake the 3D texture, so every technique draws the same object.
+      function hash(x, y, z) { var s = Math.sin(x * 127.1 + y * 311.7 + z * 74.7) * 43758.5453123; return s - Math.floor(s) }
+      function vnoise(x, y, z) {
+        var xi = Math.floor(x), yi = Math.floor(y), zi = Math.floor(z)
+        var xf = x - xi, yf = y - yi, zf = z - zi
+        var u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf), w = zf * zf * (3 - 2 * zf)
+        function L(a, b, t) { return a + (b - a) * t }
+        return L(L(L(hash(xi, yi, zi), hash(xi + 1, yi, zi), u), L(hash(xi, yi + 1, zi), hash(xi + 1, yi + 1, zi), u), v),
+          L(L(hash(xi, yi, zi + 1), hash(xi + 1, yi, zi + 1), u), L(hash(xi, yi + 1, zi + 1), hash(xi + 1, yi + 1, zi + 1), u), v), w)
+      }
+      function fbm(x, y, z, o) { var a = .5, f = 1, s = 0, n = 0; for (var i = 0; i < o; i++) { s += a * vnoise(x * f, y * f, z * f); n += a; a *= .5; f *= 2.02 } return s / n }
+      function ridged(x, y, z, o) { var a = .5, f = 1, s = 0, n = 0; for (var i = 0; i < o; i++) { s += a * (1 - Math.abs(vnoise(x * f, y * f, z * f) * 2 - 1)); n += a; a *= .5; f *= 2.02 } return s / n }
+      var CORES = [[.06, .04, -.03, .20], [-.13, -.06, .07, .15], [.02, -.11, .10, .13], [-.05, .12, .04, .11]]
+      function densityAt(x, y, z, P) {
+        var qx = x / .5, qy = y / .36, qz = z / .40, e = qx * qx + qy * qy + qz * qz
+        if (e > 1) return {d: 0, core: 0}
+        var d = 1 - e, b = 0
+        for (var i = 0; i < 4; i++) {
+          var c = CORES[i], dx = x - c[0], dy = y - c[1], dz = z - c[2]
+          b += Math.exp(-(dx * dx + dy * dy + dz * dz) / (c[3] * c[3]))
+        }
+        d *= 1 + b * P.coreGain
+        d *= Math.pow(fbm(x * P.turbulence + 11.3, y * P.turbulence + 4.7, z * P.turbulence + 19.1, 4), P.contrast)
+        var du = ridged(x * P.turbulence * .65 + 51.2, y * P.turbulence * .65 + 8.4, z * P.turbulence * .65 + 33.9, 3)
+        d *= 1 - P.dust * du * du
+        return {d: Math.max(0, d), core: Math.min(1, b)}
+      }
+
+      // ------------------------------------------------ shaders
+      var VERT = 'out vec3 vLocal;\nvoid main(){ vLocal = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }'
+      var NOISE = [
+        'float h3(vec3 p){ return fract(sin(dot(p, vec3(127.1,311.7,74.7)))*43758.5453123); }',
+        'float vnoise(vec3 p){ vec3 i=floor(p), f=fract(p); vec3 u=f*f*(3.0-2.0*f);',
+        ' float c000=h3(i),c100=h3(i+vec3(1,0,0)),c010=h3(i+vec3(0,1,0)),c110=h3(i+vec3(1,1,0));',
+        ' float c001=h3(i+vec3(0,0,1)),c101=h3(i+vec3(1,0,1)),c011=h3(i+vec3(0,1,1)),c111=h3(i+vec3(1,1,1));',
+        ' return mix(mix(mix(c000,c100,u.x),mix(c010,c110,u.x),u.y), mix(mix(c001,c101,u.x),mix(c011,c111,u.x),u.y), u.z); }',
+        'float fbm(vec3 p,int o){ float a=0.5,f=1.0,s=0.0,n=0.0; for(int i=0;i<6;i++){ if(i>=o) break; s+=a*vnoise(p*f); n+=a; a*=0.5; f*=2.02; } return s/n; }',
+        'float ridged(vec3 p,int o){ float a=0.5,f=1.0,s=0.0,n=0.0; for(int i=0;i<5;i++){ if(i>=o) break; s+=a*(1.0-abs(vnoise(p*f)*2.0-1.0)); n+=a; a*=0.5; f*=2.02; } return s/n; }'
+      ].join('\n')
+
+      function frag(useTex) {
+        return [
+          'precision highp float;',
+          useTex ? 'precision highp sampler3D;' : '',
+          'in vec3 vLocal;', 'out vec4 fragColor;',
+          'uniform vec3 uCamLocal, uHa, uOiii;',
+          'uniform float uSteps,uDensity,uAbsorb,uEmission,uTurb,uContrast,uDust,uCoreGain,uFrame,uLight;',
+          useTex ? 'uniform sampler3D uVol;' : NOISE,
+          'const vec4 C0=vec4(0.06,0.04,-0.03,0.20); const vec4 C1=vec4(-0.13,-0.06,0.07,0.15);',
+          'const vec4 C2=vec4(0.02,-0.11,0.10,0.13); const vec4 C3=vec4(-0.05,0.12,0.04,0.11);',
+          'float coreAt(vec3 p){ float b=0.0;',
+          ' b+=exp(-dot(p-C0.xyz,p-C0.xyz)/(C0.w*C0.w)); b+=exp(-dot(p-C1.xyz,p-C1.xyz)/(C1.w*C1.w));',
+          ' b+=exp(-dot(p-C2.xyz,p-C2.xyz)/(C2.w*C2.w)); b+=exp(-dot(p-C3.xyz,p-C3.xyz)/(C3.w*C3.w)); return b; }',
+          'float densityAt(vec3 p){',
+          useTex ? ' return texture(uVol, p+0.5).r;' : [
+            ' vec3 q=p/vec3(0.5,0.36,0.40); float e=dot(q,q); if(e>1.0) return 0.0;',
+            ' float d=1.0-e; d *= 1.0+coreAt(p)*uCoreGain;',
+            ' d *= pow(fbm(p*uTurb+vec3(11.3,4.7,19.1),4), uContrast);',
+            ' float du=ridged(p*uTurb*0.65+vec3(51.2,8.4,33.9),3); d *= 1.0-uDust*du*du;',
+            ' return max(d,0.0);'].join('\n'),
+          '}',
+          'void main(){',
+          ' vec3 ro=uCamLocal; vec3 rd=normalize(vLocal-ro); vec3 inv=1.0/rd;',
+          ' vec3 t0=(vec3(-0.5)-ro)*inv, t1=(vec3(0.5)-ro)*inv;',
+          ' vec3 tn=min(t0,t1), tf=max(t0,t1);',
+          ' float tEnter=max(max(tn.x,tn.y),tn.z), tExit=min(min(tf.x,tf.y),tf.z);',
+          ' tEnter=max(tEnter,0.0); if(tExit<=tEnter) discard;',
+          ' int steps=int(uSteps); float dt=(tExit-tEnter)/uSteps;',
+          // Dithered start: trades banding for grain so the step count can stay low.
+          ' float dither=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453+uFrame*0.618);',
+          ' float t=tEnter+dt*dither; vec3 col=vec3(0.0); float T=1.0;',
+          ' for(int i=0;i<128;i++){',
+          '  if(i>=steps || T<0.04) break;',
+          '  vec3 p=ro+rd*t; float d=densityAt(p)*uDensity;',
+          '  if(d>0.002){',
+          '   float a=1.0-exp(-d*uAbsorb*dt);',
+          '   float c=clamp(coreAt(p)*0.3,0.0,1.0);',
+          '   vec3 emit=mix(uHa,uOiii,c)*uEmission;',
+          '   if(uLight>0.5){ vec3 L=normalize(-p);',
+          '    float lit=clamp((d-densityAt(p+L*0.09)*uDensity)/0.09,0.0,1.0);',
+          '    emit *= 0.45+0.55*lit*uLight; }',
+          '   col += T*emit*a; T *= 1.0-a;',
+          '  }',
+          '  t += dt;',
+          ' }',
+          ' fragColor=vec4(col, 1.0-T);',
+          '}'
+        ].filter(Boolean).join('\n')
+      }
+
+      // ------------------------------------------------ the component
+      window.NEBULA = {
+        P: {
+          count: 5000, sizeRatio: 0.04, opacity: 0.24, dustAmount: 0.55,
+          steps: 40, density: 4.0, absorb: 2.6, emission: 2.0, light: 1, texSize: 64,
+          turbulence: 3.6, contrast: 3.2, dust: 0.8, coreGain: 0.9, scale: 1.0
+        },
+        mode: 0, loadNote: '', isGL2: false
+      }
+
+      AFRAME.registerComponent('nebula-field', {
+        init: function () {
+          var self = this
+          this.volTex = null; this.volKey = ''
+          this.HA = [0.89, 0.28, 0.25]; this.OIII = [0.25, 0.85, 0.75]
+          this.gasSprite = this.radial([[0, 'rgba(255,255,255,1)'], [0.3, 'rgba(255,255,255,0.4)'], [1, 'rgba(255,255,255,0)']])
+          var r = this.el.sceneEl.renderer
+          window.NEBULA.isGL2 = !!(r && r.capabilities && r.capabilities.isWebGL2)
+          this.build()
+          this.el.sceneEl.addEventListener('nebula-rebuild', function () { self.build() })
+        },
+
+        radial: function (stops) {
+          var c = document.createElement('canvas'); c.width = c.height = 64
+          var g = c.getContext('2d'), grd = g.createRadialGradient(32, 32, 0, 32, 32, 32)
+          stops.forEach(function (s) { grd.addColorStop(s[0], s[1]) })
+          g.fillStyle = grd; g.fillRect(0, 0, 64, 64)
+          return new THREE.CanvasTexture(c)
+        },
+        // Multiply blending reads the sprite's RGB and ignores alpha, so dust has to fade to
+        // WHITE at the rim (multiply by 1 = no change) or every particle stamps a dark square.
+        dustSprite: function (a) {
+          var d = Math.round(255 * (1 - a)), m = function (f) { return Math.round(255 - (255 - d) * f) }
+          return this.radial([
+            [0, 'rgb(' + d + ',' + Math.round(d * .92) + ',' + Math.round(d * .86) + ')'],
+            [0.55, 'rgb(' + m(.35) + ',' + m(.32) + ',' + m(.3) + ')'],
+            [1, 'rgb(255,255,255)']])
+        },
+
+        samplePoints: function (n, wantDust) {
+          var P = window.NEBULA.P, pos = [], col = [], guard = 0, max = n * 60
+          while (pos.length / 3 < n && guard < max) {
+            guard++
+            var x = Math.random() - .5, y = (Math.random() - .5) * .72, z = (Math.random() - .5) * .80
+            var s = densityAt(x, y, z, P)
+            if (s.d <= 0) continue
+            var keep = wantDust ? (1 - Math.min(1, s.d * 3)) * .5 : Math.min(1, s.d * 2.2)
+            if (Math.random() > keep) continue
+            pos.push(x, y, z)
+            var c = Math.min(1, s.core * .6)
+            col.push(this.HA[0] + (this.OIII[0] - this.HA[0]) * c, this.HA[1] + (this.OIII[1] - this.HA[1]) * c, this.HA[2] + (this.OIII[2] - this.HA[2]) * c)
+          }
+          var g = new THREE.BufferGeometry()
+          g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+          g.setAttribute('color', new THREE.Float32BufferAttribute(col, 3))
+          return g
+        },
+
+        bake: function (size) {
+          var P = window.NEBULA.P
+          var key = size + ':' + P.turbulence + ':' + P.contrast + ':' + P.dust + ':' + P.coreGain
+          if (this.volTex && this.volKey === key) return this.volTex
+          var t0 = performance.now(), data = new Uint8Array(size * size * size), i = 0
+          for (var z = 0; z < size; z++) for (var y = 0; y < size; y++) for (var x = 0; x < size; x++) {
+            data[i++] = Math.max(0, Math.min(255, Math.round(densityAt(x / (size - 1) - .5, y / (size - 1) - .5, z / (size - 1) - .5, P).d * 255)))
+          }
+          var Tex3D = THREE.Data3DTexture || THREE.DataTexture3D
+          if (this.volTex) this.volTex.dispose()
+          var t = new Tex3D(data, size, size, size)
+          t.format = THREE.RedFormat; t.type = THREE.UnsignedByteType
+          t.minFilter = t.magFilter = THREE.LinearFilter; t.unpackAlignment = 1; t.needsUpdate = true
+          this.volTex = t; this.volKey = key
+          window.NEBULA.loadNote = 'bake ' + size + '³ ' + Math.round(performance.now() - t0) + 'ms'
+          return t
+        },
+
+        build: function () {
+          var P = window.NEBULA.P, mode = window.NEBULA.mode, t0 = performance.now()
+          var old = this.el.getObject3D('mesh')
+          if (old) {
+            old.traverse(function (o) { if (o.geometry) o.geometry.dispose(); if (o.material) o.material.dispose() })
+            this.el.removeObject3D('mesh')
+          }
+          this.march = null
+          var obj
+          if (mode < 2) {
+            obj = new THREE.Group()
+            obj.add(new THREE.Points(this.samplePoints(P.count, false), new THREE.PointsMaterial({
+              size: P.sizeRatio, sizeAttenuation: true, vertexColors: true, transparent: true,
+              map: this.gasSprite, opacity: P.opacity, blending: THREE.AdditiveBlending, depthWrite: false
+            })))
+            if (mode === 1) {
+              var dust = new THREE.Points(this.samplePoints(Math.round(P.count * .6), true), new THREE.PointsMaterial({
+                size: P.sizeRatio * 1.8, sizeAttenuation: true, map: this.dustSprite(P.dustAmount),
+                blending: THREE.MultiplyBlending, depthWrite: false, transparent: false
+              }))
+              dust.renderOrder = 1
+              obj.add(dust)
+            }
+            window.NEBULA.loadNote = (mode === 1 ? 'pts+dust ' : 'pts ') + Math.round(performance.now() - t0) + 'ms'
+          } else {
+            var useTex = mode === 3
+            if (useTex && !window.NEBULA.isGL2) { window.NEBULA.loadNote = 'needs WebGL2'; return }
+            var u = {
+              uCamLocal: {value: new THREE.Vector3()}, uSteps: {value: P.steps}, uDensity: {value: P.density},
+              uAbsorb: {value: P.absorb}, uEmission: {value: P.emission}, uTurb: {value: P.turbulence},
+              uContrast: {value: P.contrast}, uDust: {value: P.dust}, uCoreGain: {value: P.coreGain},
+              uFrame: {value: 0}, uLight: {value: P.light},
+              uHa: {value: new THREE.Vector3(this.HA[0], this.HA[1], this.HA[2])},
+              uOiii: {value: new THREE.Vector3(this.OIII[0], this.OIII[1], this.OIII[2])}
+            }
+            if (useTex) u.uVol = {value: this.bake(P.texSize)}
+            else window.NEBULA.loadNote = 'procedural'
+            obj = new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.ShaderMaterial({
+              glslVersion: THREE.GLSL3, uniforms: u, vertexShader: VERT, fragmentShader: frag(useTex),
+              transparent: true, depthWrite: false, side: THREE.BackSide, blending: THREE.NormalBlending
+            }))
+            this.march = obj
+          }
+          obj.scale.setScalar(P.scale)
+          this.el.setObject3D('mesh', obj)
+        },
+
+        tick: function () {
+          if (!this.march) return
+          var cam = this.el.sceneEl.camera
+          if (!cam) return
+          var u = this.march.material.uniforms
+          this.march.updateWorldMatrix(true, false)
+          u.uCamLocal.value.copy(this.march.worldToLocal(cam.getWorldPosition(new THREE.Vector3())))
+          u.uFrame.value = (u.uFrame.value + 1) % 64
+        }
+      })
+    })()
+  </script>
+
+  <a-scene
+    nebula-lab-ui
+    xrextras-gesture-detector
+    xrextras-almost-there
+    xrextras-loading
+    xrextras-runtime-error
+    renderer="colorManagement: false; antialias: false"
+    xrweb="allowedDevices: any; disableWorldTracking: false">
+    <a-camera id="camera" position="0 0 0" raycaster="objects: .cantap" cursor="fuse: false; rayOrigin: mouse"></a-camera>
+    <a-entity id="host" nebula-field visible="false"></a-entity>
+  </a-scene>
+
+  <script>
+    // ------------------------------------------------ UI, HUD and benchmark
+    (function () {
+      'use strict'
+      var N = window.NEBULA
+      var MODES = [
+        {name: 'Points', sub: 'additive (today)', ctls: ['count', 'sizeRatio', 'opacity', 'contrast', 'dust', 'scale']},
+        {name: 'Points + Dust', sub: 'absorption pass', ctls: ['count', 'sizeRatio', 'opacity', 'dustAmount', 'scale']},
+        {name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale']},
+        {name: 'Raymarch', sub: '3D texture', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'texSize', 'scale']}
+      ]
+      var RANGE = {
+        count: [500, 20000, 500, 'points'], sizeRatio: [.005, .15, .005, 'size'], opacity: [.02, 1, .02, 'opacity'],
+        dustAmount: [0, 1, .05, 'dust opacity'], steps: [8, 128, 4, 'march steps'], density: [.2, 8, .2, 'density'],
+        absorb: [.2, 8, .2, 'absorption'], emission: [.1, 4, .1, 'emission'], light: [0, 1, .1, 'lighting'],
+        texSize: [16, 128, 16, 'texture size'], turbulence: [1, 8, .2, 'turbulence'], contrast: [1, 6, .1, 'contrast'],
+        dust: [0, 1, .05, 'dust cut'], scale: [.3, 3, .1, 'size (m)']
+      }
+      var UNIFORM = {steps: 'uSteps', density: 'uDensity', absorb: 'uAbsorb', emission: 'uEmission',
+        light: 'uLight', turbulence: 'uTurb', contrast: 'uContrast', dust: 'uDust'}
+
+      var scene = document.querySelector('a-scene'), host = document.getElementById('host')
+      var tabsEl = document.getElementById('tabs'), ctlsEl = document.getElementById('ctls')
+      var panel = document.getElementById('panel')
+
+      MODES.forEach(function (m, i) {
+        var b = document.createElement('button')
+        b.innerHTML = m.name + '<small>' + m.sub + '</small>'
+        b.setAttribute('aria-selected', i === 0 ? 'true' : 'false')
+        b.onclick = function () {
+          N.mode = i
+          Array.prototype.forEach.call(tabsEl.children, function (c, j) { c.setAttribute('aria-selected', i === j ? 'true' : 'false') })
+          controls(); scene.emit('nebula-rebuild')
+        }
+        tabsEl.appendChild(b)
+      })
+
+      function comp() { return host.components['nebula-field'] }
+      function controls() {
+        ctlsEl.innerHTML = ''
+        MODES[N.mode].ctls.forEach(function (key) {
+          var r = RANGE[key], row = document.createElement('div'); row.className = 'ctl'
+          var lab = document.createElement('label'); lab.textContent = r[3]
+          var inp = document.createElement('input'); inp.type = 'range'
+          inp.min = r[0]; inp.max = r[1]; inp.step = r[2]; inp.value = N.P[key]
+          var out = document.createElement('output'); out.textContent = N.P[key]
+          inp.oninput = function () {
+            N.P[key] = parseFloat(inp.value); out.textContent = N.P[key]
+            var c = comp()
+            if (key === 'scale' && c) { var o = host.getObject3D('mesh'); if (o) { o.scale.setScalar(N.P.scale); return } }
+            // Shader uniforms update live; anything that changes geometry or the texture rebuilds.
+            if (c && c.march && UNIFORM[key]) { c.march.material.uniforms[UNIFORM[key]].value = N.P[key]; return }
+            clearTimeout(inp._t); inp._t = setTimeout(function () { scene.emit('nebula-rebuild') }, 200)
+          }
+          row.appendChild(lab); row.appendChild(inp); row.appendChild(out)
+          ctlsEl.appendChild(row)
+        })
+      }
+      controls()
+
+      document.getElementById('toggle').onclick = function () { panel.classList.toggle('hidden') }
+
+      // Placement: 1.5 m along the camera's forward direction, at the camera's height.
+      function placeInFront() {
+        var cam = scene.camera
+        if (!cam) return
+        var THREE = window.THREE || AFRAME.THREE
+        var p = cam.getWorldPosition(new THREE.Vector3())
+        var d = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.getWorldQuaternion(new THREE.Quaternion()))
+        d.y = 0; d.normalize()
+        host.object3D.position.copy(p.clone().addScaledVector(d, 1.5))
+        host.setAttribute('visible', 'true')
+      }
+      document.getElementById('place').onclick = placeInFront
+      scene.addEventListener('realityready', function () {
+        document.getElementById('ar').textContent = 'tracking'
+        setTimeout(placeInFront, 400)
+      })
+      scene.addEventListener('realityerror', function () { document.getElementById('ar').textContent = 'error' })
+      // If tracking never starts, still show something rather than a bare camera feed.
+      setTimeout(function () {
+        if (host.getAttribute('visible') === true || host.getAttribute('visible') === 'true') return
+        placeInFront()
+        if (document.getElementById('ar').textContent === 'starting') document.getElementById('ar').textContent = 'no tracking'
+      }, 8000)
+
+      // ------------------------------------------------ benchmark
+      var results = []
+      try { results = JSON.parse(localStorage.getItem('nebula-ar') || '[]') } catch (e) {}
+      var bench = null
+      function draw() {
+        var el = document.getElementById('results')
+        el.innerHTML = results.length ? '<table>' + results.map(function (r) {
+          return '<tr><td>' + r.name + '</td><td class="n">' + r.avg + ' fps</td><td class="n">' + r.low +
+            ' low</td><td class="n">' + r.ms + ' ms</td><td class="n">' + r.detail + '</td></tr>'
+        }).join('') + '</table>' : ''
+      }
+      draw()
+      document.getElementById('run').onclick = function () {
+        bench = {frames: [], start: performance.now(), warm: true, name: MODES[N.mode].name + ' / ' + MODES[N.mode].sub}
+        document.getElementById('bench').textContent = 'warming up...'
+      }
+      document.getElementById('clear').onclick = function () { results = []; try { localStorage.removeItem('nebula-ar') } catch (e) {} draw() }
+      document.getElementById('copy').onclick = function () {
+        var t = results.map(function (r) { return r.name + ' | ' + r.avg + ' fps | 1% low ' + r.low + ' | ' + r.ms + ' ms | ' + r.detail }).join('\n')
+        if (navigator.clipboard) navigator.clipboard.writeText(t)
+        var b = this; b.textContent = 'Copied'; setTimeout(function () { b.textContent = 'Copy results' }, 1200)
+      }
+
+      // ------------------------------------------------ frame timing
+      var last = performance.now(), acc = [], frame = 0
+      function loop(now) {
+        requestAnimationFrame(loop)
+        var dt = now - last; last = now; frame++
+        acc.push(dt); if (acc.length > 40) acc.shift()
+
+        if (frame % 10 === 0) {
+          var mean = acc.reduce(function (a, b) { return a + b }, 0) / acc.length, fps = 1000 / mean
+          document.getElementById('fps').innerHTML = fps.toFixed(0) + '<small>fps</small>'
+          document.getElementById('ms').textContent = mean.toFixed(1) + ' ms'
+          var bar = document.getElementById('fpsbar')
+          bar.style.width = Math.min(100, fps / 60 * 100) + '%'
+          bar.style.background = fps > 50 ? '#3fd8c0' : fps > 28 ? '#e8a33d' : '#e4483f'
+          document.getElementById('mode').textContent = MODES[N.mode].name.replace('Raymarch', 'RM') + ' ' + MODES[N.mode].sub.split(' ')[0]
+          document.getElementById('load').textContent = N.loadNote
+          var TH = window.THREE || AFRAME.THREE
+          document.getElementById('gl').textContent = (N.isGL2 ? 'WebGL2' : 'WebGL1') + ' r' + (TH ? TH.REVISION : '?')
+        }
+
+        if (bench) {
+          var el = now - bench.start
+          if (bench.warm && el > 1000) { bench.warm = false; bench.start = now; bench.frames = [] }
+          else if (!bench.warm) {
+            bench.frames.push(dt)
+            var left = 8 - el / 1000
+            if (left <= 0) {
+              var f = bench.frames.slice().sort(function (a, b) { return a - b })
+              var avg = f.reduce(function (a, b) { return a + b }, 0) / f.length
+              var p99 = f[Math.floor(f.length * .99)] || f[f.length - 1]
+              var detail = N.mode < 2 ? N.P.count + 'pts' : N.P.steps + 'st' + (N.mode === 3 ? '/' + N.P.texSize + '³' : '')
+              results.unshift({name: bench.name, avg: (1000 / avg).toFixed(0), low: (1000 / p99).toFixed(0), ms: avg.toFixed(1), detail: detail})
+              results = results.slice(0, 12)
+              try { localStorage.setItem('nebula-ar', JSON.stringify(results)) } catch (e) {}
+              document.getElementById('bench').textContent = 'done: ' + results[0].avg + ' fps'
+              setTimeout(function () { document.getElementById('bench').textContent = '' }, 4000)
+              bench = null; draw()
+            } else if (frame % 10 === 0) document.getElementById('bench').textContent = 'measuring ' + left.toFixed(0) + 's'
+          }
+        }
+      }
+      requestAnimationFrame(loop)
+    })()
+  </script>
+</body>
+
+</html>
