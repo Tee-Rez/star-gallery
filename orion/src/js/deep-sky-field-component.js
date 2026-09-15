@@ -52,6 +52,9 @@ const deepSkyFieldComponent = {
   },
 
   init() {
+    this.coreObject = null
+    this.coreMarch = null
+    this.coreState = null
     this.points = null
     this.pointCount = 0
     this.params = null
@@ -65,6 +68,15 @@ const deepSkyFieldComponent = {
   build() {
     const THREE = window.THREE || AFRAME.THREE
     this.dispose()
+
+    // A tuned preset from the nebula lab wins when one is attached. It runs the SAME engine
+    // the lab does (nebula-shared/nebula-core.js, loaded as a plain script), so a look found
+    // there renders identically here. Without the preset or the engine, nothing changes.
+    const preset = this.presetFromDataset()
+    if (preset && window.NebulaCore) {
+      this.buildFromCore(THREE, preset)
+      return
+    }
 
     const gen = generatorFor(this.data.layer)
     if (!gen) {
@@ -117,11 +129,81 @@ const deepSkyFieldComponent = {
     this.el.setObject3D('field', this.points)
   },
 
+  presetFromDataset() {
+    const raw = this.el.dataset.nebulaPreset
+    if (!raw) return null
+    try {
+      return JSON.parse(raw)
+    } catch (e) {
+      console.warn('[deep-sky-field] preset is not valid JSON, falling back to points:', e.message)
+      return null
+    }
+  },
+
+  buildFromCore(THREE, preset) {
+    const core = window.NebulaCore
+    const P = Object.assign(core.params(), preset)
+    const mode = preset.mode || (this.data.layer === 'galaxy' ? 'galaxy' : 'particles')
+    const renderer = this.el.sceneEl && this.el.sceneEl.renderer
+    const isGL2 = !!(renderer && renderer.capabilities && renderer.capabilities.isWebGL2)
+
+    this.coreState = {}
+    const out = core.build(P, mode, this.coreState, isGL2)
+    if (!out.object3D) {
+      console.warn('[deep-sky-field] preset built nothing (' + out.note + '), falling back to points')
+      this.coreState = null
+      this.build()
+      return
+    }
+
+    // The engine's object is one unit across. deep-sky-layer.fitScale sizes the host assuming
+    // a half-extent of spread * (1 + sizeRatio), so match that exactly and the existing fit
+    // logic keeps working untouched. The preset's own `scale` is deliberately ignored: in the
+    // lab it meant metres in the room, but here the portal's grid box governs the size.
+    const spread = Number(this.data.spread) > 0 ? Number(this.data.spread) : 3.4
+    const ratio = Number(this.data.sizeRatio) > 0 ? Number(this.data.sizeRatio) : 0
+    out.object3D.scale.setScalar(2 * spread * (1 + ratio))
+
+    this.coreObject = out.object3D
+    this.coreMarch = out.march
+    this.params = P
+    this.el.setObject3D('field', out.object3D)
+  },
+
   tick(time, delta) {
+    if (this.coreObject) {
+      this.coreObject.rotation.y += (delta / 1000) * (Number(this.data.spin) || 0)
+      const THREE = window.THREE || AFRAME.THREE
+      const st = this.coreState || {}
+      const renderer = this.el.sceneEl && this.el.sceneEl.renderer
+      if (st.partMat) {
+        st.partMat.uniforms.uTime.value = time / 1000
+        if (renderer) {
+          st.partMat.uniforms.uPixH.value = renderer.getDrawingBufferSize(new THREE.Vector2()).y * 0.5
+        }
+      }
+      const cam = this.el.sceneEl && this.el.sceneEl.camera
+      if (this.coreMarch && cam) {
+        const u = this.coreMarch.material.uniforms
+        this.coreMarch.updateWorldMatrix(true, false)
+        u.uCamLocal.value.copy(this.coreMarch.worldToLocal(cam.getWorldPosition(new THREE.Vector3())))
+        u.uFrame.value = (u.uFrame.value + 1) % 64
+      }
+      return
+    }
     if (this.points && this.params) this.points.rotation.y += (delta / 1000) * this.params.spin
   },
 
   dispose() {
+    if (this.coreObject) {
+      this.el.removeObject3D('field')
+      if (window.NebulaCore) window.NebulaCore.dispose(this.coreObject)
+      this.coreObject = null
+      this.coreMarch = null
+      this.coreState = null
+      this.params = null
+      return
+    }
     if (!this.points) return
     this.el.removeObject3D('field')
     this.points.geometry.dispose()

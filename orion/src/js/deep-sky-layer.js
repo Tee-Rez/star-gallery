@@ -4,9 +4,14 @@
 // grows in its place, turning slowly, with one orb that opens its story. A cluster is a star
 // figure, so it REPLACES the constellation and behaves exactly like one.
 //
-// The mode discipline is lifted from lore-journey.js, which already proves it: strip
-// one-finger rotation, hide Recenter, close the info panel, remember the 2D/3D state, and put
-// every one of those back on the way out. The two modes are mutually exclusive.
+// The mode discipline is lifted from lore-journey.js, which already proves it: hide Recenter,
+// close the info panel, remember the 2D/3D state, and put every one of those back on the way
+// out. The two modes are mutually exclusive.
+//
+// One piece of that discipline does NOT carry over. lore-journey strips one-finger rotation
+// because a guided tour drives the view itself. A cluster has no tour: it is a star figure in
+// the same rotatingContainer, so locking it would contradict "behaves exactly like one" above.
+// Only the generated fields strip rotation - see enterMode().
 import {defaultStore} from './discovery-store'
 import {resolveLayer, FIELD_DEFAULTS} from './deep-sky-field'
 
@@ -146,11 +151,16 @@ const deepSkyLayerComponent = {
     this.prevResetVisible = true
   },
 
-  enterMode() {
+  // A cluster keeps the drag-to-rotate the constellation had: swapFigure rebuilds it as stars
+  // and connection lines in the SAME rotatingContainer, so it is a constellation figure in
+  // every respect and should handle like one. Only the generated fields lock rotation, where
+  // the flat detail orb shares that container and reads badly edge-on.
+  enterMode(layer) {
     const l = this.loader()
     this.prevShowReal = l ? l.data.showRealPositions : false
     this.rotatingContainer = l ? l.rotatingContainer : null
-    if (this.rotatingContainer && this.rotatingContainer.hasAttribute('xrextras-one-finger-rotate')) {
+    if (layer !== 'cluster' &&
+        this.rotatingContainer && this.rotatingContainer.hasAttribute('xrextras-one-finger-rotate')) {
       this.rotatingContainer.removeAttribute('xrextras-one-finger-rotate')
       this.rotateWasEnabled = true
     }
@@ -231,7 +241,7 @@ const deepSkyLayerComponent = {
         console.warn('[deep-sky-layer] cluster has no stars:', objectId)
         return false
       }
-      this.enterMode()
+      this.enterMode(layer)
       this.active = obj
       this.activeLayer = layer
       this.stack.push(objectId)
@@ -245,7 +255,7 @@ const deepSkyLayerComponent = {
       return true
     }
 
-    this.enterMode()
+    this.enterMode(layer)
     this.active = obj
     this.activeLayer = layer
     this.stack.push(objectId)
@@ -270,6 +280,10 @@ const deepSkyLayerComponent = {
     this.host = document.createElement('a-entity')
 
     const field = Object.assign({layer}, obj.field || {})
+    // A tuned preset rides on the dataset rather than the component schema: it carries ~45
+    // keys and nested JSON, which the A-Frame attribute parser is the wrong tool for. Set it
+    // BEFORE the component attaches, so its first build already sees it.
+    if (obj.render) this.host.dataset.nebulaPreset = JSON.stringify(obj.render)
     this.host.setAttribute('deep-sky-field', field)
     this.host.setAttribute('position', {x: 0, y: 0, z: 0})
 

@@ -745,7 +745,37 @@
         "basic": "The Great Orion Nebula, the middle \"star\" of Orion's sword and the nearest region of massive star formation to the Sun. It is bright enough to see with the unaided eye as a fuzzy patch, and the only nebula most people ever see that way.",
         "scientific": "An emission nebula about 1,344 light-years away and some 24 light-years across, lit by the Trapezium - a knot of hot young stars whose ultraviolet light ionises the surrounding hydrogen and makes it glow. Depth here is expressive, not measured: the object is placed at the back of the constellation box rather than at its true distance."
       },
-      "sources": "Wikipedia, Orion Nebula; Messier catalogue"
+      "sources": "Wikipedia, Orion Nebula; Messier catalogue",
+      "render": {
+        "mode": "particles",
+        "absorb": 4,
+        "baseHue": 6,
+        "clouds": 6,
+        "clump": 0.45,
+        "clumpScale": 0.8,
+        "contrast": 3.2,
+        "coreGain": 0.9,
+        "coreHue": 168,
+        "density": 4.8,
+        "dust": 0.8,
+        "emission": 1.2,
+        "falloff": 1,
+        "flatten": 1.2,
+        "layout": 2,
+        "light": 0,
+        "partCount": 1600,
+        "partDrift": 0.024,
+        "partHue": 124,
+        "partSize": 0.0115,
+        "partTwinkle": 0.9,
+        "sat": 0.6,
+        "seed": 15,
+        "spread": 0.35,
+        "steps": 8,
+        "stretch": 1.35,
+        "turbulence": 3.6,
+        "warp": 0.1
+      }
     },
     {
       "id": "m43",
