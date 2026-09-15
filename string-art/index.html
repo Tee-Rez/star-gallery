@@ -106,14 +106,14 @@
 
   <h2>Nails</h2>
   <label class="chk"><input type="checkbox" id="nRings"> Outer &amp; inner rim + wall corners</label>
-  <label class="row"><span class="k">Max points per star</span>
+  <label class="row"><span class="k">Large star nails</span>
     <span style="display:flex;gap:6px;align-items:center">
       <button id="sNailsDn" style="width:28px;padding:0">−</button>
-      <span id="sNailsV" style="min-width:20px;text-align:center;font-weight:600">8</span>
+      <span id="sNailsV" style="min-width:20px;text-align:center;font-weight:600">12</span>
       <button id="sNailsUp" style="width:28px;padding:0">+</button>
-      <span style="color:#9aa2b0;font-size:11px">(multiples of 4)</span>
+      <span style="color:#9aa2b0;font-size:11px">(sm=4 md=8 lg=this)</span>
     </span>
-    <input type="hidden" id="sNails" value="8"></label>
+    <input type="hidden" id="sNails" value="12"></label>
   <label class="row"><span class="k">Star ring radius (in)</span>
     <input type="number" id="sRadius" min="0.1" max="2" step="0.05" value="0.3"></label>
   <label class="row"><span class="k">Nail dot &oslash; (in)</span>
@@ -9436,23 +9436,35 @@ function build(){
     `<circle cx="${U(p.x).toFixed(2)}" cy="${U(p.y).toFixed(2)}" r="${r.toFixed(2)}" class="nail"/>`).join('');
 
   // ---- STARS (front plane) ----
-  // Per-star nail count and ring radius scale with brightness (lower mag = brighter = more nails)
+  // 3 discrete size tiers based on magnitude: small (dim) → medium → large (bright)
+  // Nail counts: small=4, medium=8, large=sNails. Ring radii: 0.45 / 0.7 / 1.0 × sRadius.
   let starMarks = '';
   const magMin = Math.min(...d.stars.map(st => st.mag));
   const magMax = Math.max(...d.stars.map(st => st.mag));
-  const starBrt = (mag) => magMax === magMin ? 1 :
-    0.25 + 0.75 * Math.max(0, Math.min(1, (magMax - mag) / (magMax - magMin)));
+  const magRange = magMax - magMin;
+  const starTier = (mag) => {
+    if (magRange < 0.01) return 'large';
+    const t = (mag - magMin) / magRange; // 0 = brightest, 1 = dimmest
+    return t < 0.33 ? 'large' : t < 0.66 ? 'medium' : 'small';
+  };
+  const lgNails = Math.max(8, s.sNails);  // large tier (stepper value, min 8)
+  const mdNails = Math.max(4, lgNails - 4); // medium tier
+  const TIER = {
+    large:  { nails: lgNails, radFrac: 1.0,  dotFrac: 1.0  },
+    medium: { nails: mdNails, radFrac: 0.68, dotFrac: 0.72 },
+    small:  { nails: 4,       radFrac: 0.42, dotFrac: 0.48 },
+  };
   let totalStarNails = 0;
   d.stars.forEach((st, i) => {
     const cx = U(bx(st.x,1)), cy = U(by(st.y,1));
-    const brt = starBrt(st.mag);
-    const starRingSvg = U(s.sRadius * brt);
-    const starNails = s.sNails < 4 ? 0 : Math.max(4, Math.floor(s.sNails * brt / 4) * 4);
+    const tier = TIER[starTier(st.mag)];
+    const starRingSvg = U(s.sRadius * tier.radFrac);
+    const starNails = s.sNails < 4 ? 0 : tier.nails;
     totalStarNails += starNails;
-    // Guide circle showing the nail ring (size reflects brightness)
+    // Guide circle
     starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${starRingSvg.toFixed(2)}" class="star"/>`;
-    // Centre dot scaled by brightness
-    starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${(r*Math.max(0.4,brt)).toFixed(2)}" class="star-core"/>`;
+    // Centre dot
+    starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${(r*tier.dotFrac).toFixed(2)}" class="star-core"/>`;
     // Evenly-spaced nail points on the ring
     if (starNails >= 4){
       for (let p = 0; p < starNails; p++){
@@ -9520,7 +9532,7 @@ function build(){
     `Recommended wood: <span class="big">${boardW.toFixed(2)}&Prime; &times; ${boardH.toFixed(2)}&Prime;</span><br>`+
     `Grid area: <b>${gridW.toFixed(2)}&Prime; &times; ${gridH.toFixed(2)}&Prime;</b> &nbsp;(${orient})<br>`+
     `Grid: <b>${cols} &times; ${rows}</b> cells &middot; front spacing <b>${frontSp.toFixed(2)}&Prime;</b>, back <b>${backSp.toFixed(2)}&Prime;</b><br>`+
-    `Nails: <b>${nail.length}</b>${s.sNails>=4?` + <b>${totalStarNails}</b> star ring nails (scaled by magnitude, max ${s.sNails})`:' (no star ring nails)'}`;
+    `Nails: <b>${nail.length}</b>${s.sNails>=4?` + <b>${totalStarNails}</b> star ring nails (sm=4 md=${Math.max(4,s.sNails-4)} lg=${Math.max(8,s.sNails)} nails)`:' (no star ring nails)'}`;
 
   const warn = $('warn');
   if (backSp < 0.18 && s.nRings){
@@ -9565,7 +9577,7 @@ $('png').onclick = () => {
 };
 $('print').onclick = () => window.print();
 
-// star nail stepper — multiples of 4 only, minimum 0
+// star nail stepper — large tier, multiples of 4, minimum 8 (so sm=4 md=8 lg=8 is lowest useful)
 $('sNailsUp').onclick = () => {
   const v = +$('sNails').value + 4;
   $('sNails').value = v; $('sNailsV').textContent = v; build();
