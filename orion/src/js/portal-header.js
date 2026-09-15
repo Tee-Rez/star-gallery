@@ -73,7 +73,9 @@ if (AFRAME.geometries && !AFRAME.geometries['hud-rounded-rect']) {
 
 const portalHeaderComponent = {
   schema: {
-    label: {type: 'string', default: 'Orion'},      // constellation name
+    label: {type: 'string', default: 'Orion'},      // constellation name, or the object you are in
+    kind: {type: 'string', default: ''},             // Galaxy / Nebula / Cluster, empty outside one
+    explored: {type: 'string', default: ''},         // yes / no, for an object with no stars to count
     starCount: {type: 'int', default: 0},            // number of stars
     starsExplored: {type: 'int', default: 0},        // stars visited, of starCount
     deepSkyExplored: {type: 'int', default: 0},      // deep-sky objects visited
@@ -131,8 +133,17 @@ const portalHeaderComponent = {
     const info = this.makeGroup(-halfBand + inset + (infoW / 2), infoW, groupH)
     const controls = this.makeGroup(halfBand - inset - (buttonsW / 2), buttonsW, groupH)
 
-    this.addLine(info, `Constellation Name: ${d.label}`, 0, infoW)
-    this.addLine(info, `# of Stars Explored: ${d.starsExplored} / ${d.starCount}`, 1, infoW)
+    // Inside a deep-sky object the subject of this band is the object, not the constellation.
+    this.addLine(info, d.kind ? `${d.kind}: ${d.label}` : `Constellation Name: ${d.label}`, 0, infoW)
+
+    // A nebula or a galaxy has no stars to count, so the line that would report 0 / 0 reports
+    // the only progress it has instead: whether you have opened it. A cluster keeps the star
+    // count - it IS a star figure, and that count is its tracker.
+    if (d.explored) {
+      this.addLine(info, `Explored: ${d.explored === 'yes' ? 'Yes' : 'Not yet'}`, 1, infoW)
+    } else {
+      this.addLine(info, `# of Stars Explored: ${d.starsExplored} / ${d.starCount}`, 1, infoW)
+    }
 
     // Unity carries this line too. Constellations with nothing in the layer omit it rather
     // than advertising "0 / 0".

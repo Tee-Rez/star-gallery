@@ -18,11 +18,6 @@ import {resolveLayer, FIELD_DEFAULTS} from './deep-sky-field'
 const deepSkyLayerComponent = {
   schema: {
     growDur: {type: 'number', default: 900},      // ms for the object to scale in
-    // RESERVED, not yet consumed: the spec's step 3 swings #root so the object sits this far
-    // in front of the camera, the way lore-journey.frameStar() does. That framing is
-    // deliberately deferred - it needs visual judgement on a real device - so this field is
-    // kept as the knob it will use rather than removed and re-added later. Not dead config.
-    completeDelay: {type: 'number', default: 900},  // beat before an automatic return
   },
 
   init() {
@@ -34,7 +29,6 @@ const deepSkyLayerComponent = {
     this.awaitingClose = false
     this.onPanelClosed = null
     this.onStarVisited = null
-    this.completionTimer = null
     this.prevResetVisible = false
     this.lossCanvas = null
 
@@ -246,7 +240,7 @@ const deepSkyLayerComponent = {
       this.activeLayer = layer
       this.stack.push(objectId)
       l.swapFigure({stars: obj.stars, connections: obj.connections || []})
-      this.retitle(obj.name)
+      this.retitle(obj.name, this.kindOf(layer))
       this.watchClusterStars()
       // Deliberately NOT checked here: a cluster whose stars were all visited in an earlier
       // session would otherwise bounce you straight back out on arrival. Completion is a
@@ -261,7 +255,7 @@ const deepSkyLayerComponent = {
     this.stack.push(objectId)
     this.hideConstellation()
     this.spawnField(obj, layer)
-    this.retitle(obj.name)
+    this.retitle(obj.name, this.kindOf(layer), this.exploredFlag(obj, layer))
     this.el.sceneEl.emit('deepSkyEntered', {id: objectId})
     return true
   },
@@ -373,6 +367,12 @@ const deepSkyLayerComponent = {
     const c = this.constellationId()
     if (!defaultStore.mark(c, id)) return
     this.dimMarker(id)
+    // You are still inside it, so the band has to flip to Explored now rather than on the way
+    // out. refreshExploredCounts answers the same event, but it only writes the counts.
+    if (this.active && this.active.id === id) {
+      this.retitle(this.active.name, this.kindOf(this.activeLayer),
+        this.exploredFlag(this.active, this.activeLayer))
+    }
     this.el.sceneEl.emit('deepSkyVisited', {constellation: c, id})
   },
 
@@ -416,35 +416,44 @@ const deepSkyLayerComponent = {
     if (!stars.every(s => defaultStore.isVisited(c, s.id))) return
     this.unwatchClusterStars()
     this.markVisited(this.active.id)
-    // The cluster has no panel to wait on, so the beat runs straight from here.
-    if (this.completionTimer) clearTimeout(this.completionTimer)
-    this.completionTimer = setTimeout(() => this.exit(), this.data.completeDelay)
   },
 
-  // Finishing an object returns you on its own; the back control is always there too.
+  // Closing the panel puts the object back to its resting size and leaves you inside it.
   //
-  // The trigger is the panel CLOSING, not a timer started when it opened - a blind timer
-  // would pull the constellation back while the reader is still mid-paragraph.
+  // It used to return to the constellation on a timer. Exploring a thing is not a
+  // reason to be taken out of it - you may well want to keep looking at what you just read
+  // about - so leaving is now only ever the back control's job.
   scheduleCompletion() {
     if (this.awaitingClose) return
     this.awaitingClose = true
     this.onPanelClosed = () => {
       this.el.sceneEl.removeEventListener('starInfoClosed', this.onPanelClosed)
+      this.onPanelClosed = null
       this.awaitingClose = false
       this.zoomField(false)
-      if (!this.active) return
-      this.completionTimer = setTimeout(() => this.exit(), this.data.completeDelay)
     }
     this.el.sceneEl.addEventListener('starInfoClosed', this.onPanelClosed)
   },
 
-  // Only the label. The explored counts belong to refreshExploredCounts, which reads the
-  // CURRENT star set - already swapped to the cluster's by the time it runs - so it stays
-  // correct for both a constellation and a cluster without special-casing either.
-  retitle(label) {
+  // The label, what kind of thing it is, and - for an object with no stars to count - whether
+  // it has been explored. The star counts still belong to refreshExploredCounts, which reads
+  // the CURRENT star set (already swapped to the cluster's by the time it runs), so a cluster
+  // needs no special case here.
+  retitle(label, kind, explored) {
     const header = document.querySelector('#portal-header')
     if (!header) return
-    header.setAttribute('portal-header', {label})
+    header.setAttribute('portal-header', {label, kind: kind || '', explored: explored || ''})
+  },
+
+  // nebula -> Nebula. The HUD names the thing you are standing in.
+  kindOf(layer) {
+    return layer ? layer.charAt(0).toUpperCase() + layer.slice(1) : ''
+  },
+
+  // Only a generated field carries this: a cluster's tracker is its star count.
+  exploredFlag(obj, layer) {
+    if (!obj || layer === 'cluster') return ''
+    return defaultStore.isVisited(this.constellationId(), obj.id) ? 'yes' : 'no'
   },
 
   // ---- leaving ----
@@ -453,7 +462,6 @@ const deepSkyLayerComponent = {
     if (!this.active) return false
     const id = this.active.id
     const wasCluster = this.activeLayer === 'cluster'
-    if (this.completionTimer) { clearTimeout(this.completionTimer); this.completionTimer = null }
     if (this.onPanelClosed) {
       this.el.sceneEl.removeEventListener('starInfoClosed', this.onPanelClosed)
       this.onPanelClosed = null

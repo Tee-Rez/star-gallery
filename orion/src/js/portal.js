@@ -1,4 +1,11 @@
 // js/portal.js - the portal frame and the hider walls that cover it until it opens
+// Depths inside the portal entity. WALL_Z clears the grid box, the figure and the signage, so
+// none of the interior shows before the doors open. BORDER_Z is deliberately just in front of
+// the walls: the traced frame IS the opening animation and has to be watched, and it is the
+// only thing drawn out there - the interior stays hidden behind the walls either way.
+const WALL_Z = 0.05
+const BORDER_Z = 0.07
+
 const portalComponent = {
   schema: {
     width: {type: 'number', default: 6},
@@ -106,12 +113,12 @@ const portalComponent = {
     console.log(`✅ Hider walls created in front of the border at z=${z}`)
   },
 
-  // The border is drawn at z 0.01 inside the portal entity; the walls are outside it. Clearing
-  // the portal's own offset plus that 0.01 by a comfortable margin keeps the walls in front of
-  // the frame no matter where a constellation places its portal.
+  // The walls live OUTSIDE the portal entity, under #root, so they have to add the portal's
+  // own offset - every constellation places its portal at z 0.1, and a wall hardcoded to 0.04
+  // sat behind everything it was supposed to cover.
   hiderZ() {
     const local = this.el.object3D ? this.el.object3D.position.z : 0
-    return Math.round(((local || 0) + 0.05) * 1000) / 1000
+    return Math.round(((local || 0) + WALL_Z) * 1000) / 1000
   },
 
   positionHiderWalls() {
@@ -127,10 +134,10 @@ const portalComponent = {
     const halfWidth = this.data.width / 4
     const halfHeight = this.data.height / 4
     return [
-      {x: -halfWidth, y: halfHeight, z: 0.01},  // inside #portal, so the walls clear this
-      {x: halfWidth, y: halfHeight, z: 0.01},
-      {x: halfWidth, y: -halfHeight, z: 0.01},
-      {x: -halfWidth, y: -halfHeight, z: 0.01},
+      {x: -halfWidth, y: halfHeight, z: BORDER_Z},
+      {x: halfWidth, y: halfHeight, z: BORDER_Z},
+      {x: halfWidth, y: -halfHeight, z: BORDER_Z},
+      {x: -halfWidth, y: -halfHeight, z: BORDER_Z},
     ]
   },
 
