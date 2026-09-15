@@ -105,8 +105,8 @@
     <input type="range" id="back" min="15" max="80" step="1" value="42"><span class="val" id="backV">42%</span></label>
 
   <h2>Nails</h2>
-  <label class="chk"><input type="checkbox" id="nRings"> Every ring&rsquo;s corners</label>
-  <label class="row"><span class="k">Points per star</span>
+  <label class="chk"><input type="checkbox" id="nRings"> Outer &amp; inner rim + wall corners</label>
+  <label class="row"><span class="k">Max points per star</span>
     <span style="display:flex;gap:6px;align-items:center">
       <button id="sNailsDn" style="width:28px;padding:0">−</button>
       <span id="sNailsV" style="min-width:20px;text-align:center;font-weight:600">8</span>
@@ -9407,46 +9407,63 @@ function build(){
     });
   }
 
-  // ---- NAILS: collect unique grid-corner points ----
+  // ---- NAILS: outer rim + inner rim (all edge points) + intermediate rings (4 corners only) ----
   const nail = [];               // {x,y} in inches
   const seen = new Set();
-  const addRingNails = (sc) => {
-    for (let i = 0; i <= cols; i++) for (let j = 0; j <= rows; j++){
-      if (!isPerim(i,j)) continue; // only intersections of tunnel walls with ring rectangles
-      const x = i*cell - W/2, y = j*cell - H/2;
-      const px = bx(x,sc), py = by(y,sc);
-      const key = px.toFixed(3)+','+py.toFixed(3);
-      if (seen.has(key)) continue; seen.add(key);
-      nail.push({x:px, y:py});
-    }
+  const addNailAt = (i, j, sc) => {
+    const x = i*cell - W/2, y = j*cell - H/2;
+    const px = bx(x,sc), py = by(y,sc);
+    const key = px.toFixed(3)+','+py.toFixed(3);
+    if (seen.has(key)) return; seen.add(key);
+    nail.push({x:px, y:py});
   };
-  if (s.nRings){ for (let k=0;k<=N;k++) addRingNails(ringScale(k,N,bs)); }
+  const addRimNails = (sc) => {   // all perimeter edge intersections (outer & inner rim)
+    for (let i = 0; i <= cols; i++) for (let j = 0; j <= rows; j++)
+      if (isPerim(i,j)) addNailAt(i, j, sc);
+  };
+  const addCornerNails = (sc) => {  // only the 4 true corners (tunnel wall × ring intersections)
+    [[0,0],[0,rows],[cols,0],[cols,rows]].forEach(([i,j]) => addNailAt(i, j, sc));
+  };
+  if (s.nRings){
+    addRimNails(ringScale(0, N, bs));           // outer rim (front face)
+    addRimNails(ringScale(N, N, bs));           // inner rim (back face)
+    for (let k = 1; k < N; k++)
+      addCornerNails(ringScale(k, N, bs));      // intermediate rings: tunnel wall corners only
+  }
 
   const r = U(s.dot/2);
   const nailMarks = nail.map(p =>
     `<circle cx="${U(p.x).toFixed(2)}" cy="${U(p.y).toFixed(2)}" r="${r.toFixed(2)}" class="nail"/>`).join('');
 
   // ---- STARS (front plane) ----
+  // Per-star nail count and ring radius scale with brightness (lower mag = brighter = more nails)
   let starMarks = '';
-  const nPts = s.sNails;                        // points per star, multiple of 4
-  const ringSvg = U(s.sRadius);                 // ring radius in svg units
+  const magMin = Math.min(...d.stars.map(st => st.mag));
+  const magMax = Math.max(...d.stars.map(st => st.mag));
+  const starBrt = (mag) => magMax === magMin ? 1 :
+    0.25 + 0.75 * Math.max(0, Math.min(1, (magMax - mag) / (magMax - magMin)));
+  let totalStarNails = 0;
   d.stars.forEach((st, i) => {
     const cx = U(bx(st.x,1)), cy = U(by(st.y,1));
-    // Guide circle showing the nail ring
-    starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${ringSvg.toFixed(2)}" class="star"/>`;
-    // Centre cross-hair dot so the star position is visible
-    starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${(r*0.5).toFixed(2)}" class="star-core"/>`;
-    // N evenly-spaced nail points on the ring
-    if (nPts >= 4){
-      for (let p = 0; p < nPts; p++){
-        const angle = (2 * Math.PI * p) / nPts;
-        const px = cx + ringSvg * Math.cos(angle);
-        const py = cy + ringSvg * Math.sin(angle);
+    const brt = starBrt(st.mag);
+    const starRingSvg = U(s.sRadius * brt);
+    const starNails = s.sNails < 4 ? 0 : Math.max(4, Math.floor(s.sNails * brt / 4) * 4);
+    totalStarNails += starNails;
+    // Guide circle showing the nail ring (size reflects brightness)
+    starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${starRingSvg.toFixed(2)}" class="star"/>`;
+    // Centre dot scaled by brightness
+    starMarks += `<circle cx="${cx.toFixed(2)}" cy="${cy.toFixed(2)}" r="${(r*Math.max(0.4,brt)).toFixed(2)}" class="star-core"/>`;
+    // Evenly-spaced nail points on the ring
+    if (starNails >= 4){
+      for (let p = 0; p < starNails; p++){
+        const angle = (2 * Math.PI * p) / starNails;
+        const px = cx + starRingSvg * Math.cos(angle);
+        const py = cy + starRingSvg * Math.sin(angle);
         starMarks += `<circle cx="${px.toFixed(2)}" cy="${py.toFixed(2)}" r="${r.toFixed(2)}" class="nail"/>`;
       }
     }
     if (s.gNums){
-      starMarks += `<text x="${(cx+ringSvg+3).toFixed(2)}" y="${(cy-ringSvg-2).toFixed(2)}" class="num">${i+1}</text>`;
+      starMarks += `<text x="${(cx+starRingSvg+3).toFixed(2)}" y="${(cy-starRingSvg-2).toFixed(2)}" class="num">${i+1}</text>`;
     }
   });
 
@@ -9503,7 +9520,7 @@ function build(){
     `Recommended wood: <span class="big">${boardW.toFixed(2)}&Prime; &times; ${boardH.toFixed(2)}&Prime;</span><br>`+
     `Grid area: <b>${gridW.toFixed(2)}&Prime; &times; ${gridH.toFixed(2)}&Prime;</b> &nbsp;(${orient})<br>`+
     `Grid: <b>${cols} &times; ${rows}</b> cells &middot; front spacing <b>${frontSp.toFixed(2)}&Prime;</b>, back <b>${backSp.toFixed(2)}&Prime;</b><br>`+
-    `Nails: <b>${nail.length}</b>${s.sNails>=4?` + <b>${d.stars.length*s.sNails}</b> star ring nails (${s.sNails} per star)`:' (no star ring nails)'}`;
+    `Nails: <b>${nail.length}</b>${s.sNails>=4?` + <b>${totalStarNails}</b> star ring nails (scaled by magnitude, max ${s.sNails})`:' (no star ring nails)'}`;
 
   const warn = $('warn');
   if (backSp < 0.18 && s.nRings){
