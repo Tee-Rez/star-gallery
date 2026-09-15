@@ -103,7 +103,7 @@
       <button id="clear">Clear</button>
     </div>
     <div id="results"></div>
-    <p class="note"><b>clouds</b> splits the gas into that many separate, smaller clouds; the second takes the complementary hue (+180&deg;) and later ones fan out from there. <b>arrangement</b> reshuffles where they sit. <b>clumping</b> makes some regions of a cloud far denser than others (<b>clump size</b> sets how big those regions are), and <b>colour spread</b> widens the hue gradient and varies it across the cloud instead of only where it is dense. The nebula is placed 1.5 m ahead when tracking starts &mdash; walk around it. "Place here" drops it in front of you again. Benchmark measures 8s including the camera feed, which is the number that matters. 1% low is the worst frames.</p>
+    <p class="note">In <b>Volume + Particles</b> the gas is a single cloud marched through procedural fBm, so it keeps fine detail at any distance, and <b>clusters</b> sets how many particle groups sit inside it - the second takes the complementary hue (+180&deg;), later ones fan out. On the <b>3D texture</b> tab, <b>clouds</b> splits the gas itself instead. <b>arrangement</b> reshuffles where they sit. <b>clumping</b> makes some regions of a cloud far denser than others (<b>clump size</b> sets how big those regions are), and <b>colour spread</b> widens the hue gradient and varies it across the cloud instead of only where it is dense. The nebula is placed 1.5 m ahead when tracking starts &mdash; walk around it. "Place here" drops it in front of you again. Benchmark measures 8s including the camera feed, which is the number that matters. 1% low is the worst frames.</p>
   </div>
 
   <script>
@@ -215,7 +215,8 @@
           'in vec3 vLocal;', 'out vec4 fragColor;',
           'uniform vec3 uCamLocal, uHa, uOiii;',
           'uniform float uSteps,uDensity,uAbsorb,uEmission,uTurb,uContrast,uDust,uCoreGain,uFrame,uLight;',
-          useTex ? 'uniform vec3 uCloudA[6]; uniform vec3 uCloudB[6]; uniform int uCloudN; uniform float uSpread;' : '',
+          'uniform float uSpread, uClump, uClumpScale;',
+          useTex ? 'uniform vec3 uCloudA[6]; uniform vec3 uCloudB[6]; uniform int uCloudN;' : '',
           useTex ? 'uniform sampler3D uVol;' : NOISE,
           'const vec4 C0=vec4(0.06,0.04,-0.03,0.20); const vec4 C1=vec4(-0.13,-0.06,0.07,0.15);',
           'const vec4 C2=vec4(0.02,-0.11,0.10,0.13); const vec4 C3=vec4(-0.05,0.12,0.04,0.11);',
@@ -228,6 +229,9 @@
             ' float d=1.0-e; d *= 1.0+coreAt(p)*uCoreGain;',
             ' d *= pow(fbm(p*uTurb+vec3(11.3,4.7,19.1),4), uContrast);',
             ' float du=ridged(p*uTurb*0.65+vec3(51.2,8.4,33.9),3); d *= 1.0-uDust*du*du;',
+            // Large-scale clumping, so parts of the cloud come out far denser than others.
+            ' if (uClump > 0.0) { float cl = fbm(p*uTurb*uClumpScale + vec3(137.1,95.9,178.3), 2);',
+            '   d *= (1.0 - uClump) + uClump * 2.15 * cl; }',
             ' return max(d,0.0);'].join('\n'),
           '}',
           'void main(){',
@@ -259,7 +263,11 @@
             '   float kf = fract(g);',
             '   vec3 emit = mix(mix(uCloudA[k0],uCloudA[k1],kf), mix(uCloudB[k0],uCloudB[k1],kf), c) * uEmission;'
           ].join(String.fromCharCode(10)) : [
-            '   float c=clamp(coreAt(p)*0.3,0.0,1.0);',
+            '   float cd = clamp(coreAt(p)*0.3, 0.0, 1.0);',
+            // Same idea as the baked tint: hue varies across the cloud, not only where dense.
+            '   float tn = fbm(p*uTurb*0.55 + vec3(61.7,43.2,88.1), 2);',
+            '   float tint = clamp((tn - 0.28) / 0.44, 0.0, 1.0);',
+            '   float c = clamp(mix(cd, tint, uSpread * 0.65), 0.0, 1.0);',
             '   vec3 emit=mix(uHa,uOiii,c)*uEmission;'
           ].join(String.fromCharCode(10)),
           '   if(uLight>0.5){ vec3 L=normalize(-p);',
@@ -436,7 +444,7 @@
             }
             window.NEBULA.loadNote = (id === 'dust' ? 'pts+dust ' : 'pts ') + Math.round(performance.now() - t0) + 'ms'
           } else {
-            var useTex = (id === 'volume' || id === 'particles')
+            var useTex = (id === 'volume')
             if (useTex && !window.NEBULA.isGL2) { window.NEBULA.loadNote = 'needs WebGL2'; return }
             var u = {
               uCamLocal: {value: new THREE.Vector3()}, uSteps: {value: P.steps}, uDensity: {value: P.density},
@@ -448,7 +456,8 @@
               uCloudN: {value: Math.max(1, Math.round(P.clouds))},
               uCloudA: {value: cloudPalette(P, 0.55, 'baseHue')},
               uCloudB: {value: cloudPalette(P, 0.62, 'coreHue')},
-              uSpread: {value: P.spread}
+              uSpread: {value: P.spread},
+              uClump: {value: P.clump}, uClumpScale: {value: P.clumpScale}
             }
             if (useTex) u.uVol = {value: this.bake(P.texSize)}
             else window.NEBULA.loadNote = 'procedural'
@@ -552,7 +561,7 @@
         {id: 'dust', name: 'Points + Dust', sub: 'absorption pass', ctls: ['count', 'sizeRatio', 'opacity', 'dustAmount', 'scale'].concat(SHAPE)},
         {id: 'march', name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale'].concat(COLOUR)},
         {id: 'volume', name: 'Raymarch', sub: '3D texture', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'texSize', 'scale'].concat(SHAPE).concat(COLOUR)},
-        {id: 'particles', name: 'Volume + Particles', sub: 'gas with stars in it', ctls: ['steps', 'density', 'absorb', 'emission', 'texSize', 'partCount', 'partSize', 'partHue', 'partTwinkle', 'partDrift', 'scale'].concat(SHAPE).concat(COLOUR)},
+        {id: 'particles', name: 'Volume + Particles', sub: 'gas with stars in it', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'partCount', 'partSize', 'partHue', 'partTwinkle', 'partDrift', 'scale'].concat(SHAPE).concat(COLOUR)},
         {id: 'none', name: 'AR only', sub: 'no nebula (floor)', ctls: []}
       ]
       // Grounded in the emission lines: true colour is Ha red with an [O III] core; the
@@ -576,6 +585,7 @@
         clump: [0, 1, .05, 'clumping'], clumpScale: [.1, 1.2, .05, 'clump size'], spread: [0, 1, .05, 'colour spread']
       }
       var UNIFORM = {steps: 'uSteps', density: 'uDensity', absorb: 'uAbsorb', emission: 'uEmission',
+        clump: 'uClump', clumpScale: 'uClumpScale',
         light: 'uLight', turbulence: 'uTurb', contrast: 'uContrast', dust: 'uDust'}
 
       var scene = document.querySelector('a-scene'), host = document.getElementById('host')
@@ -613,7 +623,8 @@
         if (MODES[N.mode].ctls.indexOf('baseHue') !== -1) ctlsEl.appendChild(presetRow())
         MODES[N.mode].ctls.forEach(function (key) {
           var r = RANGE[key], row = document.createElement('div'); row.className = 'ctl'
-          var lab = document.createElement('label'); lab.textContent = r[3]
+          var lab = document.createElement('label')
+          lab.textContent = (N.modeId === 'particles' && key === 'clouds') ? 'clusters' : r[3]
           var inp = document.createElement('input'); inp.type = 'range'
           inp.min = r[0]; inp.max = r[1]; inp.step = r[2]; inp.value = N.P[key]
           var out = document.createElement('output'); out.textContent = N.P[key]
