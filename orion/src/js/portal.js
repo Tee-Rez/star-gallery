@@ -1,4 +1,4 @@
-// js/portal.js - Fixed z-ordering so border is visible
+// js/portal.js - the portal frame and the hider walls that cover it until it opens
 const portalComponent = {
   schema: {
     width: {type: 'number', default: 6},
@@ -18,10 +18,9 @@ const portalComponent = {
     this.portalAnimationStarted = false
     this.squarePoints = this.calculateSquarePoints()
 
-    // Create hider walls first (they'll be behind the border)
+    // Hider walls first - they cover the frame until it opens
     this.createHiderWalls()
 
-    // Create border in front of hider walls
     this.createAnimatedBorder()
 
     // Listen for constellation placement event
@@ -63,12 +62,19 @@ const portalComponent = {
     this.finalLeftRightPosition = (hiderWallSize / 2) + halfFrameWidth
     this.finalTopBottomPosition = (hiderWallSize / 2) + halfFrameHeight
 
-    // Create all hider walls at z: 0 (behind the border which will be at z: 0.05)
+    // The walls must sit IN FRONT of the drawn frame, or the frame shows through them while
+    // it traces. Their z is NOT a constant: they live under #root while the frame lives under
+    // #portal, which every constellation places at z 0.1 - so a wall hardcoded to 0.04 sat
+    // 0.07 BEHIND the border and the traced edges were visible the whole time. hiderZ() reads
+    // the portal's own offset instead. The position is applied after this component inits, so
+    // the real value is set again in positionHiderWalls() before the tracing starts.
+    const z = this.hiderZ()
+
     const leftWall = document.createElement('a-plane')
     leftWall.setAttribute('id', 'left-hider')
     leftWall.setAttribute('width', hiderWallSize)
     leftWall.setAttribute('height', hiderWallSize)
-    leftWall.setAttribute('position', '0 0 0.04')  // Start at center, z=0
+    leftWall.setAttribute('position', `0 0 ${z}`)
     leftWall.setAttribute('xrextras-hider-material', '')
     hiderWallsContainer.appendChild(leftWall)
 
@@ -76,7 +82,7 @@ const portalComponent = {
     rightWall.setAttribute('id', 'right-hider')
     rightWall.setAttribute('width', hiderWallSize)
     rightWall.setAttribute('height', hiderWallSize)
-    rightWall.setAttribute('position', '0 0 0.04')  // Start at center, z=0
+    rightWall.setAttribute('position', `0 0 ${z}`)
     rightWall.setAttribute('xrextras-hider-material', '')
     hiderWallsContainer.appendChild(rightWall)
 
@@ -84,7 +90,7 @@ const portalComponent = {
     topWall.setAttribute('id', 'top-hider')
     topWall.setAttribute('width', hiderWallSize)
     topWall.setAttribute('height', hiderWallSize)
-    topWall.setAttribute('position', '0 0 0.04')  // Start at center, z=0
+    topWall.setAttribute('position', `0 0 ${z}`)
     topWall.setAttribute('xrextras-hider-material', '')
     hiderWallsContainer.appendChild(topWall)
 
@@ -92,18 +98,36 @@ const portalComponent = {
     bottomWall.setAttribute('id', 'bottom-hider')
     bottomWall.setAttribute('width', hiderWallSize)
     bottomWall.setAttribute('height', hiderWallSize)
-    bottomWall.setAttribute('position', '0 0 0.04')  // Start at center, z=0
+    bottomWall.setAttribute('position', `0 0 ${z}`)
     bottomWall.setAttribute('xrextras-hider-material', '')
     hiderWallsContainer.appendChild(bottomWall)
 
-    console.log('✅ Hider walls created at z=0 (behind border)')
+    this.hiderWalls = {left: leftWall, right: rightWall, top: topWall, bottom: bottomWall}
+    console.log(`✅ Hider walls created in front of the border at z=${z}`)
+  },
+
+  // The border is drawn at z 0.01 inside the portal entity; the walls are outside it. Clearing
+  // the portal's own offset plus that 0.01 by a comfortable margin keeps the walls in front of
+  // the frame no matter where a constellation places its portal.
+  hiderZ() {
+    const local = this.el.object3D ? this.el.object3D.position.z : 0
+    return Math.round(((local || 0) + 0.05) * 1000) / 1000
+  },
+
+  positionHiderWalls() {
+    const z = this.hiderZ()
+    const walls = this.hiderWalls || {}
+    Object.keys(walls).forEach((k) => {
+      if (walls[k]) walls[k].setAttribute('position', `0 0 ${z}`)
+    })
+    return z
   },
 
   calculateSquarePoints() {
     const halfWidth = this.data.width / 4
     const halfHeight = this.data.height / 4
     return [
-      {x: -halfWidth, y: halfHeight, z: 0.01},  // Border in front of hider walls
+      {x: -halfWidth, y: halfHeight, z: 0.01},  // inside #portal, so the walls clear this
       {x: halfWidth, y: halfHeight, z: 0.01},
       {x: halfWidth, y: -halfHeight, z: 0.01},
       {x: -halfWidth, y: -halfHeight, z: 0.01},
@@ -157,7 +181,7 @@ const portalComponent = {
     })
 
     this.el.appendChild(borderEntity)
-    console.log(`✅ Created ${this.borderSegments.length} border segments at z=0.05`)
+    console.log(`✅ Created ${this.borderSegments.length} border segments`)
   },
 
   startPortalAnimation() {
@@ -172,6 +196,9 @@ const portalComponent = {
     }
 
     this.portalAnimationStarted = true
+    // The portal's position is set after this component initialises, so this is the first
+    // moment the walls can be put at the right depth.
+    this.positionHiderWalls()
     console.log('========== STARTING PORTAL BORDER ANIMATION ==========')
 
     const animateSegment = (index) => {
@@ -233,36 +260,38 @@ const portalComponent = {
     console.log('✅ All hider walls found, starting expansion animation')
 
     const {finalLeftRightPosition, finalTopBottomPosition} = this
+    const z = this.positionHiderWalls()
 
-    // Animate from center (0,0,0) to final positions
+    // Slide out from the centre, holding the same z: dropping to 0 here used to put the walls
+    // behind the frame the instant they started moving.
     leftWall.setAttribute('animation__expand', {
       property: 'position',
-      from: '0 0 0',
-      to: `-${finalLeftRightPosition} 0 0`,
+      from: `0 0 ${z}`,
+      to: `-${finalLeftRightPosition} 0 ${z}`,
       dur: this.data.doorDuration,
       easing: 'easeInOutQuad',
     })
 
     rightWall.setAttribute('animation__expand', {
       property: 'position',
-      from: '0 0 0',
-      to: `${finalLeftRightPosition} 0 0`,
+      from: `0 0 ${z}`,
+      to: `${finalLeftRightPosition} 0 ${z}`,
       dur: this.data.doorDuration,
       easing: 'easeInOutQuad',
     })
 
     topWall.setAttribute('animation__expand', {
       property: 'position',
-      from: '0 0 0',
-      to: `0 ${finalTopBottomPosition} 0`,
+      from: `0 0 ${z}`,
+      to: `0 ${finalTopBottomPosition} ${z}`,
       dur: this.data.doorDuration,
       easing: 'easeInOutQuad',
     })
 
     bottomWall.setAttribute('animation__expand', {
       property: 'position',
-      from: '0 0 0',
-      to: `0 -${finalTopBottomPosition} 0`,
+      from: `0 0 ${z}`,
+      to: `0 -${finalTopBottomPosition} ${z}`,
       dur: this.data.doorDuration,
       easing: 'easeInOutQuad',
     })

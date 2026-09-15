@@ -1378,7 +1378,9 @@ const constellationLoaderComponent = {
               "starSize": 0.0075,
               "starThick": 0.25,
               "steps": 8,
+              "tilt": 28,
               "turbulence": 4.2,
+              "viewScale": 1.3,
               "warp": 0.5
             }
           },

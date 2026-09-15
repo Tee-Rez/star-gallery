@@ -160,9 +160,12 @@ const deepSkyFieldComponent = {
     // a half-extent of spread * (1 + sizeRatio), so match that exactly and the existing fit
     // logic keeps working untouched. The preset's own `scale` is deliberately ignored: in the
     // lab it meant metres in the room, but here the portal's grid box governs the size.
+    // `viewScale` is the one size dial left to the preset - a multiplier on top of that fit,
+    // for an object that wants to read bigger in the portal than its box alone would give it.
     const spread = Number(this.data.spread) > 0 ? Number(this.data.spread) : 3.4
     const ratio = Number(this.data.sizeRatio) > 0 ? Number(this.data.sizeRatio) : 0
-    out.object3D.scale.setScalar(2 * spread * (1 + ratio))
+    const boost = Number(preset.viewScale) > 0 ? Number(preset.viewScale) : 1
+    out.object3D.scale.setScalar(2 * spread * (1 + ratio) * boost)
 
     this.coreObject = out.object3D
     this.coreMarch = out.march
