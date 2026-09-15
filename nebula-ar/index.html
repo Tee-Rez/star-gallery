@@ -121,7 +121,7 @@
         rebuild: function () { scene.emit('nebula-rebuild') },
         runtime: function () {
           var c = comp()
-          return c ? {march: c.march, partMat: c.partMat, object3D: host.getObject3D('mesh')} : {}
+          return c ? {march: c.march, partMat: c.partMat, state: c.state, object3D: host.getObject3D('mesh')} : {}
         }
       })
 

@@ -506,6 +506,40 @@
     return pts
   }
 
+  // A bright nucleus at the centre. A Sprite rather than a particle so it always faces the
+  // viewer and scales in world units, and it draws after the gas so it reads as the brightest
+  // thing in the object - which is what a galactic core looks like from outside.
+  function buildGalaxyCore(P, state) {
+    if (!state.sunTex) {
+      state.sunTex = radial([
+        [0, 'rgba(255,255,255,1)'],
+        [0.12, 'rgba(255,255,255,0.92)'],
+        [0.32, 'rgba(255,255,255,0.30)'],
+        [0.62, 'rgba(255,255,255,0.07)'],
+        [1, 'rgba(255,255,255,0)']])
+    }
+    var mat = new THREE.SpriteMaterial({
+      map: state.sunTex, transparent: true, depthWrite: false,
+      blending: THREE.AdditiveBlending
+    })
+    var sprite = new THREE.Sprite(mat)
+    state.sunMat = mat
+    state.sun = sprite
+    applySun(P, state)
+    sprite.renderOrder = 2
+    return sprite
+  }
+
+  // Colour and brightness in one place, so a rebuild and a slider agree.
+  function applySun(P, state) {
+    if (!state.sunMat) return
+    var c = hsl(P.sunHue, P.sat * 0.55, 0.78)
+    var b = P.sunBright
+    // Additive blending accumulates, so values above 1 genuinely brighten rather than clip.
+    state.sunMat.color.setRGB(c[0] * b, c[1] * b, c[2] * b)
+    if (state.sun) state.sun.scale.setScalar(P.sunSize)
+  }
+
   function raymarchMesh(P, useTex, state) {
     var u = {
       uCamLocal: {value: new THREE.Vector3()}, uSteps: {value: P.steps}, uDensity: {value: P.density},
@@ -575,6 +609,7 @@
     var group = new THREE.Group()
     group.add(mesh)
     group.add(modeId === 'galaxy' ? buildGalaxyStars(P, state) : buildParticles(P, state))
+    if (modeId === 'galaxy' && P.sunBright > 0) group.add(buildGalaxyCore(P, state))
     return {object3D: group, march: mesh,
       note: (modeId === 'galaxy' ? 'disk + ' : 'procedural + ') + state.particleCount + (modeId === 'galaxy' ? ' stars' : 'p')}
   }
@@ -597,6 +632,7 @@
     galRadius: 0.46, galThick: 0.028, galFlare: 0.4, galBulge: 0.11, galBulgeGain: 1.8, galBulgeFlat: 0.55,
     galArms: 2, galWind: 3.2, galArmWidth: 2.2, galFalloff: 1.6,
     starCount: 3500, starSize: 0.0028, starScatter: 0.25, starBulge: 0.22, starArmHue: 212, starThick: 0.6,
+    sunSize: 0.09, sunBright: 1.6, sunHue: 45,
     baseHue: 6, coreHue: 168, sat: 0.72, partCount: 1200, partSize: 0.004,
     partHue: 40, partTwinkle: 0.6, partDrift: 0.006
   }
@@ -609,7 +645,7 @@
     {id: 'march', name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale'].concat(SHAPE).concat(COLOUR)},
     {id: 'volume', name: 'Raymarch', sub: '3D texture', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'texSize', 'scale'].concat(SHAPE).concat(COLOUR)},
     {id: 'particles', name: 'Volume + Particles', sub: 'gas with stars in it', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'partCount', 'partSize', 'partHue', 'partTwinkle', 'partDrift', 'scale'].concat(SHAPE).concat(COLOUR)},
-    {id: 'galaxy', name: 'Galaxy', sub: 'disk, arms and stars', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'galRadius', 'galThick', 'galFlare', 'galFalloff', 'galArms', 'galWind', 'galArmWidth', 'galBulge', 'galBulgeGain', 'galBulgeFlat', 'starCount', 'starSize', 'starThick', 'starScatter', 'starBulge', 'starArmHue', 'partTwinkle', 'partDrift', 'scale'].concat(['seed', 'warp', 'clump', 'clumpScale', 'turbulence', 'contrast', 'dust']).concat(COLOUR)},
+    {id: 'galaxy', name: 'Galaxy', sub: 'disk, arms and stars', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'galRadius', 'galThick', 'galFlare', 'galFalloff', 'galArms', 'galWind', 'galArmWidth', 'galBulge', 'galBulgeGain', 'galBulgeFlat', 'sunSize', 'sunBright', 'sunHue', 'starCount', 'starSize', 'starThick', 'starScatter', 'starBulge', 'starArmHue', 'partTwinkle', 'partDrift', 'scale'].concat(['seed', 'warp', 'clump', 'clumpScale', 'turbulence', 'contrast', 'dust']).concat(COLOUR)},
     {id: 'none', name: 'Nothing', sub: 'baseline floor', ctls: []}
   ]
   var RANGE = {
@@ -632,7 +668,8 @@
     galFalloff: [0.4, 4, 0.1, 'radial falloff'], galBulgeFlat: [0.15, 1.5, 0.05, 'bulge flatten'],
     starCount: [0, 12000, 250, 'stars'], starSize: [0.0005, 0.02, 0.0005, 'star size'],
     starScatter: [0, 1, 0.05, 'stars between arms'], starBulge: [0, 0.6, 0.02, 'bulge share'],
-    starArmHue: [0, 360, 2, 'arm star hue'], starThick: [0.1, 2, 0.05, 'star disk thickness']
+    starArmHue: [0, 360, 2, 'arm star hue'], starThick: [0.1, 2, 0.05, 'star disk thickness'],
+    sunSize: [0, 0.4, 0.005, 'core size'], sunBright: [0, 4, 0.1, 'core brightness'], sunHue: [0, 360, 2, 'core hue']
   }
   // Grounded in the emission lines: true colour is Ha red with an [O III] core; the Hubble
   // palette is the gold/teal false colour everyone recognises; reflection nebulae (the
@@ -719,6 +756,12 @@
             }
             // Particle colour is baked into geometry, so spread still needs their rebuild.
             if (mode.id !== 'particles' || key !== 'spread') return
+          }
+          if (rt.state && (key === 'sunSize' || key === 'sunBright' || key === 'sunHue')) {
+            P[key] = parseFloat(inp.value)
+            applySun(P, rt.state)
+            // Turning the core off entirely has to rebuild, since the sprite is removed.
+            if (!(key === 'sunBright' && (P.sunBright === 0 || !rt.state.sunMat))) return
           }
           if (rt.partMat && (key === 'partSize' || key === 'partTwinkle' || key === 'partDrift')) {
             rt.partMat.uniforms[key === 'partSize' ? 'uSize' : key === 'partTwinkle' ? 'uTwinkle' : 'uDrift'].value = P[key]
@@ -871,6 +914,7 @@
     DEFAULTS: DEFAULTS, MODES: MODES, RANGE: RANGE, PRESETS: PRESETS,
     initUI: initUI, Bench: Bench, detailFor: detailFor, copyResults: copyResults,
     copySettings: copySettings, applySettings: applySettings, settingsText: settingsText,
+    applySun: applySun,
     params: function () {
       var P = {}
       for (var k in DEFAULTS) if (Object.prototype.hasOwnProperty.call(DEFAULTS, k)) P[k] = DEFAULTS[k]

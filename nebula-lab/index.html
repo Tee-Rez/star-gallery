@@ -116,7 +116,7 @@
         getMode: function () { return N.modeId },
         setMode: function (id) { N.modeId = id },
         rebuild: rebuild,
-        runtime: function () { return {march: march, partMat: state.partMat, object3D: current} }
+        runtime: function () { return {march: march, partMat: state.partMat, state: state, object3D: current} }
       })
 
       document.getElementById('toggle').onclick = function () { document.getElementById('panel').classList.toggle('hidden') }
