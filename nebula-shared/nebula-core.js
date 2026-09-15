@@ -594,6 +594,7 @@
         dust.renderOrder = 1
         grp.add(dust)
       }
+      grp.rotation.x = tiltOf(P)
       return {object3D: grp, march: null,
         note: (modeId === 'dust' ? 'pts+dust ' : 'pts ') + Math.round(global.performance.now() - t0) + 'ms'}
     }
@@ -604,15 +605,19 @@
     if (useTex && !isGL2) return {object3D: null, march: null, note: 'needs WebGL2'}
     var mesh = raymarchMesh(P, useTex, state)
     if (modeId !== 'particles' && modeId !== 'galaxy') {
+      mesh.rotation.x = tiltOf(P)
       return {object3D: mesh, march: mesh, note: useTex ? state.note : 'procedural'}
     }
     var group = new THREE.Group()
     group.add(mesh)
     group.add(modeId === 'galaxy' ? buildGalaxyStars(P, state) : buildParticles(P, state))
     if (modeId === 'galaxy' && P.sunBright > 0) group.add(buildGalaxyCore(P, state))
+    group.rotation.x = tiltOf(P)
     return {object3D: group, march: mesh,
       note: (modeId === 'galaxy' ? 'disk + ' : 'procedural + ') + state.particleCount + (modeId === 'galaxy' ? ' stars' : 'p')}
   }
+
+  function tiltOf(P) { return (Number(P.tilt) || 0) * Math.PI / 180 }
 
   function dispose(object3D) {
     if (!object3D) return
@@ -628,7 +633,7 @@
     steps: 40, density: 4.0, absorb: 2.6, emission: 2.0, light: 1, texSize: 64,
     turbulence: 3.6, contrast: 3.2, dust: 0.8, coreGain: 0.9, scale: 1.0,
     clouds: 1, layout: 0, clump: 0.45, clumpScale: 0.35, spread: 0.5,
-    seed: 0, stretch: 1, flatten: 1, falloff: 1, warp: 0,
+    seed: 0, stretch: 1, flatten: 1, falloff: 1, warp: 0, tilt: 0,
     galRadius: 0.46, galThick: 0.028, galFlare: 0.4, galBulge: 0.11, galBulgeGain: 1.8, galBulgeFlat: 0.55,
     galArms: 2, galWind: 3.2, galArmWidth: 2.2, galFalloff: 1.6,
     starCount: 3500, starSize: 0.0028, starScatter: 0.25, starBulge: 0.22, starArmHue: 212, starThick: 0.6,
@@ -645,7 +650,7 @@
     {id: 'march', name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale'].concat(SHAPE).concat(COLOUR)},
     {id: 'volume', name: 'Raymarch', sub: '3D texture', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'texSize', 'scale'].concat(SHAPE).concat(COLOUR)},
     {id: 'particles', name: 'Volume + Particles', sub: 'gas with stars in it', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'partCount', 'partSize', 'partHue', 'partTwinkle', 'partDrift', 'scale'].concat(SHAPE).concat(COLOUR)},
-    {id: 'galaxy', name: 'Galaxy', sub: 'disk, arms and stars', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'galRadius', 'galThick', 'galFlare', 'galFalloff', 'galArms', 'galWind', 'galArmWidth', 'galBulge', 'galBulgeGain', 'galBulgeFlat', 'sunSize', 'sunBright', 'sunHue', 'starCount', 'starSize', 'starThick', 'starScatter', 'starBulge', 'starArmHue', 'partTwinkle', 'partDrift', 'scale'].concat(['seed', 'warp', 'clump', 'clumpScale', 'turbulence', 'contrast', 'dust']).concat(COLOUR)},
+    {id: 'galaxy', name: 'Galaxy', sub: 'disk, arms and stars', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'galRadius', 'galThick', 'galFlare', 'galFalloff', 'tilt', 'galArms', 'galWind', 'galArmWidth', 'galBulge', 'galBulgeGain', 'galBulgeFlat', 'sunSize', 'sunBright', 'sunHue', 'starCount', 'starSize', 'starThick', 'starScatter', 'starBulge', 'starArmHue', 'partTwinkle', 'partDrift', 'scale'].concat(['seed', 'warp', 'clump', 'clumpScale', 'turbulence', 'contrast', 'dust']).concat(COLOUR)},
     {id: 'none', name: 'Nothing', sub: 'baseline floor', ctls: []}
   ]
   var RANGE = {
@@ -666,6 +671,7 @@
     galBulgeGain: [0, 4, 0.1, 'bulge brightness'], galArms: [1, 6, 1, 'arms'],
     galWind: [0.5, 8, 0.1, 'arm winding'], galArmWidth: [0.5, 6, 0.1, 'arm tightness'],
     galFalloff: [0.4, 4, 0.1, 'radial falloff'], galBulgeFlat: [0.15, 1.5, 0.05, 'bulge flatten'],
+    tilt: [-90, 90, 1, 'tilt'],
     starCount: [0, 12000, 250, 'stars'], starSize: [0.0005, 0.02, 0.0005, 'star size'],
     starScatter: [0, 1, 0.05, 'stars between arms'], starBulge: [0, 0.6, 0.02, 'bulge share'],
     starArmHue: [0, 360, 2, 'arm star hue'], starThick: [0.1, 2, 0.05, 'star disk thickness'],
