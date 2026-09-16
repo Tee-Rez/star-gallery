@@ -1600,7 +1600,7 @@ var GALAXY = [
     galWind: [0.5, 16, 0.1, 'arm winding'], galArmWidth: [0.5, 24, 0.1, 'arm tightness'],
     galFalloff: [0.4, 4, 0.1, 'radial falloff'], galBulgeFlat: [0.15, 1.5, 0.05, 'bulge flatten'],
     tilt: [-90, 90, 1, 'tilt'],
-    starCount: [0, 20000, 250, 'stars'], starSize: [0.0005, 0.02, 0.0005, 'star size'],
+    starCount: [0, 50000, 500, 'stars'], starSize: [0.0005, 0.02, 0.0005, 'star size'],
     starScatter: [0, 1, 0.05, 'stars between arms'], starBulge: [0, 0.6, 0.02, 'bulge share'],
     starArmHue: [0, 360, 2, 'arm star hue'], starThick: [0.1, 4, 0.05, 'star disk thickness'],
     sunSize: [0, 0.4, 0.005, 'core size'], sunBright: [0, 4, 0.1, 'core brightness'], sunHue: [0, 360, 2, 'core hue'],
