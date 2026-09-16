@@ -22,6 +22,13 @@ const hintControllerComponent = {
     this.lastRotation = null
     this.currentHintPhase = 0  // 0: placement, 1: rotation, 2: view toggle, 3: tap star, 4: complete
     this.rotatingContainer = null
+    // Inside a deep-sky object none of these hints apply, so they go quiet there. Progress is
+    // still recorded while they are quiet: a step done inside counts, and on the way back out
+    // the sequence picks up at whichever step is now next.
+    this.suspended = false
+    this.resumeTimer = null
+    this.completionTimer = null
+    this.tutorialFinished = false
 
     // Create hint container
     this.hintContainer = document.createElement('div')
@@ -72,6 +79,31 @@ const hintControllerComponent = {
       console.log('Portal opened event received')
       this.onPortalOpened()
     })
+
+    this.onDeepSkyEntered = () => this.suspend()
+    this.onDeepSkyExited = () => this.resume()
+    this.el.sceneEl.addEventListener('deepSkyEntered', this.onDeepSkyEntered)
+    this.el.sceneEl.addEventListener('deepSkyExited', this.onDeepSkyExited)
+  },
+
+  suspend() {
+    this.suspended = true
+    clearTimeout(this.resumeTimer)
+    // A completion message cut short has not been read, so it has not finished: let it come
+    // back with the rest rather than counting it as shown.
+    clearTimeout(this.completionTimer)
+    this.hideCurrentHint()
+  },
+
+  resume() {
+    this.suspended = false
+    if (!this.portalOpened || this.tutorialFinished) return
+    clearTimeout(this.resumeTimer)
+    // A beat after the constellation comes back, so the hint does not land on top of the
+    // transition. Re-checked on firing, in case another object was entered in the meantime.
+    this.resumeTimer = setTimeout(() => {
+      if (!this.suspended) this.progressToNextHint()
+    }, this.data.fadeTime)
   },
 
   findRotatingContainer() {
@@ -105,24 +137,12 @@ const hintControllerComponent = {
   },
 
   setupEventListeners() {
-    // Find the view toggle button
-    setTimeout(() => {
-      const constellationLoader = document.querySelector('a-entity[constellation-loader]')
-      if (constellationLoader) {
-        const staticContainer = Array.from(constellationLoader.children).find(child => child.querySelector('.cantap.clickable'))
-
-        if (staticContainer) {
-          this.viewToggleButton = staticContainer.querySelector('.cantap.clickable')
-        }
-
-        if (this.viewToggleButton) {
-          console.log('Found view toggle button')
-          this.viewToggleButton.addEventListener('click', () => {
-            this.onViewToggled()
-          })
-        }
-      }
-    }, 2000)
+    // The 2D/3D button lives in the portal's HUD band and asks for the change with this event.
+    // viewToggleChanged is NOT used: the lore journey switches the view itself and announces
+    // it the same way, which would tick this step off without the user ever touching the button.
+    this.el.sceneEl.addEventListener('viewToggleRequested', () => {
+      this.onViewToggled()
+    })
 
     // Detect star tap
     this.el.sceneEl.addEventListener('click', (e) => {
@@ -289,15 +309,21 @@ const hintControllerComponent = {
   },
 
   showCompletionHint() {
+    if (this.tutorialFinished || this.suspended) return
     console.log('Displaying completion hint')
     this.showHint(this.data.completeText)
 
-    setTimeout(() => {
+    clearTimeout(this.completionTimer)
+    this.completionTimer = setTimeout(() => {
       this.hideCurrentHint()
+      this.tutorialFinished = true
     }, this.data.hintDuration)
   },
 
   showHint(text) {
+    // Deliberately silent rather than queued: resume() asks progressToNextHint() again, which
+    // works out the right step from what has been done, so nothing needs remembering here.
+    if (this.suspended) return
     this.hideCurrentHint()
     this.hintContainer.textContent = text
     this.hintContainer.style.opacity = '1'
@@ -312,6 +338,10 @@ const hintControllerComponent = {
   },
 
   remove() {
+    clearTimeout(this.resumeTimer)
+    clearTimeout(this.completionTimer)
+    this.el.sceneEl.removeEventListener('deepSkyEntered', this.onDeepSkyEntered)
+    this.el.sceneEl.removeEventListener('deepSkyExited', this.onDeepSkyExited)
     if (this.hintContainer && this.hintContainer.parentNode) {
       this.hintContainer.parentNode.removeChild(this.hintContainer)
     }

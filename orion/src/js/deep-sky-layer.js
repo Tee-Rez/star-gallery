@@ -52,6 +52,8 @@ const deepSkyLayerComponent = {
       this.lossCanvas = null
     }
     this.unwatchClusterStars()
+    this.blackoutSky(false)
+    if (this.blackMat) { this.blackMat.dispose(); this.blackMat = null }
     if (this.backBtn && this.backBtn.parentNode) this.backBtn.parentNode.removeChild(this.backBtn)
   },
 
@@ -207,6 +209,34 @@ const deepSkyLayerComponent = {
     this.faded = []
   },
 
+  // A generated nebula or galaxy brings its own star field, and that reads far better
+  // against plain black than over the photographic skybox, whose stars compete with it.
+  //
+  // The skybox is NOT hidden. In AR it is also what stands between the portal's interior and
+  // the camera feed, so hiding it would show the room through the opening. Its meshes keep
+  // their geometry and simply wear a black material, and the originals are put back exactly.
+  blackoutSky(on) {
+    if (!on) {
+      if (!this.skySaved) return
+      this.skySaved.forEach((s) => { s.mesh.material = s.material })
+      this.skySaved = null
+      return
+    }
+    if (this.skySaved) return
+    const sky = document.querySelector('#galaxy-skybox')
+    const root = sky && sky.getObject3D('mesh')
+    // Not loaded yet: the object still works, it just keeps the stars behind it.
+    if (!root) return
+    const T = window.THREE || AFRAME.THREE
+    if (!this.blackMat) this.blackMat = new T.MeshBasicMaterial({color: 0x000000, side: T.DoubleSide})
+    this.skySaved = []
+    root.traverse((o) => {
+      if (!o.isMesh) return
+      this.skySaved.push({mesh: o, material: o.material})
+      o.material = this.blackMat
+    })
+  },
+
   // ---- entering ----
 
   onRequest(e) {
@@ -255,6 +285,7 @@ const deepSkyLayerComponent = {
     this.stack.push(objectId)
     this.hideConstellation()
     this.spawnField(obj, layer)
+    this.blackoutSky(true)
     this.retitle(obj.name, this.kindOf(layer), this.exploredFlag(obj, layer))
     this.el.sceneEl.emit('deepSkyEntered', {id: objectId})
     return true
@@ -482,6 +513,7 @@ const deepSkyLayerComponent = {
 
     const l = this.loader()
     if (wasCluster && l) l.restoreFigure()
+    this.blackoutSky(false)
 
     this.active = null
     this.activeLayer = null
