@@ -56,7 +56,10 @@
         return
       }
 
+      // Exposed under the same name the AR harness uses, so a console session (or a test
+      // driver) can drive either page the same way: NEBULA.apply({mode:'particles', ...}).
       var N = {P: NebulaCore.params(), modeId: 'points', loadNote: '', isGL2: false}
+      window.NEBULA = N
       var state = {}, current = null, march = null
 
       var renderer = new THREE.WebGLRenderer({antialias: false, alpha: false, powerPreference: 'high-performance'})
@@ -118,6 +121,24 @@
         rebuild: rebuild,
         runtime: function () { return {march: march, partMat: state.partMat, state: state, object3D: current} }
       })
+
+      // Park the camera at a known angle so two screenshots are actually comparable.
+      N.view = function (y, pi, d) {
+        if (y !== undefined) yaw = y
+        if (pi !== undefined) pitch = pi
+        if (d !== undefined) dist = d
+        spin = false
+        document.getElementById('place').textContent = 'Spin: off'
+      }
+
+      // One call to load a whole settings object, the same shape Copy settings emits.
+      N.apply = function (obj) {
+        if (!obj) return
+        if (obj.mode) N.modeId = obj.mode
+        Object.keys(obj).forEach(function (k) { if (k !== 'mode' && k in N.P) N.P[k] = obj[k] })
+        ui.refresh()
+        rebuild()
+      }
 
       document.getElementById('toggle').onclick = function () { document.getElementById('panel').classList.toggle('hidden') }
       document.getElementById('place').onclick = function () {

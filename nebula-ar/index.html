@@ -125,6 +125,15 @@
         }
       })
 
+      // Same entry point as the lab harness: NEBULA.apply({mode:'particles', ...}).
+      N.apply = function (obj) {
+        if (!obj) return
+        if (obj.mode) N.modeId = obj.mode
+        Object.keys(obj).forEach(function (k) { if (k !== 'mode' && k in N.P) N.P[k] = obj[k] })
+        ui.refresh()
+        scene.emit('nebula-rebuild')
+      }
+
       document.getElementById('toggle').onclick = function () { panel.classList.toggle('hidden') }
 
       // Placement: 1.5 m along the camera's forward direction, at the camera's height.

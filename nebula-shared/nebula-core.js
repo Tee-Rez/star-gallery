@@ -118,7 +118,166 @@
         'float ridged(vec3 p,int o){ float a=0.5,f=1.0,s=0.0,n=0.0; for(int i=0;i<5;i++){ if(i>=o) break; s+=a*(1.0-abs(vnoise(p*f)*2.0-1.0)); n+=a; a*=0.5; f*=2.02; } return s/n; }'
       ].join('\n')
 
+      // The galaxy keeps its own density function, its own box slab and its own two-stop
+      // colour: everything added for the nebula defaults to zero, so a galaxy preset renders
+      // exactly what it did before.
       function frag(useTex) {
+        var GALAXY = [
+          'float galBulge(vec3 p){ vec3 q = vec3(p.x, p.y/max(0.05,uGalBulgeFlat), p.z);',
+          '  float b = length(q)/max(0.001,uGalBulge); return exp(-b*b); }',
+          'float galaxyDensity(vec3 p){',
+          ' float r = length(p.xz); float rn = r/uGalRadius;',
+          ' if (rn > 1.0) return 0.0;',
+          // The disk thickens toward the rim, the way a real one flares.
+          ' float h = uGalThick * (1.0 + uGalFlare * rn * 2.0);',
+          ' float vert = exp(-(p.y*p.y)/(h*h));',
+          ' float radial = pow(max(0.0, 1.0 - rn), uGalFalloff);',
+          // Logarithmic spiral: the arm phase winds with log(radius).
+          ' float th = atan(p.z, p.x);',
+          ' float phase = th * uGalArms - log(max(rn, 0.05)) * uGalWind;',
+          ' float arm = pow(0.5 + 0.5*cos(phase), uGalArmWidth);',
+          ' float d = (radial * (0.22 + 0.78*arm) + galBulge(p) * uGalBulgeGain) * vert;',
+          ' vec3 w = p;',
+          ' if (uWarp > 0.0) { float k = uTurb*0.5;',
+          '   w += (vec3(fbm(p*k+vec3(uSeed+3.1),2), fbm(p*k+vec3(uSeed+17.7),2), fbm(p*k+vec3(uSeed+31.3),2)) - 0.5) * uWarp * 0.6; }',
+          ' d *= pow(fbm(w*uTurb+vec3(11.3+uSeed,4.7,19.1),4), uContrast);',
+          ' float du=ridged(w*uTurb*0.65+vec3(51.2+uSeed,8.4,33.9),3); d *= 1.0-uDust*du*du;',
+          ' if (uClump > 0.0) { float cl = fbm(w*uTurb*uClumpScale + vec3(137.1+uSeed,95.9,178.3), 2);',
+          '   d *= (1.0 - uClump) + uClump * 2.15 * cl; }',
+          ' return max(d,0.0);',
+          '}'
+        ].join('\n')
+
+        // The shape of the gas, with no noise in it. Its own function because the lighting
+        // term samples it too, and because it can return zero - which culls the ten noise
+        // fetches below before any of them are paid for.
+        var ENV = [
+          'float envAt(vec3 p){',
+          ' vec3 q = p/uEnvR; float e = dot(q,q);',
+          ' if (e > 1.0) return 0.0;',
+          ' float d = pow(1.0 - e, uFalloff);',
+          ' if (uHollow > 0.0) {',
+          // A blister HII region is a cavity blown in the face of a molecular cloud: the
+          // density MAXIMUM sits on the cavity wall, not at the centre. uHollow at 0 is the
+          // solid ellipsoid this has always been.
+          '  float wl = (sqrt(e) - uShellR)*uShellK;',
+          '  d = mix(d, exp(-wl*wl)*(1.0 - e), uHollow);',
+          ' }',
+          ' if (uBipolar > 0.0) {',
+          // cos^2 about the outflow axis: fat at both poles, pinched at the waist, which is
+          // the two-winged silhouette. uLobeBias makes one wing the larger one. No atan.
+          '  vec3 r = p - uKnot;',
+          '  float ax = dot(r, uLobeAxis)*inversesqrt(max(dot(r,r), 1e-6));',
+          '  float lobe = clamp(ax*ax*(1.0 + uLobeBias*ax), 0.0, 1.0);',
+          '  lobe = mix(lobe, lobe*lobe, uLobeSharp);',
+          '  d *= mix(1.0, lobe, uBipolar);',
+          ' }',
+          ' return d; }'
+        ].join('\n')
+
+        // An authored opaque cloud sitting IN the gas: it absorbs and does not emit. The old
+        // uDust term multiplies density down, which makes a lane a hole with LOWER alpha that
+        // you see straight through - the exact inverse of a dark nebula.
+        //
+        // sd is monotone across the boundary, so the scallop noise only has to be evaluated
+        // inside a thin band around it, and that band is a coherent surface on screen.
+        var DARK = [
+          'vec2 darkAt(vec3 p){',
+          // Bounded to the gas. A bare half-space keeps absorbing out into empty sky, where
+          // there is nothing behind it to occlude and nothing lighting it - so it renders as
+          // a flat brown disc cut off at the march bounds rather than as a cloud.
+          ' vec3 eq = p/uEnvR; float ee = dot(eq,eq);',
+          ' if (ee > 1.15) return vec2(0.0);',
+          ' float eb = 1.0 - smoothstep(0.45, 1.1, ee);',
+          // A sphere centred OUTSIDE the gas takes a curved bite out of one side, which is
+          // what a dark intrusion looks like. A bare half-space just paints out half the
+          // object. Radius 0 falls back to the plane, for a lane that crosses the whole body.
+          ' float sd = (uDarkR > 0.0) ? (length(p - uDarkPos) - uDarkR)',
+          '                           : dot(p - uDarkPos, uDarkDir);',
+          ' if (uDark2R > 0.0) sd = min(sd, length(p - uDark2Pos) - uDark2R);',
+          ' float band = uDarkScallop + uRimW + uDarkEdge;',
+          ' if (sd >  band) return vec2(0.0);',
+          ' if (sd < -band) return vec2(eb, 0.0);',
+          ' sd += (vnoise(p*uDarkScale + uSeed*7.3) - 0.5)*2.0*uDarkScallop;',
+          ' float dk  = 1.0 - smoothstep(-uDarkEdge, uDarkEdge, sd);',
+          // Gas piles up and is lit hardest right where it meets the cloud - the
+          // photoevaporative flow. It reuses sd, so the rim costs four instructions.
+          ' float rim = (sd > 0.0) ? (1.0 - smoothstep(0.0, uRimW, sd)) : 0.0;',
+          ' return vec2(dk*eb, rim*eb); }'
+        ].join('\n')
+
+        var BOUNDS = useTex ? [
+          ' vec3 inv=1.0/rd; vec3 t0=(vec3(-uHalf)-ro)*inv, t1=(vec3(uHalf)-ro)*inv;',
+          ' vec3 tn=min(t0,t1), tf=max(t0,t1);',
+          ' tEnter=max(max(tn.x,tn.y),tn.z); tExit=min(min(tf.x,tf.y),tf.z);'
+        ] : [
+          ' if (uIsGalaxy > 0.5) {',
+          '  vec3 inv=1.0/rd; vec3 t0=(vec3(-uHalf)-ro)*inv, t1=(vec3(uHalf)-ro)*inv;',
+          '  vec3 tn=min(t0,t1), tf=max(t0,t1);',
+          '  tEnter=max(max(tn.x,tn.y),tn.z); tExit=min(min(tf.x,tf.y),tf.z);',
+          ' } else {',
+          // A unit cube's inscribed ellipsoid is under a third of its volume, so most rays
+          // were spending most of their steps in empty corners.
+          '  vec2 eh = hitEllipsoid(ro, rd, uEnvR*uMarchPad);',
+          '  tEnter = eh.x; tExit = eh.y;',
+          ' }'
+        ]
+
+        var COLOUR = useTex ? [
+          '   vec4 vol = texture(uVol, p+0.5);',
+          '   float raw = vol.r;',
+          '   float lo = 0.30 - uSpread * 0.26, hi = 0.85 - uSpread * 0.45;',
+          '   float cd = smoothstep(lo, max(lo + 0.05, hi), raw);',
+          '   float c = clamp(mix(cd, vol.b, uSpread * 0.65), 0.0, 1.0);',
+          '   float g = vol.g * float(max(1, uCloudN - 1));',
+          '   int k0 = clamp(int(floor(g)), 0, uCloudN - 1);',
+          '   int k1 = clamp(k0 + 1, 0, uCloudN - 1);',
+          '   float kf = fract(g);',
+          '   emit = mix(mix(uCloudA[k0],uCloudA[k1],kf), mix(uCloudB[k0],uCloudB[k1],kf), c) * uEmission;'
+        ] : [
+          '   if (uIonAmt > 0.5) {',
+          // The ionisation parameter goes as Q/(r^2 n). Q/(Q+r^2) is 1 at the source and
+          // falls with a POWER-LAW tail, which is the slow grade over roughly ten core radii
+          // that the photographs show - a gaussian dies far too fast to look like this.
+          '    vec3 kr = p - uKnot;',
+          '    float ion = uKnotQ/(uKnotQ + dot(kr,kr));',
+          // Dividing by density is what stops this reading as a plain radial vignette: a
+          // dense clump close in stays red, so the colour boundary inherits the fractal
+          // shape of the gas instead of being a sphere.
+          '    ion /= 1.0 + rho*uIonDens;',
+          '    float s = clamp((ion - uIon0)/max(1e-3, uIon1 - uIon0), 0.0, 1.0);',
+          '    s = clamp(s + (dither - 0.5)*0.02, 0.0, 1.0);',   // just enough to break the four stops
+          '    float k3 = s*3.0;',
+          // Four stops: deep rose, magenta, blue-white, then uHot - which is above 1 on all
+          // three channels, so the core drives past the white point and the tone curve clips
+          // it to white the way a sensor does.
+          '    vec3 cc = mix(uHa,  uMid,  clamp(k3,       0.0, 1.0));',
+          '    cc      = mix(cc,   uOiii, clamp(k3 - 1.0, 0.0, 1.0));',
+          '    cc      = mix(cc,   uHot,  clamp(k3 - 2.0, 0.0, 1.0));',
+          '    emit = cc*uEmission;',
+          '   } else {',
+          '    float cd = uIsGalaxy > 0.5 ? clamp(galBulge(p)*1.6, 0.0, 1.0) : clamp(coreAt(p)*0.3, 0.0, 1.0);',
+          '    float tn = fbm(p*uTurb*0.55 + vec3(61.7,43.2,88.1), 2);',
+          '    float tint = clamp((tn - 0.28) / 0.44, 0.0, 1.0);',
+          '    float c = clamp(mix(cd, tint, uSpread * 0.65), 0.0, 1.0);',
+          '    emit = mix(uHa,uOiii,c)*uEmission;',
+          '   }'
+        ]
+
+        var LIGHT = useTex ? [
+          '   if(uLight>0.5){ vec3 L=normalize(uKnot-p);',
+          '    float lit=clamp((d-densityAt(p+L*0.09)*uDensity)/0.09,0.0,1.0);',
+          '    emit *= 0.45+0.55*lit*uLight; }'
+        ] : [
+          '   if(uLight>0.5){ vec3 kl=uKnot-p; vec3 L=kl*inversesqrt(max(dot(kl,kl),1e-6));',
+          // The galaxy keeps the full density tap. For the nebula it is the noise-free
+          // envelope instead: a quarter of the cost, and it is allowed to exceed 1, so a lit
+          // face reads lit rather than merely less dark.
+          '    float lit = uIsGalaxy > 0.5 ? clamp((d-densityAt(p+L*0.09)*uDensity)/0.09,0.0,1.0)',
+          '                                : clamp((envAt(p)-envAt(p+L*0.09))/0.09,0.0,1.0);',
+          '    emit *= uIsGalaxy > 0.5 ? (0.45+0.55*lit*uLight) : (0.45+0.9*lit*uLight); }'
+        ]
+
         return [
           'precision highp float;',
           useTex ? 'precision highp sampler3D;' : '',
@@ -128,99 +287,111 @@
           'uniform float uSpread, uClump, uClumpScale;',
           'uniform float uSeed, uStretch, uFlatten, uFalloff, uWarp;',
           'uniform vec4 uCores[4];',
+          'uniform float uIsGalaxy, uHalf;',
+          // Everything below is new and defaults to zero, so it costs a branch and nothing else
+          // until a preset turns it on. Declared ONCE, shared by both variants: a uniform
+          // declared in both arms of the useTex switch would be a duplicate and fail to link.
+          'uniform vec3 uEnvR, uKnot, uLobeAxis, uDarkPos, uDarkDir, uDark2Pos, uDarkTint, uMid, uHot;',
+          'uniform float uMarchPad, uDetail, uHollow, uShellR, uShellK, uBipolar, uLobeSharp, uLobeBias;',
+          'uniform float uStriate, uStriaGain;',
+          'uniform float uDarkAbsorb, uDarkR, uDark2R, uDarkScallop, uDarkScale, uDarkEdge, uRimGain, uRimW;',
+          'uniform float uEmitRho, uIonAmt, uKnotQ, uIon0, uIon1, uIonDens, uWhite;',
           useTex ? 'uniform vec3 uCloudA[6]; uniform vec3 uCloudB[6]; uniform int uCloudN;' : '',
-          useTex ? '' : 'uniform float uIsGalaxy, uGalRadius, uGalThick, uGalFlare, uGalBulge, uGalBulgeGain, uGalArms, uGalWind, uGalArmWidth, uGalFalloff, uGalBulgeFlat;',
+          useTex ? '' : 'uniform float uGalRadius, uGalThick, uGalFlare, uGalBulge, uGalBulgeGain, uGalArms, uGalWind, uGalArmWidth, uGalFalloff, uGalBulgeFlat;',
           useTex ? 'uniform sampler3D uVol;' : NOISE,
+          // Interleaved gradient noise (Jimenez). fract(sin(dot)) is white noise, and its
+          // energy sits in exactly the low frequencies the eye picks out as banding; this is
+          // roughly blue in screen space and buys most of a doubled step count for five ops.
+          'float ign(vec2 q){ return fract(52.9829189*fract(dot(q, vec2(0.06711056,0.00583715)))); }',
           'float coreAt(vec3 p){ float b=0.0;',
           ' for(int i=0;i<4;i++){ vec3 d=p-uCores[i].xyz; b += exp(-dot(d,d)/(uCores[i].w*uCores[i].w)); }',
           ' return b; }',
-          useTex ? '' : [
-            'float galBulge(vec3 p){ vec3 q = vec3(p.x, p.y/max(0.05,uGalBulgeFlat), p.z);',
-            '  float b = length(q)/max(0.001,uGalBulge); return exp(-b*b); }',
-            'float galaxyDensity(vec3 p){',
-            ' float r = length(p.xz); float rn = r/uGalRadius;',
-            ' if (rn > 1.0) return 0.0;',
-            // The disk thickens toward the rim, the way a real one flares.
-            ' float h = uGalThick * (1.0 + uGalFlare * rn * 2.0);',
-            ' float vert = exp(-(p.y*p.y)/(h*h));',
-            ' float radial = pow(max(0.0, 1.0 - rn), uGalFalloff);',
-            // Logarithmic spiral: the arm phase winds with log(radius).
-            ' float th = atan(p.z, p.x);',
-            ' float phase = th * uGalArms - log(max(rn, 0.05)) * uGalWind;',
-            ' float arm = pow(0.5 + 0.5*cos(phase), uGalArmWidth);',
-            ' float d = (radial * (0.22 + 0.78*arm) + galBulge(p) * uGalBulgeGain) * vert;',
-            ' vec3 w = p;',
-            ' if (uWarp > 0.0) { float k = uTurb*0.5;',
-            '   w += (vec3(fbm(p*k+vec3(uSeed+3.1),2), fbm(p*k+vec3(uSeed+17.7),2), fbm(p*k+vec3(uSeed+31.3),2)) - 0.5) * uWarp * 0.6; }',
-            ' d *= pow(fbm(w*uTurb+vec3(11.3+uSeed,4.7,19.1),4), uContrast);',
-            ' float du=ridged(w*uTurb*0.65+vec3(51.2+uSeed,8.4,33.9),3); d *= 1.0-uDust*du*du;',
-            ' if (uClump > 0.0) { float cl = fbm(w*uTurb*uClumpScale + vec3(137.1+uSeed,95.9,178.3), 2);',
-            '   d *= (1.0 - uClump) + uClump * 2.15 * cl; }',
-            ' return max(d,0.0);',
-            '}',
-          ].join('\n'),
+          useTex ? 'vec2 darkAt(vec3 p){ return vec2(0.0); }' : [
+            'vec2 hitEllipsoid(vec3 ro, vec3 rd, vec3 R){',
+            ' vec3 o=ro/R, dd=rd/R;',
+            ' float a=dot(dd,dd), b=dot(o,dd), c=dot(o,o)-1.0, h=b*b-a*c;',
+            ' if (h < 0.0) return vec2(1.0, -1.0);',
+            ' h = sqrt(h);',
+            ' return vec2((-b-h)/a, (-b+h)/a); }',
+            GALAXY, ENV, DARK].join('\n'),
           'float densityAt(vec3 p){',
           useTex ? ' return texture(uVol, p+0.5).r;' : [
             ' if (uIsGalaxy > 0.5) return galaxyDensity(p);',
-            ' vec3 q=p/vec3(0.5*uStretch, 0.36*uFlatten, 0.40); float e=dot(q,q); if(e>1.0) return 0.0;',
-            ' float d=pow(1.0-e, uFalloff); d *= 1.0+coreAt(p)*uCoreGain;',
-            // Domain warping bends the noise lookup, turning round clumps into strands.
+            ' float d = envAt(p);',
+            ' d *= 1.0+coreAt(p)*uCoreGain;',
+            ' if (d < 0.0015) return 0.0;',
             ' vec3 w = p;',
             ' if (uWarp > 0.0) { float k = uTurb*0.5;',
-            '   w += (vec3(fbm(p*k+vec3(uSeed+3.1),2), fbm(p*k+vec3(uSeed+17.7),2), fbm(p*k+vec3(uSeed+31.3),2)) - 0.5) * uWarp * 0.6; }',
-            ' d *= pow(fbm(w*uTurb+vec3(11.3+uSeed,4.7,19.1),4), uContrast);',
-            ' float du=ridged(w*uTurb*0.65+vec3(51.2+uSeed,8.4,33.9),3); d *= 1.0-uDust*du*du;',
-            // Large-scale clumping, so parts of the cloud come out far denser than others.
+            // One octave, not three two-octave fBms. At this displacement the second octave
+            // moves the lookup by well under a percent of the object and costs three fetches.
+            '  vec3 wv = vec3(vnoise(p*k+vec3(uSeed+3.1)), vnoise(p*k+vec3(uSeed+17.7)), vnoise(p*k+vec3(uSeed+31.3))) - 0.5;',
+            '  if (uStriate > 0.0) {',
+            // Keeping only the component along the radius from the knot drags the same noise
+            // into strands that run outward - filaments for one dot product and a mix.
+            '   vec3 rv = p - uKnot;',
+            '   vec3 rn = rv*inversesqrt(max(dot(rv,rv), 1e-6));',
+            '   wv = mix(wv, rn*dot(wv,rn)*uStriaGain, uStriate);',
+            '  }',
+            '  w += wv*uWarp*0.6;',
+            ' }',
+            ' d *= pow(fbm(w*uTurb+vec3(11.3+uSeed,4.7,19.1), int(uDetail)), uContrast);',
+            ' if (uDust > 0.0) { float du=ridged(w*uTurb*0.65+vec3(51.2+uSeed,8.4,33.9),2); d *= 1.0-uDust*du*du; }',
             ' if (uClump > 0.0) { float cl = fbm(w*uTurb*uClumpScale + vec3(137.1+uSeed,95.9,178.3), 2);',
             '   d *= (1.0 - uClump) + uClump * 2.15 * cl; }',
             ' return max(d,0.0);'].join('\n'),
           '}',
           'void main(){',
-          ' vec3 ro=uCamLocal; vec3 rd=normalize(vLocal-ro); vec3 inv=1.0/rd;',
-          ' vec3 t0=(vec3(-0.5)-ro)*inv, t1=(vec3(0.5)-ro)*inv;',
-          ' vec3 tn=min(t0,t1), tf=max(t0,t1);',
-          ' float tEnter=max(max(tn.x,tn.y),tn.z), tExit=min(min(tf.x,tf.y),tf.z);',
+          ' vec3 ro=uCamLocal; vec3 rd=normalize(vLocal-ro);',
+          ' float tEnter, tExit;'
+        ].concat(BOUNDS).concat([
           ' tEnter=max(tEnter,0.0); if(tExit<=tEnter) discard;',
-          ' int steps=int(uSteps); float dt=(tExit-tEnter)/uSteps;',
-          // Dithered start: trades banding for grain so the step count can stay low.
-          ' float dither=fract(sin(dot(gl_FragCoord.xy,vec2(12.9898,78.233)))*43758.5453+uFrame*0.618);',
+          ' float span = tExit - tEnter;',
+          // Grazing rays get proportionally fewer steps, so dt stays constant across the
+          // silhouette instead of the edge quietly marching at a finer rate than the middle.
+          ' float fs = (uIsGalaxy > 0.5) ? uSteps : clamp(uSteps*span, 8.0, uSteps);',
+          ' int steps=int(fs); float dt=span/fs;',
+          ' float dither=fract(ign(gl_FragCoord.xy) + uFrame*0.618034);',
           ' float t=tEnter+dt*dither; vec3 col=vec3(0.0); float T=1.0;',
           ' for(int i=0;i<128;i++){',
-          '  if(i>=steps || T<0.04) break;',
-          '  vec3 p=ro+rd*t; float d=densityAt(p)*uDensity;',
-          '  if(d>0.002){',
-          '   float a=1.0-exp(-d*uAbsorb*dt);',
-          useTex ? [
-            '   vec4 vol = texture(uVol, p+0.5);',
-            '   float raw = vol.r;',
-            // Density still drives colour, but uSpread widens that gradient and blends in
-            // a baked tint field so hue varies across the cloud, not only where it is dense.
-            '   float lo = 0.30 - uSpread * 0.26, hi = 0.85 - uSpread * 0.45;',
-            '   float cd = smoothstep(lo, max(lo + 0.05, hi), raw);',
-            '   float c = clamp(mix(cd, vol.b, uSpread * 0.65), 0.0, 1.0);',
-            '   float g = vol.g * float(max(1, uCloudN - 1));',
-            '   int k0 = clamp(int(floor(g)), 0, uCloudN - 1);',
-            '   int k1 = clamp(k0 + 1, 0, uCloudN - 1);',
-            '   float kf = fract(g);',
-            '   vec3 emit = mix(mix(uCloudA[k0],uCloudA[k1],kf), mix(uCloudB[k0],uCloudB[k1],kf), c) * uEmission;'
-          ].join(String.fromCharCode(10)) : [
-            '   float cd = uIsGalaxy > 0.5 ? clamp(galBulge(p)*1.6, 0.0, 1.0) : clamp(coreAt(p)*0.3, 0.0, 1.0);',
-            // Same idea as the baked tint: hue varies across the cloud, not only where dense.
-            '   float tn = fbm(p*uTurb*0.55 + vec3(61.7,43.2,88.1), 2);',
-            '   float tint = clamp((tn - 0.28) / 0.44, 0.0, 1.0);',
-            '   float c = clamp(mix(cd, tint, uSpread * 0.65), 0.0, 1.0);',
-            '   vec3 emit=mix(uHa,uOiii,c)*uEmission;'
-          ].join(String.fromCharCode(10)),
-          '   if(uLight>0.5){ vec3 L=normalize(-p);',
-          '    float lit=clamp((d-densityAt(p+L*0.09)*uDensity)/0.09,0.0,1.0);',
-          '    emit *= 0.45+0.55*lit*uLight; }',
+          '  if(i>=steps || T<0.035) break;',
+          '  vec3 p=ro+rd*t;',
+          '  vec2 dk = (uDarkAbsorb > 0.0) ? darkAt(p) : vec2(0.0);',
+          '  float rho = (dk.x < 0.985) ? densityAt(p) : 0.0;',
+          '  float d = rho*uDensity;',
+          '  if(d>0.002 || dk.x>0.01){',
+          // Two absorbers in one exponential: the gas emits and extinguishes, the dark cloud
+          // only extinguishes. So raising uDarkAbsorb raises alpha without adding light, and
+          // the lane genuinely blocks what is behind it.
+          '   float a=1.0-exp(-(d*uAbsorb + dk.x*uDarkAbsorb)*dt);',
+          '   vec3 emit;'
+        ]).concat(COLOUR).concat([
+          // Recombination is a two-body process, so emissivity goes as n^2 while extinction
+          // goes as n: one multiply, and a three-times denser filament reads three times
+          // brighter than the haze around it instead of exactly as bright.
+          '   if (uEmitRho > 0.0) emit *= clamp(rho*uEmitRho, 0.0, 6.0);',
+          '   if (uRimGain > 0.0) emit *= 1.0 + uRimGain*dk.y;'
+        ]).concat(LIGHT).concat([
+          // The cloud is warm-brown-black rather than pure black: light leaks through its edge.
+          '   if (uDarkAbsorb > 0.0) emit = mix(emit, uDarkTint, dk.x);',
           '   col += T*emit*a; T *= 1.0-a;',
           '  }',
           '  t += dt;',
           ' }',
+          ' if (uWhite > 0.0) {',
+          // A sensor clips each channel on its own, which is why a very bright patch washes
+          // to WHITE instead of to a saturated hue. It has to happen on the HDR value, before
+          // the curve, or the curve just hands back a bright pink core.
+          '  float mx = max(max(col.r,col.g),col.b);',
+          '  float bl = uWhite*0.35;',
+          '  col = mix(col, vec3(mx), smoothstep(bl, bl*3.0, mx));',
+          // Extended Reinhard: near-identity below about half the white point, so the faint
+          // outskirts keep their colour and their structure, and reaching 1.0 exactly at it.
+          '  col = col*(1.0 + col/(uWhite*uWhite))/(1.0 + col);',
+          '  col += (dither - 0.5)/255.0;',
+          ' }',
           ' fragColor=vec4(col, 1.0-T);',
           '}'
-        ].filter(Boolean).join('\n')
+        ]).filter(Boolean).join('\n')
       }
 
       // HSL is the sane way to expose colour on a phone: two hues and one saturation.
@@ -266,7 +437,174 @@
         ' gl_FragColor = vec4(vCol * vTw * a, a);',
         '}'].join('\n')
 
-      // Six slots because the shader declares vec3[6]; unused ones are harmless.
+      function dirFrom(az, el) {
+    var a = az * Math.PI / 180, e = el * Math.PI / 180, ce = Math.cos(e)
+    return new THREE.Vector3(Math.cos(a) * ce, Math.sin(e), Math.sin(a) * ce)
+  }
+
+  // The envelope radii, NORMALISED so the largest is exactly 0.5. The march used to clip
+  // against the unit box, so any stretch above 1 sliced the gas flat against two faces of it;
+  // normalising keeps the whole envelope inside the proxy and makes the adaptive step count
+  // exact. At stretch and flatten 1 this returns the same radii the shader always used.
+  function envRadii(P) {
+    var r = new THREE.Vector3(0.5 * P.stretch, 0.36 * P.flatten, 0.40)
+    return r.multiplyScalar(0.5 / Math.max(r.x, Math.max(r.y, r.z)))
+  }
+
+  // Everything a slider can change that is not a bare float. Called at build AND from the
+  // panel, so the two can never disagree about what a parameter means.
+  function refreshDerived(P, u) {
+    u.uEnvR.value.copy(envRadii(P))
+    u.uLobeAxis.value.copy(dirFrom(P.lobeAz, P.lobeEl))
+    u.uDarkDir.value.copy(dirFrom(P.darkAz, P.darkEl))
+    u.uKnot.value.set(P.sunX, P.sunY, P.sunZ)
+    u.uDarkPos.value.set(P.darkX, P.darkY, P.darkZ)
+    u.uDark2Pos.value.set(P.dark2X, P.dark2Y, P.dark2Z)
+    u.uDarkTint.value.fromArray(hsl(P.darkHue, 0.55, P.darkLev))
+    u.uHa.value.fromArray(hsl(P.baseHue, P.sat, 0.55))
+    u.uMid.value.fromArray(hsl(P.midHue, P.sat * 0.85, 0.60))
+    u.uOiii.value.fromArray(hsl(P.coreHue, P.sat, 0.62))
+    u.uHot.value.setScalar(P.hotGain)
+  }
+
+  // The same cavity and lobe shaping the shader applies to the gas, so the particles sit in
+  // the hollow with it rather than filling the hole it just blew. Returns 1 when both are off.
+  function shapeMulJS(x, y, z, P) {
+    var m = 1
+    if (P.hollow > 0) {
+      var R = envRadii(P), qx = x / R.x, qy = y / R.y, qz = z / R.z
+      var e = qx * qx + qy * qy + qz * qz
+      if (e > 1) return 0
+      var wl = (Math.sqrt(e) - P.shellR) * P.shellK
+      m *= (1 - P.hollow) + P.hollow * Math.exp(-wl * wl)
+    }
+    if (P.bipolar > 0) {
+      var ax = dirFrom(P.lobeAz, P.lobeEl)
+      var rx = x - P.sunX, ry = y - P.sunY, rz = z - P.sunZ
+      var len = Math.sqrt(rx * rx + ry * ry + rz * rz) || 1e-6
+      var c = (rx * ax.x + ry * ax.y + rz * ax.z) / len
+      var lobe = Math.max(0, Math.min(1, c * c * (1 + P.lobeBias * c)))
+      lobe = lobe + (lobe * lobe - lobe) * P.lobeSharp
+      m *= 1 + (lobe - 1) * P.bipolar
+    }
+    return m
+  }
+
+  // ---------------------------------------------------------------- field stars
+  // Blackbody ramp, every entry peaked at 1.0 so brightness rides on the flux and a faint
+  // blue star stays blue rather than drifting to grey.
+  var BB = [[1, .52, .22], [1, .70, .43], [1, .86, .70], [1, .95, .89], [.96, .96, 1], [.82, .88, 1], [.70, .80, 1]]
+  function bbColor(t) {
+    var f = Math.max(0, Math.min(1, t)) * (BB.length - 1)
+    var i = Math.min(BB.length - 2, Math.floor(f)), k = f - i, a = BB[i], b = BB[i + 1]
+    return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]
+  }
+  function starTemp() {
+    var u = Math.random()
+    if (u < 0.60) return 0.64 + Math.random() * 0.36
+    if (u < 0.87) return 0.42 + Math.random() * 0.22
+    return Math.random() * 0.34
+  }
+  // Euclidean star counts go as N(>F) ~ F^-3/2, so the inverse CDF is F = u^(-1/alpha):
+  // many faint, a few bright. That tail is what supplies the handful that carry a glare.
+  function starFlux(alpha, cap) {
+    var u = Math.random()
+    return Math.min(cap, Math.pow(u < 1e-4 ? 1e-4 : u, -1 / Math.max(0.4, alpha)))
+  }
+
+  var STAR_VERT = [
+    'attribute float aSize; attribute float aGlare; attribute vec3 aColor;',
+    'uniform float uStarPx, uDpr, uMinPx, uMinDist, uGlareSize;',
+    'varying vec3 vCol; varying float vCoreScale, vDim;',
+    'void main(){',
+    ' vec4 mv = modelViewMatrix*vec4(position, 1.0);',
+    // The shell is finite, so once the object is scaled up in the portal and the camera is
+    // inside it, near stars would sweep past the viewer. Pushing anything closer than
+    // uMinDist back out ALONG ITS OWN DIRECTION holds the pattern fixed in the sky.
+    ' float dd = length(mv.xyz);',
+    ' mv.xyz *= max(1.0, uMinDist/max(dd, 1e-4));',
+    // No 1/z. A star is a point source: its image is the instrument PSF, so its angular size
+    // is constant. The particle shader's depth division is exactly why points turn to mush
+    // when you walk up to them.
+    ' float want = uStarPx*aSize*uDpr;',
+    ' float core = max(want, uMinPx);',
+    ' vDim = (want*want)/(core*core);',
+    ' float quad = core*(1.0 + aGlare*uGlareSize);',
+    ' vCoreScale = quad/core;',
+    ' vCol = aColor;',
+    ' gl_PointSize = clamp(quad, 1.0, 48.0);',
+    ' gl_Position = projectionMatrix*mv;',
+    '}'].join('\n')
+  var STAR_FRAG = [
+    'precision mediump float;',
+    'varying vec3 vCol; varying float vCoreScale, vDim;',
+    'uniform float uPsf, uHalo;',
+    'void main(){',
+    ' float r = length(gl_PointCoord - 0.5)*2.0*vCoreScale;',
+    ' float a = (exp(-r*r*uPsf) + uHalo*exp(-r*r*uPsf*0.045))*vDim;',
+    ' if (a < 0.003) discard;',
+    ' gl_FragColor = vec4(vCol*a, a);',
+    '}'].join('\n')
+
+  // Stars filling the whole shell, placed with no reference to the gas at all - which is the
+  // point. buildParticles seeds FROM the density field, so its points crowd exactly where the
+  // gas is brightest and leave the corners empty; a photograph is the other way round.
+  function buildFieldStars(P, state) {
+    var n = Math.round(P.fieldCount)
+    if (n <= 0) return null
+    // Split by MAGNITUDE, not position: the faint majority goes behind the gas so the bright
+    // nebula washes them out, and the brightest handful goes in front the way a foreground
+    // star does.
+    var B = {p: [], c: [], s: [], g: []}, F = {p: [], c: [], s: [], g: []}
+    var rIn = P.fieldRadius * 0.45, v3 = rIn * rIn * rIn
+    var dv = P.fieldRadius * P.fieldRadius * P.fieldRadius - v3
+    for (var i = 0; i < n; i++) {
+      var ct = 2 * Math.random() - 1, ph = Math.random() * 6.2831853
+      var st = Math.sqrt(Math.max(0, 1 - ct * ct))
+      var r = Math.pow(v3 + Math.random() * dv, 1 / 3)   // uniform in VOLUME -> flat on the sky
+      var f = starFlux(P.fieldAlpha, P.fieldCap), c = bbColor(starTemp()), b = P.fieldBright * f
+      var t = f > P.fieldGlareAt ? F : B
+      t.p.push(r * st * Math.cos(ph), r * ct, r * st * Math.sin(ph))
+      // Deliberately not normalised: the brightest clip all three channels and read white
+      // while the outer wings of the PSF keep their tint. That blowout is free.
+      t.c.push(c[0] * b, c[1] * b, c[2] * b)
+      // A recorded disc grows only logarithmically with flux - seeing plus saturation - which
+      // is why real field stars stay small and hard while getting obviously brighter.
+      t.s.push(1 + 0.40 * Math.log(1 + f))
+      t.g.push(f > P.fieldGlareAt ? Math.min(1, (f - P.fieldGlareAt) / P.fieldGlareAt) : 0)
+    }
+    state.fieldMat = new THREE.ShaderMaterial({
+      uniforms: {uStarPx: {value: P.fieldPx}, uDpr: {value: Math.min(2, global.devicePixelRatio || 1)},
+        uMinPx: {value: 1.0}, uMinDist: {value: P.fieldMinDist}, uGlareSize: {value: P.fieldGlare},
+        uPsf: {value: P.fieldPsf}, uHalo: {value: P.fieldHalo}},
+      vertexShader: STAR_VERT, fragmentShader: STAR_FRAG, transparent: true, depthWrite: false,
+      // Premultiplied additive. Plain AdditiveBlending is SRC_ALPHA,ONE, which would square
+      // the falloff and undo the flux-conservation term.
+      blending: THREE.CustomBlending, blendSrc: THREE.OneFactor,
+      blendDst: THREE.OneFactor, blendEquation: THREE.AddEquation
+    })
+    var grp = new THREE.Group()
+    function pts(t, order) {
+      if (!t.p.length) return
+      var g = new THREE.BufferGeometry()
+      g.setAttribute('position', new THREE.Float32BufferAttribute(t.p, 3))
+      g.setAttribute('aColor', new THREE.Float32BufferAttribute(t.c, 3))
+      g.setAttribute('aSize', new THREE.Float32BufferAttribute(t.s, 1))
+      g.setAttribute('aGlare', new THREE.Float32BufferAttribute(t.g, 1))
+      var o = new THREE.Points(g, state.fieldMat)
+      o.renderOrder = order
+      // The bounding sphere is computed before the shader runs, so it would cull the whole
+      // draw the moment the camera is inside the shell.
+      o.frustumCulled = false
+      grp.add(o)
+    }
+    pts(B, -2)
+    pts(F, 3)
+    state.fieldCount = (B.p.length + F.p.length) / 3
+    return grp
+  }
+
+  // Six slots because the shader declares vec3[6]; unused ones are harmless.
       function cloudPalette(P, light, hueKey) {
         var out = []
         for (var i = 0; i < 6; i++) out.push(new THREE.Vector3().fromArray(hsl(P[hueKey] + hueOffset(i), P.sat, light)))
@@ -376,7 +714,10 @@
       guard++
       var x = Math.random() - 0.5, y = (Math.random() - 0.5) * 0.72, z = (Math.random() - 0.5) * 0.80
       var s = densityAt(x, y, z, P)
-      if (s.d <= 0 || Math.random() > Math.min(1, s.d * 2.6)) continue
+      if (s.d <= 0) continue
+      // The gas shader may have blown a cavity or pinched the waist; the particles have to
+      // respect the same shape or they fill the hole it just made.
+      if (Math.random() > Math.min(1, s.d * 2.6 * shapeMulJS(x, y, z, P))) continue
       pos.push(x, y, z)
       var warm = warms[Math.min(5, s.cloud || 0)]
       if (P.spread > 0) {
@@ -509,7 +850,10 @@
   // A bright nucleus at the centre. A Sprite rather than a particle so it always faces the
   // viewer and scales in world units, and it draws after the gas so it reads as the brightest
   // thing in the object - which is what a galactic core looks like from outside.
-  function buildGalaxyCore(P, state) {
+  // `knot` adds a second, much tighter sprite inside the halo: a nebula's ionising cluster
+  // reads as one overwhelming point with a wide glow around it, where a galactic core is all
+  // glow. A galaxy passes knot false and gets exactly the single sprite it always had.
+  function buildGalaxyCore(P, state, knot) {
     if (!state.sunTex) {
       state.sunTex = radial([
         [0, 'rgba(255,255,255,1)'],
@@ -518,26 +862,54 @@
         [0.62, 'rgba(255,255,255,0.07)'],
         [1, 'rgba(255,255,255,0)']])
     }
-    var mat = new THREE.SpriteMaterial({
-      map: state.sunTex, transparent: true, depthWrite: false,
-      blending: THREE.AdditiveBlending
-    })
-    var sprite = new THREE.Sprite(mat)
-    state.sunMat = mat
-    state.sun = sprite
+    if (knot && !state.knotTex) {
+      state.knotTex = radial([
+        [0, 'rgba(255,255,255,1)'],
+        [0.06, 'rgba(255,255,255,0.95)'],
+        [0.16, 'rgba(255,255,255,0.30)'],
+        [0.40, 'rgba(255,255,255,0.06)'],
+        [1, 'rgba(255,255,255,0)']])
+    }
+    var grp = new THREE.Group()
+    state.sunMats = []
+    state.suns = []
+    for (var i = 0; i < (knot ? 2 : 1); i++) {
+      var mat = new THREE.SpriteMaterial({
+        map: i === 0 ? state.sunTex : state.knotTex,
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+      })
+      var s = new THREE.Sprite(mat)
+      s.renderOrder = 2
+      state.sunMats.push(mat)
+      state.suns.push(s)
+      grp.add(s)
+    }
+    state.sunMat = state.sunMats[0]
+    state.sun = state.suns[0]
     applySun(P, state)
-    sprite.renderOrder = 2
-    return sprite
+    grp.renderOrder = 2
+    return grp
   }
 
-  // Colour and brightness in one place, so a rebuild and a slider agree.
+  // Colour, brightness and position in one place, so a rebuild and a slider agree.
   function applySun(P, state) {
-    if (!state.sunMat) return
+    var mats = state.sunMats || (state.sunMat ? [state.sunMat] : [])
+    if (!mats.length) return
     var c = hsl(P.sunHue, P.sat * 0.55, 0.78)
-    var b = P.sunBright
-    // Additive blending accumulates, so values above 1 genuinely brighten rather than clip.
-    state.sunMat.color.setRGB(c[0] * b, c[1] * b, c[2] * b)
-    if (state.sun) state.sun.scale.setScalar(P.sunSize)
+    for (var i = 0; i < mats.length; i++) {
+      // The halo carries the colour; the knot is pushed well past 1 so its centre clips to
+      // white and only its wings keep the tint - the same blowout the field stars get.
+      var w = i === 0 ? 0 : 0.7
+      var b = P.sunBright * (i === 0 ? 1 : P.sunKnotBright)
+      // Additive blending accumulates, so values above 1 genuinely brighten rather than clip.
+      mats[i].color.setRGB((c[0] + (1 - c[0]) * w) * b, (c[1] + (1 - c[1]) * w) * b, (c[2] + (1 - c[2]) * w) * b)
+    }
+    var ss = state.suns || (state.sun ? [state.sun] : [])
+    for (var k = 0; k < ss.length; k++) {
+      ss[k].scale.setScalar(k === 0 ? P.sunSize * Math.max(1, P.sunHalo || 1) : P.sunSize)
+      // The same point the colour ramp uses as the ionising source.
+      ss[k].position.set(P.sunX, P.sunY, P.sunZ)
+    }
   }
 
   function raymarchMesh(P, useTex, state) {
@@ -555,17 +927,42 @@
       uGalRadius: {value: P.galRadius}, uGalThick: {value: P.galThick}, uGalFlare: {value: P.galFlare},
       uGalBulge: {value: P.galBulge}, uGalBulgeGain: {value: P.galBulgeGain}, uGalArms: {value: P.galArms},
       uGalWind: {value: P.galWind}, uGalArmWidth: {value: P.galArmWidth}, uGalFalloff: {value: P.galFalloff},
-      uGalBulgeFlat: {value: P.galBulgeFlat}
+      uGalBulgeFlat: {value: P.galBulgeFlat},
+      uEnvR: {value: new THREE.Vector3()}, uKnot: {value: new THREE.Vector3()},
+      uLobeAxis: {value: new THREE.Vector3(0, 1, 0)}, uDarkPos: {value: new THREE.Vector3()},
+      uDarkDir: {value: new THREE.Vector3(0, -1, 0)}, uDark2Pos: {value: new THREE.Vector3()},
+      uDarkTint: {value: new THREE.Vector3()}, uMid: {value: new THREE.Vector3()},
+      uHot: {value: new THREE.Vector3(1, 1, 1)},
+      uMarchPad: {value: P.marchPad}, uDetail: {value: P.detail},
+      uHollow: {value: P.hollow}, uShellR: {value: P.shellR}, uShellK: {value: P.shellK},
+      uBipolar: {value: P.bipolar}, uLobeSharp: {value: P.lobeSharp}, uLobeBias: {value: P.lobeBias},
+      uStriate: {value: P.striate}, uStriaGain: {value: P.striaGain},
+      uDarkAbsorb: {value: P.darkAbsorb}, uDarkR: {value: P.darkR}, uDark2R: {value: P.dark2R},
+      uDarkScallop: {value: P.darkScallop}, uDarkScale: {value: P.darkScale},
+      uDarkEdge: {value: P.darkEdge}, uRimGain: {value: P.rimGain}, uRimW: {value: P.rimW},
+      uEmitRho: {value: P.emitRho}, uIonAmt: {value: P.ionAmt}, uKnotQ: {value: P.knotQ},
+      uIon0: {value: P.ion0}, uIon1: {value: P.ion1}, uIonDens: {value: P.ionDens},
+      uWhite: {value: P.white}, uHalf: {value: 0.5}
     }
+    refreshDerived(P, u)
     if (useTex) {
       u.uVol = {value: bake(P, Math.round(P.texSize), state)}
       u.uCloudN = {value: Math.max(1, Math.round(P.clouds))}
       u.uCloudA = {value: cloudPalette(P, 0.55, 'baseHue')}
       u.uCloudB = {value: cloudPalette(P, 0.62, 'coreHue')}
     }
-    return new THREE.Mesh(new THREE.BoxGeometry(1, 1, 1), new THREE.ShaderMaterial({
+    // The proxy box has to contain whatever the march bounds against, or the shader is never
+    // asked to shade the part that sticks out. The baked volume and the galaxy keep the unit
+    // cube they have always used; a padded ellipsoid grows the box to match.
+    var half = (useTex || P._galaxy) ? 0.5 : Math.max(0.5, 0.5 * P.marchPad + 0.01)
+    u.uHalf.value = half
+    return new THREE.Mesh(new THREE.BoxGeometry(2 * half, 2 * half, 2 * half), new THREE.ShaderMaterial({
       glslVersion: THREE.GLSL3, uniforms: u, vertexShader: VERT, fragmentShader: frag(useTex),
-      transparent: true, depthWrite: false, side: THREE.BackSide, blending: THREE.NormalBlending
+      transparent: true, depthWrite: false, side: THREE.BackSide, blending: THREE.NormalBlending,
+      // col is accumulated premultiplied (col += T*emit*a), but ShaderMaterial defaults this
+      // to false, so NormalBlending multiplies by alpha a SECOND time and faint gas is
+      // crushed. Off by default because it brightens every preset tuned without it.
+      premultipliedAlpha: P.premul > 0.5
     }))
   }
 
@@ -574,6 +971,8 @@
     var t0 = global.performance.now()
     state.note = ''
     state.partMat = null
+    state.fieldMat = null
+    state.fieldCount = 0
     if (modeId === 'none') return {object3D: null, march: null, note: 'none'}
 
     if (modeId === 'points' || modeId === 'dust') {
@@ -611,10 +1010,16 @@
     var group = new THREE.Group()
     group.add(mesh)
     group.add(modeId === 'galaxy' ? buildGalaxyStars(P, state) : buildParticles(P, state))
-    if (modeId === 'galaxy' && P.sunBright > 0) group.add(buildGalaxyCore(P, state))
+    // A nebula opts into the core sprite with sunHalo, so no saved galaxy preset changes.
+    if (P.sunBright > 0 && (modeId === 'galaxy' || P.sunHalo > 0)) {
+      group.add(buildGalaxyCore(P, state, modeId !== 'galaxy'))
+    }
+    var field = buildFieldStars(P, state)
+    if (field) group.add(field)
     group.rotation.x = tiltOf(P)
     return {object3D: group, march: mesh,
-      note: (modeId === 'galaxy' ? 'disk + ' : 'procedural + ') + state.particleCount + (modeId === 'galaxy' ? ' stars' : 'p')}
+      note: (modeId === 'galaxy' ? 'disk + ' : 'procedural + ') + state.particleCount +
+        (modeId === 'galaxy' ? ' stars' : 'p') + (state.fieldCount ? ' + ' + state.fieldCount + ' field' : '')}
   }
 
   function tiltOf(P) { return (Number(P.tilt) || 0) * Math.PI / 180 }
@@ -639,18 +1044,42 @@
     starCount: 3500, starSize: 0.0028, starScatter: 0.25, starBulge: 0.22, starArmHue: 212, starThick: 0.6,
     sunSize: 0.09, sunBright: 1.6, sunHue: 45,
     baseHue: 6, coreHue: 168, sat: 0.72, partCount: 1200, partSize: 0.004,
-    partHue: 40, partTwinkle: 0.6, partDrift: 0.006
+    partHue: 40, partTwinkle: 0.6, partDrift: 0.006,
+    premul: 0, white: 0, marchPad: 1.03, detail: 4, emitRho: 0,
+    hollow: 0, shellR: 0.42, shellK: 4, bipolar: 0, lobeSharp: 0.35, lobeBias: 0,
+    lobeAz: 120, lobeEl: 30, striate: 0, striaGain: 1.8,
+    ionAmt: 0, knotQ: 0.012, ion0: 0.04, ion1: 0.80, ionDens: 0, midHue: 300, hotGain: 2.0,
+    darkAbsorb: 0, darkR: 0, darkX: -0.18, darkY: 0.16, darkZ: 0, darkAz: 0, darkEl: -30,
+    darkScallop: 0.08, darkScale: 7, darkEdge: 0.014, darkHue: 24, darkLev: 0.16,
+    dark2R: 0, dark2X: -0.24, dark2Y: -0.20, dark2Z: 0.05,
+    rimGain: 0, rimW: 0.018,
+    sunX: 0, sunY: 0, sunZ: 0, sunHalo: 0, sunKnotBright: 2.5,
+    fieldCount: 0, fieldPx: 2.2, fieldRadius: 0.62, fieldBright: 0.85, fieldAlpha: 1.5,
+    fieldCap: 46, fieldPsf: 7, fieldHalo: 0.06, fieldGlareAt: 16, fieldGlare: 3.5,
+    fieldMinDist: 2.2
   }
 
   var COLOUR = ['baseHue', 'coreHue', 'sat', 'spread']
+  // The photographic set: the shape of a blister cavity, the ionisation colour ramp, the
+  // opaque intrusion, the tone curve, the ionising knot and a field of real stars.
+  var ION = ['ionAmt', 'knotQ', 'ion0', 'ion1', 'ionDens', 'midHue', 'hotGain', 'emitRho']
+  var CAVITY = ['hollow', 'shellR', 'shellK', 'bipolar', 'lobeSharp', 'lobeBias', 'lobeAz', 'lobeEl',
+    'striate', 'striaGain', 'marchPad', 'detail']
+  var DARKLANE = ['darkAbsorb', 'darkR', 'darkX', 'darkY', 'darkZ', 'darkAz', 'darkEl', 'darkScallop',
+    'darkScale', 'darkEdge', 'darkHue', 'darkLev', 'dark2R', 'dark2X', 'dark2Y', 'dark2Z',
+    'rimGain', 'rimW']
+  var KNOT = ['sunSize', 'sunBright', 'sunHue', 'sunHalo', 'sunKnotBright', 'sunX', 'sunY', 'sunZ']
+  var FIELD = ['fieldCount', 'fieldPx', 'fieldRadius', 'fieldBright', 'fieldAlpha', 'fieldCap',
+    'fieldPsf', 'fieldHalo', 'fieldGlareAt', 'fieldGlare', 'fieldMinDist']
+  var TONE = ['premul', 'white']
   var SHAPE = ['clouds', 'seed', 'stretch', 'flatten', 'falloff', 'warp', 'layout', 'clump', 'clumpScale']
   var MODES = [
     {id: 'points', name: 'Points', sub: 'additive (today)', ctls: ['count', 'sizeRatio', 'opacity', 'contrast', 'dust', 'scale'].concat(SHAPE)},
     {id: 'dust', name: 'Points + Dust', sub: 'absorption pass', ctls: ['count', 'sizeRatio', 'opacity', 'dustAmount', 'scale'].concat(SHAPE)},
-    {id: 'march', name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale'].concat(SHAPE).concat(COLOUR)},
+    {id: 'march', name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale'].concat(SHAPE).concat(COLOUR).concat(TONE).concat(ION).concat(CAVITY).concat(DARKLANE)},
     {id: 'volume', name: 'Raymarch', sub: '3D texture', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'texSize', 'scale'].concat(SHAPE).concat(COLOUR)},
-    {id: 'particles', name: 'Volume + Particles', sub: 'gas with stars in it', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'partCount', 'partSize', 'partHue', 'partTwinkle', 'partDrift', 'scale'].concat(SHAPE).concat(COLOUR)},
-    {id: 'galaxy', name: 'Galaxy', sub: 'disk, arms and stars', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'galRadius', 'galThick', 'galFlare', 'galFalloff', 'tilt', 'galArms', 'galWind', 'galArmWidth', 'galBulge', 'galBulgeGain', 'galBulgeFlat', 'sunSize', 'sunBright', 'sunHue', 'starCount', 'starSize', 'starThick', 'starScatter', 'starBulge', 'starArmHue', 'partTwinkle', 'partDrift', 'scale'].concat(['seed', 'warp', 'clump', 'clumpScale', 'turbulence', 'contrast', 'dust']).concat(COLOUR)},
+    {id: 'particles', name: 'Volume + Particles', sub: 'gas with stars in it', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'partCount', 'partSize', 'partHue', 'partTwinkle', 'partDrift', 'scale'].concat(SHAPE).concat(COLOUR).concat(TONE).concat(ION).concat(CAVITY).concat(DARKLANE).concat(KNOT).concat(FIELD)},
+    {id: 'galaxy', name: 'Galaxy', sub: 'disk, arms and stars', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'galRadius', 'galThick', 'galFlare', 'galFalloff', 'tilt', 'galArms', 'galWind', 'galArmWidth', 'galBulge', 'galBulgeGain', 'galBulgeFlat', 'sunSize', 'sunBright', 'sunHue', 'starCount', 'starSize', 'starThick', 'starScatter', 'starBulge', 'starArmHue', 'partTwinkle', 'partDrift', 'scale'].concat(['seed', 'warp', 'clump', 'clumpScale', 'turbulence', 'contrast', 'dust']).concat(COLOUR).concat(TONE).concat(FIELD)},
     {id: 'none', name: 'Nothing', sub: 'baseline floor', ctls: []}
   ]
   var RANGE = {
@@ -675,7 +1104,37 @@
     starCount: [0, 12000, 250, 'stars'], starSize: [0.0005, 0.02, 0.0005, 'star size'],
     starScatter: [0, 1, 0.05, 'stars between arms'], starBulge: [0, 0.6, 0.02, 'bulge share'],
     starArmHue: [0, 360, 2, 'arm star hue'], starThick: [0.1, 2, 0.05, 'star disk thickness'],
-    sunSize: [0, 0.4, 0.005, 'core size'], sunBright: [0, 4, 0.1, 'core brightness'], sunHue: [0, 360, 2, 'core hue']
+    sunSize: [0, 0.4, 0.005, 'core size'], sunBright: [0, 4, 0.1, 'core brightness'], sunHue: [0, 360, 2, 'core hue'],
+    premul: [0, 1, 1, 'premultiplied'], white: [0, 8, 0.25, 'white point'],
+    marchPad: [1, 1.6, 0.01, 'march padding'], detail: [2, 5, 1, 'noise octaves'],
+    emitRho: [0, 20, 0.5, 'density contrast'],
+    hollow: [0, 1, 0.05, 'cavity hollow'], shellR: [0.1, 0.9, 0.02, 'wall radius'],
+    shellK: [1, 12, 0.5, 'wall thickness'], bipolar: [0, 1, 0.05, 'wing strength'],
+    lobeSharp: [0, 1, 0.05, 'wing tightness'], lobeBias: [-0.8, 0.8, 0.05, 'wing asymmetry'],
+    lobeAz: [0, 360, 2, 'wing azimuth'], lobeEl: [-90, 90, 2, 'wing elevation'],
+    striate: [0, 1, 0.05, 'radial filaments'], striaGain: [0.5, 3, 0.1, 'filament stretch'],
+    ionAmt: [0, 1, 1, 'ionisation colour'], knotQ: [0.0005, 0.2, 0.0005, 'knot reach'],
+    ion0: [0, 0.5, 0.01, 'rose edge'], ion1: [0.1, 1, 0.02, 'white edge'],
+    ionDens: [0, 6, 0.25, 'density reddening'], midHue: [0, 360, 2, 'mid hue'],
+    hotGain: [1, 6, 0.1, 'core blowout'],
+    darkAbsorb: [0, 12, 0.25, 'intrusion opacity'], darkR: [0, 1.2, 0.01, 'intrusion radius'],
+    darkX: [-0.5, 0.5, 0.01, 'intrusion x'], darkY: [-0.5, 0.5, 0.01, 'intrusion y'],
+    darkZ: [-0.5, 0.5, 0.01, 'intrusion z'], darkAz: [0, 360, 2, 'intrusion azimuth'],
+    darkEl: [-90, 90, 2, 'intrusion elevation'], darkScallop: [0, 0.25, 0.005, 'scallop depth'],
+    darkScale: [2, 20, 0.5, 'scallop size'], darkEdge: [0.002, 0.08, 0.002, 'edge hardness'],
+    darkHue: [0, 360, 2, 'intrusion hue'], darkLev: [0, 0.5, 0.01, 'intrusion glow'],
+    dark2R: [0, 0.3, 0.01, 'second lane size'], dark2X: [-0.5, 0.5, 0.01, 'second lane x'],
+    dark2Y: [-0.5, 0.5, 0.01, 'second lane y'], dark2Z: [-0.5, 0.5, 0.01, 'second lane z'],
+    rimGain: [0, 4, 0.1, 'lit rim'], rimW: [0.004, 0.06, 0.002, 'rim width'],
+    sunX: [-0.4, 0.4, 0.01, 'core x'], sunY: [-0.4, 0.4, 0.01, 'core y'],
+    sunZ: [-0.4, 0.4, 0.01, 'core z'], sunHalo: [0, 16, 0.5, 'core halo'],
+    sunKnotBright: [0.5, 6, 0.1, 'knot brightness'],
+    fieldCount: [0, 8000, 100, 'field stars'], fieldPx: [1, 6, 0.1, 'star size (px)'],
+    fieldRadius: [0.35, 1.5, 0.05, 'field radius'], fieldBright: [0.1, 2.5, 0.05, 'star brightness'],
+    fieldAlpha: [0.8, 3, 0.1, 'magnitude slope'], fieldCap: [4, 120, 2, 'brightest star'],
+    fieldPsf: [2, 20, 0.5, 'star hardness'], fieldHalo: [0, 0.4, 0.01, 'star halo'],
+    fieldGlareAt: [4, 60, 1, 'glare threshold'], fieldGlare: [0, 12, 0.5, 'glare size'],
+    fieldMinDist: [0.5, 8, 0.1, 'star lock dist']
   }
   // Grounded in the emission lines: true colour is Ha red with an [O III] core; the Hubble
   // palette is the gold/teal false colour everyone recognises; reflection nebulae (the
@@ -690,7 +1149,28 @@
     falloff: 'uFalloff', warp: 'uWarp',
     galRadius: 'uGalRadius', galThick: 'uGalThick', galFlare: 'uGalFlare',
     galBulgeGain: 'uGalBulgeGain', galWind: 'uGalWind', galArmWidth: 'uGalArmWidth', galFalloff: 'uGalFalloff',
-    clump: 'uClump', clumpScale: 'uClumpScale'}
+    clump: 'uClump', clumpScale: 'uClumpScale',
+    white: 'uWhite', detail: 'uDetail', emitRho: 'uEmitRho', marchPad: 'uMarchPad',
+    hollow: 'uHollow', shellR: 'uShellR', shellK: 'uShellK', bipolar: 'uBipolar',
+    lobeSharp: 'uLobeSharp', lobeBias: 'uLobeBias', striate: 'uStriate', striaGain: 'uStriaGain',
+    ionAmt: 'uIonAmt', knotQ: 'uKnotQ', ion0: 'uIon0', ion1: 'uIon1', ionDens: 'uIonDens',
+    darkAbsorb: 'uDarkAbsorb', darkR: 'uDarkR', dark2R: 'uDark2R', darkScallop: 'uDarkScallop',
+    darkScale: 'uDarkScale', darkEdge: 'uDarkEdge', rimGain: 'uRimGain', rimW: 'uRimW'}
+
+  // Not plain scalars: each of these feeds a vec3 or a normalised direction, so it goes
+  // through refreshDerived rather than straight into a uniform slot.
+  var DERIVED = {stretch: 1, flatten: 1, lobeAz: 1, lobeEl: 1, darkAz: 1, darkEl: 1,
+    darkX: 1, darkY: 1, darkZ: 1, dark2X: 1, dark2Y: 1, dark2Z: 1, darkHue: 1, darkLev: 1,
+    midHue: 1, hotGain: 1, sunX: 1, sunY: 1, sunZ: 1}
+  // These change the size of the proxy box, which is geometry, not a uniform.
+  var HULL = {marchPad: 1}
+  // These change the JS density field as well, so the particles only follow after a rebuild.
+  var SHAPEJS = {hollow: 1, shellR: 1, shellK: 1, bipolar: 1, lobeSharp: 1, lobeBias: 1,
+    lobeAz: 1, lobeEl: 1, stretch: 1, flatten: 1, sunX: 1, sunY: 1, sunZ: 1}
+  var SUNP = {sunX: 1, sunY: 1, sunZ: 1, sunSize: 1, sunHalo: 1, sunBright: 1, sunHue: 1,
+    sunKnotBright: 1}
+  var FIELDU = {fieldPx: 'uStarPx', fieldGlare: 'uGlareSize', fieldPsf: 'uPsf',
+    fieldHalo: 'uHalo', fieldMinDist: 'uMinDist'}
 
   // ---------------------------------------------------------------- control panel
   // opts: {tabs, ctls, P, getMode, setMode, rebuild, runtime}
@@ -750,11 +1230,20 @@
           out.textContent = P[key]
           var rt = opts.runtime() || {}
           if (key === 'scale' && rt.object3D) { rt.object3D.scale.setScalar(P.scale); return }
-          if (rt.march && UNIFORM[key]) { rt.march.material.uniforms[UNIFORM[key]].value = P[key]; return }
+          if (rt.march && DERIVED[key]) {
+            refreshDerived(P, rt.march.material.uniforms)
+            if (rt.state && SUNP[key]) applySun(P, rt.state)
+          } else if (rt.march && UNIFORM[key]) {
+            rt.march.material.uniforms[UNIFORM[key]].value = P[key]
+          }
+          // A live uniform is enough UNLESS the key also resized the proxy box or moved the
+          // field the particles are placed in - both of those are baked, so they still have
+          // to reach the rebuild below.
+          if (rt.march && (DERIVED[key] || UNIFORM[key]) && !HULL[key] &&
+              !(mode.id === 'particles' && SHAPEJS[key])) return
           if (rt.march && (key === 'baseHue' || key === 'coreHue' || key === 'sat' || key === 'spread')) {
             var u = rt.march.material.uniforms
-            u.uHa.value.fromArray(hsl(P.baseHue, P.sat, 0.55))
-            u.uOiii.value.fromArray(hsl(P.coreHue, P.sat, 0.62))
+            refreshDerived(P, u)
             if (u.uSpread) u.uSpread.value = P.spread
             if (u.uCloudA) {
               u.uCloudA.value = cloudPalette(P, 0.55, 'baseHue')
@@ -769,6 +1258,11 @@
             // Turning the core off entirely has to rebuild, since the sprite is removed.
             if (!(key === 'sunBright' && (P.sunBright === 0 || !rt.state.sunMat))) return
           }
+          if (rt.state && rt.state.fieldMat && FIELDU[key]) {
+            rt.state.fieldMat.uniforms[FIELDU[key]].value = P[key]
+            return
+          }
+          if (rt.state && rt.state.sunMats && SUNP[key]) { applySun(P, rt.state); return }
           if (rt.partMat && (key === 'partSize' || key === 'partTwinkle' || key === 'partDrift')) {
             rt.partMat.uniforms[key === 'partSize' ? 'uSize' : key === 'partTwinkle' ? 'uTwinkle' : 'uDrift'].value = P[key]
             return
@@ -914,6 +1408,7 @@
   }
 
   global.NebulaCore = {
+    buildFieldStars: buildFieldStars, refreshDerived: refreshDerived, shapeMulJS: shapeMulJS,
     densityAt: densityAt, ensureLayout: ensureLayout, tintAt: tintAt,
     hsl: hsl, hueOffset: hueOffset, cloudPalette: cloudPalette,
     build: build, dispose: dispose, bake: bake,
