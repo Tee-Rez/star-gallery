@@ -6,7 +6,10 @@
 // Styling follows the star-info panel (translucent black, #4287f5 border, blur), so the whole
 // HUD reads as one system.
 //
-// Recenter sits top-centre, so this takes the top-left corner and they never collide.
+// It lives in the HUD layer's top row, left slot (see hud-shell.js), with Recenter in the right
+// slot of the same row - side by side in one row, so they cannot overlap.
+import {HUD} from './hud-shell'
+
 const galleryBackButtonComponent = {
   schema: {
     // Where the gallery index lives, relative to this experience. In the hosted gallery each
@@ -31,30 +34,11 @@ const galleryBackButtonComponent = {
     this.button.id = 'gallery-back-button'
     this.button.setAttribute('role', 'button')
     this.button.setAttribute('aria-label', 'Back to the constellation gallery')
-    this.button.style.cssText = `
-      position: fixed;
-      top: calc(16px + env(safe-area-inset-top, 0px));
-      left: calc(16px + env(safe-area-inset-left, 0px));
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 10px 16px 10px 12px;
-      border: 1px solid ${d.accent};
-      border-radius: 20px;
-      font-family: Arial, sans-serif;
-      font-size: 15px;
-      line-height: 1;
-      cursor: pointer;
-      z-index: 1001;
-      backdrop-filter: blur(5px);
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      pointer-events: auto;
-      transition: background ${d.fadeTime}ms ease;
-    `
+    this.button.className = 'hud-pill'
+    // Always showing, so always tappable. Size, spacing and the pill shape come from the layer.
+    this.button.style.pointerEvents = 'auto'
+    this.button.style.paddingInlineStart = 'calc(var(--tap) * 0.28)'
+    this.button.style.borderColor = d.accent
 
     // Stylised chevron, drawn rather than typed so it keeps its weight at any size.
     this.button.innerHTML = `
@@ -70,7 +54,7 @@ const galleryBackButtonComponent = {
     this.button.addEventListener('mouseenter', this.handleEnter)
     this.button.addEventListener('mouseleave', this.handleLeave)
 
-    document.body.appendChild(this.button)
+    HUD.mount(this.button, 'top-start', 'gallery')
   },
 
   handleEnter() {

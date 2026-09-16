@@ -2,8 +2,10 @@
 //
 // Deliberately a screen-fixed control rather than part of the portal HUD band: you reach for
 // Recenter precisely when the constellation has drifted out of view, and a button living on
-// the HUD is only readable once you are already facing it. It sits at the TOP of the screen,
-// clear of the hint bubble (which occupies roughly 13-20% down) and of the star info panel.
+// the HUD is only readable once you are already facing it. It lives in the HUD layer's top row,
+// right slot (see hud-shell.js), so the hint, the cards and Gallery all have rows of their own.
+import {HUD} from './js/hud-shell'
+
 const resetViewButtonComponent = {
   schema: {
     fadeTime: {type: 'number', default: 300},
@@ -34,29 +36,13 @@ const resetViewButtonComponent = {
 
   createButton() {
     this.button = document.createElement('div')
-    this.button.style.cssText = `
-      position: fixed;
-      top: calc(16px + env(safe-area-inset-top, 0px));
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 12px 24px;
-      border-radius: 20px;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      text-align: center;
-      opacity: 0;
-      transition: opacity ${this.data.fadeTime}ms ease;
-      z-index: 1000;
-      cursor: pointer;
-      border: 1px solid #4287f5;
-      backdrop-filter: blur(5px);
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      pointer-events: auto;
-    `
+    this.button.className = 'hud-pill'
+    this.button.setAttribute('role', 'button')
+    // Not tappable until it is shown. It used to be created accepting touches at zero opacity,
+    // which swallowed any tap near the top centre while the portal was still being placed.
+    this.button.style.opacity = '0'
+    this.button.style.pointerEvents = 'none'
+    this.button.style.transition = `opacity ${this.data.fadeTime}ms ease, background ${this.data.fadeTime}ms ease`
     this.button.textContent = 'Recenter'
 
     // Use bound methods
@@ -66,8 +52,8 @@ const resetViewButtonComponent = {
     this.button.addEventListener('touchend', this.handleClick)
     this.button.addEventListener('click', this.handleClick)
 
-    document.body.appendChild(this.button)
-    console.log('Button created and added to DOM')
+    HUD.mount(this.button, 'top-end', 'recenter')
+    console.log('Button created and added to the HUD')
   },
 
   handleMouseEnter() {
@@ -160,13 +146,13 @@ const resetViewButtonComponent = {
     }, 800)
   },
 
+  // A colour flash rather than a 'Recentering...' label: the longer label widened the pill
+  // mid-tap and pushed into Gallery on narrow phones.
   animateButtonFeedback() {
     this.button.style.background = 'rgba(66, 135, 245, 0.5)'
-    this.button.textContent = 'Recentering...'
 
     setTimeout(() => {
       this.button.style.background = 'rgba(0, 0, 0, 0.7)'
-      this.button.textContent = 'Recenter'
     }, 800)
   },
 

@@ -4,6 +4,8 @@
 // focused star swings to a point in front of the current camera and scales up to fill the
 // view. While parked, #root slowly orbits around that focal point. A screen-locked HUD
 // button advances through the stops; the last stop recenters and restores normal mode.
+import {HUD} from './hud-shell'
+
 const loreJourneyComponent = {
   schema: {
     focusDistance: {type: 'number', default: 2.0},   // units in front of camera for the focused star
@@ -40,21 +42,20 @@ const loreJourneyComponent = {
     return document.querySelector(`[data-name="${name}"]`)
   },
 
-  // ---- HUD "Next Star" button (screen-locked DOM) ----
+  // ---- HUD "Next Star" button, in the layer's actions row ----
+  // Its own row, below the story card, so the card can no longer cover it - it used to, on any
+  // phone narrower than about 450px.
   createHudButton() {
     this.hud = document.createElement('div')
-    this.hud.style.cssText = `
-      position: fixed; bottom: 24px; right: 20px;
-      background: rgba(0,0,0,0.7); color: #fff; padding: 12px 22px;
-      border: 1px solid #4287f5; border-radius: 20px;
-      font-family: Arial, sans-serif; font-size: 16px; z-index: 1000;
-      cursor: pointer; opacity: 0; pointer-events: none;
-      transition: opacity 300ms ease; user-select: none; -webkit-tap-highlight-color: transparent;`
+    this.hud.className = 'hud-pill'
+    this.hud.setAttribute('role', 'button')
+    this.hud.style.opacity = '0'
+    this.hud.style.pointerEvents = 'none'
     this.hud.textContent = 'Next Star'
     this.onHud = (e) => { e.preventDefault(); e.stopPropagation(); this.next() }
     this.hud.addEventListener('click', this.onHud)
     this.hud.addEventListener('touchend', this.onHud)
-    document.body.appendChild(this.hud)
+    HUD.mount(this.hud, 'actions', 'lore-next')
   },
 
   showHud(show) {
@@ -62,32 +63,37 @@ const loreJourneyComponent = {
     this.hud.style.pointerEvents = show ? 'auto' : 'none'
   },
 
-  // ---- Lore panel (DOM, same style as star-info-overlay) ----
+  // ---- Lore panel, in the layer's card row (same place and size as the star info card) ----
+  // It shares that row with the star card and the layer shows one at a time: a star tapped
+  // mid-journey takes this card's place, and the story comes back when that card closes.
   createPanel() {
     this.panel = document.createElement('div')
     this.panel.id = 'lore-panel'
+    this.panel.className = 'hud-card'
     this.panel.style.cssText = `
-      position: fixed; bottom: 40px; left: -400px; width: 250px;
       background: rgba(0,0,0,0.8); border: 2px solid #4287f5; border-radius: 10px;
       padding: 15px; color: #fff; font-family: Arial, sans-serif;
-      transition: left 500ms ease-out; z-index: 1000; backdrop-filter: blur(5px);
-      max-height: 45vh; overflow-y: auto; box-sizing: border-box;`
-    document.body.appendChild(this.panel)
+      backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+      overflow-y: auto; pointer-events: auto;
+      transform: translateX(calc(-100% - 60px)); transition: transform 500ms ease-out;`
+    HUD.mount(this.panel, 'sheet', 'lore-card')
   },
 
   showLore(stop) {
     this.panel.innerHTML = `
       <h2 style="margin:0 0 10px 0;color:#4287f5;font-size:18px;">${stop.title}</h2>
-      <p style="margin:0 0 12px 0;line-height:1.5;font-size:13px;">${stop.story}</p>
-      <div style="border-top:1px solid rgba(255,255,255,0.2);padding-top:8px;font-size:11px;font-style:italic;opacity:0.8;">
+      <p style="margin:0 0 12px 0;line-height:1.5;font-size:var(--fs-body);">${stop.story}</p>
+      <div style="border-top:1px solid rgba(255,255,255,0.2);padding-top:8px;font-size:var(--fs-caption);font-style:italic;opacity:0.8;">
         Sources: ${stop.sources}
       </div>`
     this.panel.scrollTop = 0
-    this.panel.style.left = '15px'
+    this.panel.style.transform = 'translateX(0)'
   },
 
+  // Slides out to the left, as it always has. It keeps its row while it is out, which only
+  // leaves empty AR view above the actions row during the glide.
   hideLore() {
-    this.panel.style.left = '-400px'
+    this.panel.style.transform = 'translateX(calc(-100% - 60px))'
   },
 
   // ---- Mode enter/exit ----
@@ -105,11 +111,13 @@ const loreJourneyComponent = {
     const reset = document.querySelector('[reset-view-button]')
     if (reset && reset.components['reset-view-button']) reset.components['reset-view-button'].hideButton()
     this.el.sceneEl.emit('starInfoClosed') // close any open info panel
+    HUD.setMode('lore')
     this.showHud(true)
   },
 
   exitMode() {
     this.active = false
+    HUD.setMode('constellation')
     this.showHud(false)
     this.hideLore()
     this.clearDetailed()

@@ -18,6 +18,7 @@
 // the same rotatingContainer, so locking it would contradict "behaves exactly like one" above.
 // Only the generated fields strip rotation - see enterMode().
 import {defaultStore} from './discovery-store'
+import {HUD} from './hud-shell'
 import {resolveLayer, FIELD_DEFAULTS} from './deep-sky-field'
 
 const deepSkyLayerComponent = {
@@ -119,16 +120,14 @@ const deepSkyLayerComponent = {
   createBackButton() {
     this.backBtn = document.createElement('div')
     this.backBtn.textContent = 'Back to the constellation'
-    this.backBtn.style.cssText = `
-      position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-      background: rgba(0,0,0,0.7); color: #fff; padding: 12px 22px;
-      border: 1px solid #4287f5; border-radius: 20px;
-      font-family: Arial, sans-serif; font-size: 15px; z-index: 1001;
-      cursor: pointer; opacity: 0; pointer-events: none;
-      transition: opacity 300ms ease; user-select: none;
-      -webkit-tap-highlight-color: transparent;`
+    this.backBtn.className = 'hud-pill'
+    this.backBtn.setAttribute('role', 'button')
+    this.backBtn.style.opacity = '0'
+    this.backBtn.style.pointerEvents = 'none'
     this.backBtn.addEventListener('click', () => this.exit())
-    document.body.appendChild(this.backBtn)
+    // The actions row, at the bottom in thumb reach. The layer only shows it inside a deep-sky
+    // object, and it has the full row width, so the label never wraps to two lines.
+    HUD.mount(this.backBtn, 'actions', 'deep-sky-back')
   },
 
   showBack(show) {

@@ -1,14 +1,13 @@
 // star-info-overlay.js
-// The star reading panel, laid out to match the Unity build (Portal.prefab -> PortalInfo).
+// The star reading panel, following the Unity build's arrangement (Portal.prefab -> PortalInfo):
+// star name, designation, a separator rule, then the content, with the close button in the
+// top-right corner, and Info / Starsong tabs mirroring Unity's Info / Sound.
 //
-// Unity draws a 1300x1900 portrait card: star name, designation, a separator rule, then the
-// content, with the close button in the top-right corner. This keeps that arrangement and
-// those proportions, but stays a DOM overlay rather than a world-space panel -- moving it
-// into the scene would be a rewrite, not a layout change.
-//
-// Unity's Info/Sound tabs are deliberately absent: the web build has no star audio and no
-// stellar physics in its data, so there is only one tab's worth of content to show.
-const PANEL_ASPECT = '1300 / 1900'  // Unity's PortalInfo proportions
+// It sits in the bottom-left of the screen, in the HUD layer's card row (see hud-shell.js):
+// wide - up to 92% of the screen, capped at 600px - and no taller than about 45% of the visible
+// height, with the content scrolling inside. The layer shows one card at a time in that row, so
+// it can no longer open on top of the lore journey's story card.
+import {HUD} from './js/hud-shell'
 
 const starInfoOverlayComponent = {
   schema: {
@@ -21,18 +20,11 @@ const starInfoOverlayComponent = {
   },
 
   init() {
-    // Portrait card, vertically centred against the constellation rather than tucked into
-    // the bottom corner, so it reads the way the Unity panel does beside the portal.
     this.overlay = document.createElement('div')
     this.overlay.id = 'star-info-overlay'
+    // Width and height come from the layer's card rules (.hud-card); only the look is set here.
+    this.overlay.className = 'hud-card'
     this.overlay.style.cssText = `
-      position: fixed;
-      left: 15px;
-      top: 50%;
-      transform: translateY(-50%);
-      width: min(${this.data.width}px, 46vw);
-      aspect-ratio: ${PANEL_ASPECT};
-      max-height: 72vh;
       background: ${this.data.backgroundColor};
       border: ${this.data.borderWidth}px solid ${this.data.borderColor};
       border-radius: 10px;
@@ -44,10 +36,10 @@ const starInfoOverlayComponent = {
       opacity: 0;
       visibility: hidden;
       transition: opacity ${this.data.fadeSpeed}ms ease, visibility 0s linear ${this.data.fadeSpeed}ms;
-      z-index: 1000;
       backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
       margin: 0;
-      box-sizing: border-box;
+      position: relative;
       pointer-events: none;
     `
 
@@ -78,7 +70,7 @@ const starInfoOverlayComponent = {
       border-bottom: 1px solid rgba(255,255,255,0.25);
       padding-bottom: 8px;
       margin-bottom: 10px;
-      padding-right: 28px;
+      padding-right: calc(var(--tap) - 8px);
     `
     this.overlay.appendChild(this.header)
 
@@ -89,14 +81,14 @@ const starInfoOverlayComponent = {
       flex: 1 1 auto;
       overflow-y: auto;
       line-height: 1.4;
-      font-size: 13px;
+      font-size: var(--fs-body);
       box-sizing: border-box;
       scrollbar-width: thin;
       scrollbar-color: ${this.data.borderColor} rgba(0,0,0,0.3);
     `
     this.overlay.appendChild(this.content)
 
-    document.body.appendChild(this.overlay)
+    HUD.mount(this.overlay, 'sheet', 'star-card')
 
     // Bind methods
     this.showInfo = this.showInfo.bind(this)
@@ -121,12 +113,14 @@ const starInfoOverlayComponent = {
 
   createCloseButton() {
     const closeButton = document.createElement('div')
+    // A full tap target - it was 28px, under the 44px a finger needs.
     closeButton.style.cssText = `
       position: absolute;
-      top: 12px;
-      right: 12px;
-      width: 28px;
-      height: 28px;
+      top: 6px;
+      right: 6px;
+      width: var(--tap);
+      height: var(--tap);
+      font-size: var(--fs-ui);
       background: rgba(0,0,0,0.3);
       border-radius: 50%;
       display: flex;
@@ -363,6 +357,12 @@ const starInfoOverlayComponent = {
       <div data-pane="starsong" style="display:none;">${this.buildStarsongPane(name)}</div>`
     this.wireTabs(name)
 
+    // The layer keeps a closed card out of the layout entirely, so open the row first and let
+    // one layout pass happen at opacity 0 - otherwise there is nothing to fade in from.
+    if (!this.isVisible) {
+      HUD.setPanel(true)
+      void this.overlay.offsetWidth
+    }
     this.overlay.style.opacity = '1'
     this.overlay.style.visibility = 'visible'
     this.overlay.style.transition = `opacity ${this.data.fadeSpeed}ms ease, visibility 0s`
@@ -419,10 +419,12 @@ const starInfoOverlayComponent = {
     // Emit an event to notify that star info was closed
     this.el.sceneEl.emit('starInfoClosed')
 
+    // The row closes after the fade, which is also when a lore story card underneath comes back.
     setTimeout(() => {
       if (!this.isVisible) {
         this.header.innerHTML = ''
         this.content.innerHTML = ''
+        HUD.setPanel(false)
       }
     }, this.data.fadeSpeed)
   },

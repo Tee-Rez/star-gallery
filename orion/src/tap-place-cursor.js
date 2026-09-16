@@ -8,6 +8,7 @@
 // camera while being positioned in WORLD space every frame - so the camera's own transform
 // was applied to it twice and the hit point wandered as you moved. The cursor, and the spot
 // the constellation landed on, wandered with it.
+import {HUD} from './js/hud-shell'
 const tapPlaceCursorComponent = {
   schema: {
     placementDistance: {type: 'number', default: 2.5},  // Distance from camera to place cursor
@@ -118,6 +119,13 @@ const tapPlaceCursorComponent = {
   handleClick(event) {
     // If already placed, ignore completely and let event pass through
     if (this.hasPlaced) {
+      return
+    }
+
+    // A touch on a screen control - Gallery, say - is not a request to place the portal. These
+    // listeners sit on the whole document, so without this a tap on Gallery would place the
+    // portal and navigate away at the same time.
+    if (HUD.isHudEvent(event)) {
       return
     }
 

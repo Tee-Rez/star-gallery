@@ -1,4 +1,9 @@
 // hint-controller.js - Updated for cursor placement
+//
+// The hint bubble lives in the HUD layer's message row (see hud-shell.js), directly under the
+// top bar, so it has its own row rather than a position that has to stay clear of Recenter.
+import {HUD} from './js/hud-shell'
+
 const hintControllerComponent = {
   schema: {
     hintDelay: {type: 'number', default: 2000},
@@ -32,27 +37,10 @@ const hintControllerComponent = {
 
     // Create hint container
     this.hintContainer = document.createElement('div')
-    this.hintContainer.style.cssText = `
-      position: fixed;
-      bottom: 80%;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(0, 0, 0, 0.7);
-      color: white;
-      padding: 12px 20px;
-      border-radius: 20px;
-      font-family: Arial, sans-serif;
-      font-size: 16px;
-      text-align: center;
-      opacity: 0;
-      transition: opacity ${this.data.fadeTime}ms ease;
-      z-index: 1000;
-      pointer-events: none;
-      max-width: 80%;
-      border: 1px solid #4287f5;
-      backdrop-filter: blur(5px);
-    `
-    document.body.appendChild(this.hintContainer)
+    this.hintContainer.className = 'hud-hint'
+    this.hintContainer.style.opacity = '0'
+    this.hintContainer.style.transition = `opacity ${this.data.fadeTime}ms ease`
+    HUD.mount(this.hintContainer, 'message', 'hint')
 
     // Setup event listeners
     this.setupEventListeners()
