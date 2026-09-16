@@ -148,6 +148,13 @@ const deepSkyFieldComponent = {
     const isGL2 = !!(renderer && renderer.capabilities && renderer.capabilities.isWebGL2)
 
     this.coreState = {}
+    // A star field locked in place has to line up with the portal box, and the box lives in
+    // the loader's STATIC container. The field itself is built in the rotating one, which the
+    // user may have turned before tapping into this object - so taking the orientation from
+    // there would skew a boxed field against the walls it is meant to sit inside.
+    const loaderEl = document.querySelector('[constellation-loader]')
+    const loader = loaderEl && loaderEl.components['constellation-loader']
+    if (loader && loader.staticContainer) this.coreState.lockFrame = loader.staticContainer.object3D
     const out = core.build(P, mode, this.coreState, isGL2)
     if (!out.object3D) {
       console.warn('[deep-sky-field] preset built nothing (' + out.note + '), falling back to points')
