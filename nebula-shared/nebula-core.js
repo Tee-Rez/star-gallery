@@ -122,29 +122,109 @@
       // colour: everything added for the nebula defaults to zero, so a galaxy preset renders
       // exactly what it did before.
       function frag(useTex) {
-        var GALAXY = [
+var GALAXY = [
           'float galBulge(vec3 p){ vec3 q = vec3(p.x, p.y/max(0.05,uGalBulgeFlat), p.z);',
-          '  float b = length(q)/max(0.001,uGalBulge); return exp(-b*b); }',
+          '  float b = length(q)/max(0.001,uGalBulge); float g = exp(-b*b);',
+          // With a bulge this small, one or two march samples land inside exp(-b*b) and WHICH
+          // ones changes every frame with the dither, so the core boils. Widening what the
+          // march sees guarantees three; the sprite keeps the hard centre. 0 is the old bulge.
+          '  if (uGalBulgeSoft > 0.0) g = mix(g, exp(-b*b*0.18), uGalBulgeSoft);',
+          '  return g; }',
           'float galaxyDensity(vec3 p){',
+          // Cleared first, so an early return cannot leave the previous sample's arm weight
+          // standing for the colour pass to read.
+          ' gArm = 0.0; gFbm = 0.5; gBul = 0.0;',
           ' float r = length(p.xz); float rn = r/uGalRadius;',
           ' if (rn > 1.0) return 0.0;',
           // The disk thickens toward the rim, the way a real one flares.
           ' float h = uGalThick * (1.0 + uGalFlare * rn * 2.0);',
           ' float vert = exp(-(p.y*p.y)/(h*h));',
           ' float radial = pow(max(0.0, 1.0 - rn), uGalFalloff);',
-          // Logarithmic spiral: the arm phase winds with log(radius).
-          ' float th = atan(p.z, p.x);',
-          ' float phase = th * uGalArms - log(max(rn, 0.05)) * uGalWind;',
-          ' float arm = pow(0.5 + 0.5*cos(phase), uGalArmWidth);',
-          ' float d = (radial * (0.22 + 0.78*arm) + galBulge(p) * uGalBulgeGain) * vert;',
+          ' float bul = galBulge(p) * uGalBulgeGain;',
+          // Lifting the bulge OUT of the disc gaussian and out of the fBm multiply is what
+          // lets galBulgeFlat govern its isophotes, and stops it collapsing to a razor streak
+          // when galThick drops for a real inclination. Lift 0 is exactly the old behaviour.
+          ' float bl = bul*uGalBulgeLift, bd = bul - bl;',
+          ' gBul = bul;',
+          // An EXACT upper bound, not an approximation: arm <= 1, pow(fbm,c) <= 1 for c >= 1,
+          // the dust factor is <= 1, and the clump factor tops out at 1 + 1.15*uClump. Tested
+          // against the march loop's own d > 0.002 discard, so a cull below that can only skip
+          // samples the loop would have thrown away. uGalCull 0 makes this never fire.
+          ' float hi = (radial + bd)*vert*(1.0 + 1.15*uClump) + bl;',
+          ' if (hi*uDensity < uGalCull) return 0.0;',
           ' vec3 w = p;',
           ' if (uWarp > 0.0) { float k = uTurb*0.5;',
           '   w += (vec3(fbm(p*k+vec3(uSeed+3.1),2), fbm(p*k+vec3(uSeed+17.7),2), fbm(p*k+vec3(uSeed+31.3),2)) - 0.5) * uWarp * 0.6; }',
-          ' d *= pow(fbm(w*uTurb+vec3(11.3+uSeed,4.7,19.1),4), uContrast);',
-          ' float du=ridged(w*uTurb*0.65+vec3(51.2+uSeed,8.4,33.9),3); d *= 1.0-uDust*du*du;',
+          // Hoisted above the arm so one fetch serves the density, the arm wobble, the
+          // fragmenter and the colour mottle. Same arguments, same value as before.
+          ' float fn = fbm(w*uTurb+vec3(11.3+uSeed,4.7,19.1),4);',
+          ' gFbm = fn;',
+          // Logarithmic spiral: the arm phase winds with log(radius).
+          ' float th = atan(p.z, p.x);',
+          ' float lr = log(max(rn, 0.05));',
+          ' float phase = th * uGalArms - lr * uGalWind;',
+          // Real arms wander in and out of the log spiral. Free - fn is already in a register.
+          ' if (uGalArmWobble > 0.0) phase += (fn - 0.5)*uGalArmWobble;',
+          ' float arm = pow(0.5 + 0.5*cos(phase), uGalArmWidth);',
+          // Cells in SPIRAL coordinates: lr runs along the arm and phase across it, so they
+          // come out long one way and short the other and the arm breaks into short arcs
+          // rather than round blobs. M31 is flocculent, not grand design.
+          ' if (uGalFrag > 0.0) {',
+          '  float fg = vnoise(vec3(lr*uGalFragAlong, phase*uGalFragAcross, uSeed*3.7 + p.y*6.0));',
+          '  arm *= mix(1.0, smoothstep(0.30, 0.72, fg)*1.5, uGalFrag);',
+          ' }',
+          ' gArm = clamp(arm, 0.0, 1.0);',
+          // uGalArmFloor was a hardcoded 0.22, which caps arm-to-interarm contrast at 4.5:1
+          // however tight the arms are. 0.12 lifts it to 8.3:1.
+          ' float d = (radial * (uGalArmFloor + (1.0-uGalArmFloor)*arm) + bd) * vert;',
+          ' d *= pow(fn, uContrast);',
+          // Guarded where it was unconditional: identical whenever uDust > 0, and it hands
+          // back three noise fetches a step the moment a preset sets dust to 0. uDust is the
+          // INVERSE of a dust lane anyway - it thins the gas, giving a hole with LOWER alpha
+          // that you see through. The lanes are galDust().
+          ' if (uDust > 0.0) { float du=ridged(w*uTurb*0.65+vec3(51.2+uSeed,8.4,33.9),3); d *= 1.0-uDust*du*du; }',
           ' if (uClump > 0.0) { float cl = fbm(w*uTurb*uClumpScale + vec3(137.1+uSeed,95.9,178.3), 2);',
           '   d *= (1.0 - uClump) + uClump * 2.15 * cl; }',
-          ' return max(d,0.0);',
+          // The lifted bulge is added last and unmottled: a real bulge is smooth.
+          ' return max(d,0.0) + bl;',
+          '}',
+          // ---- dust lanes ---------------------------------------------------------------
+          // Feeds the extinction exponent with NO emission, so it blocks the bulge and the far
+          // half of the disc instead of thinning the gas in front of them.
+          'float galDust(vec3 p){',
+          ' if (uLaneAmt <= 0.0) return 0.0;',
+          ' float rn = length(p.xz)/uGalRadius;',
+          // Windowed FIRST, so the atan, the log and the noise are only paid for inside the
+          // annulus that has lanes at all. M31's dust peaks near half the visible radius, with
+          // a real deficit in the middle - not out at the rim.
+          ' float win = smoothstep(uLaneIn, uLaneIn*2.4, rn)*(1.0 - smoothstep(uLaneOut*0.72, uLaneOut, rn));',
+          ' if (win <= 0.0001) return 0.0;',
+          // A third of the gas scale height, and THAT difference is the whole silhouette: at
+          // this inclination only the near half of the sheet lies in front of the bulge, so
+          // there you see the full exp(-tau) while the far side is diluted by the emission in
+          // front of it. Front-to-back accumulation gives that asymmetry for free, and it is
+          // the strongest cue for which way the disc is tipped.
+          ' float hd = uGalThick*(1.0 + uGalFlare*rn*2.0)*uLaneThick;',
+          ' float vd = exp(-(p.y*p.y)/(hd*hd));',
+          ' if (vd < 0.02) return 0.0;',
+          ' float th = atan(p.z, p.x);',
+          ' float lr = log(max(rn, 0.05));',
+          // The same logarithmic spiral the arms use, in TURNS so the fract() below folds
+          // exactly one lane per unit. phase falls with radius, so a NEGATIVE offset puts the
+          // lane INSIDE its arm, on the trailing edge where the shock compresses the gas - and
+          // arm and lane then alternate as you move outward.
+          ' float u1 = (th*uGalArms - lr*uGalWind*uLaneWind)*0.15915494 + uLaneOff;',
+          ' if (uLaneWob > 0.0) u1 += (vnoise(vec3(lr*4.3, th*1.7, uSeed*2.9)) - 0.5)*uLaneWob;',
+          // Triangle fold: one narrow trough per unit of u1, at constant width however many
+          // lanes the winding produces. pow(cos) would need an exponent near 300 for the same
+          // width, and its shoulders would grey out the gaps between lanes.
+          ' float t1 = abs(fract(u1) - 0.5);',
+          ' float L = exp(-t1*t1*uLaneK);',
+          // A second family at the golden ratio never realigns with the first, so the radial
+          // spacing is aperiodic for one exp rather than another noise octave.
+          ' if (uLane2 > 0.0) { float t2 = abs(fract(u1*1.6180340 + 0.37) - 0.5);',
+          '   L = max(L, uLane2*exp(-t2*t2*uLaneK*1.7)); }',
+          ' return clamp(L*vd*win*uLaneAmt, 0.0, 1.0);',
           '}'
         ].join('\n')
 
@@ -235,7 +315,31 @@
           '   float kf = fract(g);',
           '   emit = mix(mix(uCloudA[k0],uCloudA[k1],kf), mix(uCloudB[k0],uCloudB[k1],kf), c) * uEmission;'
         ] : [
-          '   if (uIonAmt > 0.5) {',
+          // gArm, gFbm and gBul are written by galaxyDensity(). Load-bearing ordering: this
+          // block runs BEFORE the lighting block, and lighting is the only thing that re-enters
+          // densityAt() within a step.
+          '   if (uGalPal > 0.5) {',
+          // Colour by RADIUS, not by brightness: a bright knot in the outer disc has to stay
+          // blue and a faint patch of inner disc has to stay peach. The branch below cannot do
+          // that at all - its only radius term is galBulge(), which is dead beyond about twice
+          // the bulge scale.
+          '    float rc = length(p.xz)/uGalRadius;',
+          '    float s = clamp((rc - uColIn)*uColSlope, 0.0, 1.0);',
+          // A bare radial ramp reads flat because its level sets are circles. Each of these
+          // bends them into something that is not a circle, and all three are already in a
+          // register. uColArm earns the most: blue arms against peach interarm gas at the SAME
+          // radius is the one cue that stops this being a vignette.
+          '    s += uColArm*(gArm - 0.5) + uColNoise*(gFbm - 0.5);',
+          '    s -= uColDense*min(rho*uColDenseK, 1.0);',
+          '    s = clamp(s + (dither - 0.5)*0.03, 0.0, 1.0);',
+          '    float k2 = s*2.0;',
+          '    vec3 cc = mix(uCream, uPeach, clamp(k2,       0.0, 1.0));',
+          '    cc      = mix(cc,     uArmC,  clamp(k2 - 1.0, 0.0, 1.0));',
+          // The bulge overrides using its OWN profile, so gas and stars turn warm over the
+          // same distance and one slider moves both.
+          '    cc = mix(cc, uCream, clamp(gBul*uBulgeMix, 0.0, 1.0));',
+          '    emit = cc*uEmission;',
+          '   } else if (uIonAmt > 0.5) {',
           // The ionisation parameter goes as Q/(r^2 n). Q/(Q+r^2) is 1 at the source and
           // falls with a POWER-LAW tail, which is the slow grade over roughly ten core radii
           // that the photographs show - a gaussian dies far too fast to look like this.
@@ -296,8 +400,15 @@
           'uniform float uStriate, uStriaGain;',
           'uniform float uDarkAbsorb, uDarkR, uDark2R, uDarkScallop, uDarkScale, uDarkEdge, uRimGain, uRimW;',
           'uniform float uEmitRho, uIonAmt, uKnotQ, uIon0, uIon1, uIonDens, uWhite;',
+          // Read inside the SHARED march loop and the shared tone tail, so they are declared
+          // once here. A uniform declared in both arms of the useTex switch fails to link.
+          'uniform float uGalDustAbsorb, uGalDustBlue, uGalDustVeil, uHueKeep, uHueBreak;',
           useTex ? 'uniform vec3 uCloudA[6]; uniform vec3 uCloudB[6]; uniform int uCloudN;' : '',
           useTex ? '' : 'uniform float uGalRadius, uGalThick, uGalFlare, uGalBulge, uGalBulgeGain, uGalArms, uGalWind, uGalArmWidth, uGalFalloff, uGalBulgeFlat;',
+          useTex ? '' : 'uniform float uGalCull, uGalBulgeLift, uGalBulgeSoft, uGalArmFloor, uGalArmWobble, uGalFrag, uGalFragAlong, uGalFragAcross;',
+          useTex ? '' : 'uniform float uLaneAmt, uLaneK, uLaneWind, uLaneOff, uLane2, uLaneThick, uLaneIn, uLaneOut, uLaneWob;',
+          useTex ? '' : 'uniform float uGalPal, uColIn, uColSlope, uColArm, uColNoise, uColDense, uColDenseK, uBulgeMix;',
+          useTex ? '' : 'uniform vec3 uCream, uPeach, uArmC;',
           useTex ? 'uniform sampler3D uVol;' : NOISE,
           // Interleaved gradient noise (Jimenez). fract(sin(dot)) is white noise, and its
           // energy sits in exactly the low frequencies the eye picks out as banding; this is
@@ -306,13 +417,16 @@
           'float coreAt(vec3 p){ float b=0.0;',
           ' for(int i=0;i<4;i++){ vec3 d=p-uCores[i].xyz; b += exp(-dot(d,d)/(uCores[i].w*uCores[i].w)); }',
           ' return b; }',
-          useTex ? 'vec2 darkAt(vec3 p){ return vec2(0.0); }' : [
+          useTex ? 'vec2 darkAt(vec3 p){ return vec2(0.0); } float galDust(vec3 p){ return 0.0; }' : [
             'vec2 hitEllipsoid(vec3 ro, vec3 rd, vec3 R){',
             ' vec3 o=ro/R, dd=rd/R;',
             ' float a=dot(dd,dd), b=dot(o,dd), c=dot(o,o)-1.0, h=b*b-a*c;',
             ' if (h < 0.0) return vec2(1.0, -1.0);',
             ' h = sqrt(h);',
             ' return vec2((-b-h)/a, (-b+h)/a); }',
+            // Written by galaxyDensity(), read by the galaxy colour branch. Declared in the
+            // PROCEDURAL arm only - the texture variant neither writes nor reads them.
+            'float gArm = 0.0; float gFbm = 0.5; float gBul = 0.0;',
             GALAXY, ENV, DARK].join('\n'),
           'float densityAt(vec3 p){',
           useTex ? ' return texture(uVol, p+0.5).r;' : [
@@ -351,18 +465,23 @@
           ' float fs = (uIsGalaxy > 0.5) ? uSteps : clamp(uSteps*span, 8.0, uSteps);',
           ' int steps=int(fs); float dt=span/fs;',
           ' float dither=fract(ign(gl_FragCoord.xy) + uFrame*0.618034);',
-          ' float t=tEnter+dt*dither; vec3 col=vec3(0.0); float T=1.0;',
+          ' float t=tEnter+dt*dither; vec3 col=vec3(0.0); float T=1.0; float Tb=1.0;',
           ' for(int i=0;i<128;i++){',
           '  if(i>=steps || T<0.035) break;',
           '  vec3 p=ro+rd*t;',
           '  vec2 dk = (uDarkAbsorb > 0.0) ? darkAt(p) : vec2(0.0);',
+          // Evaluated BEFORE the gas, so where a lane is opaque the noise fetches below are
+          // never paid for: the lanes make the march cheaper, not dearer.
+          '  float lane = (uIsGalaxy > 0.5 && uGalDustAbsorb > 0.0) ? galDust(p) : 0.0;',
           '  float rho = (dk.x < 0.985) ? densityAt(p) : 0.0;',
           '  float d = rho*uDensity;',
-          '  if(d>0.002 || dk.x>0.01){',
+          '  if(d>0.002 || dk.x>0.01 || lane>0.004){',
           // Two absorbers in one exponential: the gas emits and extinguishes, the dark cloud
           // only extinguishes. So raising uDarkAbsorb raises alpha without adding light, and
           // the lane genuinely blocks what is behind it.
-          '   float a=1.0-exp(-(d*uAbsorb + dk.x*uDarkAbsorb)*dt);',
+          // Three absorbers in one exponential. The lane raises alpha without adding any
+          // light, so it genuinely blocks the bulge behind it.
+          '   float a=1.0-exp(-(d*uAbsorb + dk.x*uDarkAbsorb + lane*uGalDustAbsorb)*dt);',
           '   vec3 emit;'
         ]).concat(COLOUR).concat([
           // Recombination is a two-body process, so emissivity goes as n^2 while extinction
@@ -373,7 +492,16 @@
         ]).concat(LIGHT).concat([
           // The cloud is warm-brown-black rather than pure black: light leaks through its edge.
           '   if (uDarkAbsorb > 0.0) emit = mix(emit, uDarkTint, dk.x);',
-          '   col += T*emit*a; T *= 1.0-a;',
+          '   if (uGalDustAbsorb > 0.0) emit = mix(emit, uDarkTint, lane*uGalDustVeil);',
+          // Interstellar reddening as ONE extra scalar - the blue channel's transmittance -
+          // rather than a vec3 T, which would cost three exponentials a step. For R_V 3.1
+          // dust green sits about 45% of the way from red to blue. Because Tb is applied at
+          // ACCUMULATION time, light emitted in FRONT of a lane is not reddened and light
+          // behind it is, so deeper lanes come out progressively browner as well as darker
+          // instead of wearing one flat tint that reads like a decal.
+          '   float eb = (lane > 0.004) ? exp(-lane*uGalDustAbsorb*uGalDustBlue*dt) : 1.0;',
+          '   col += vec3(T, mix(T, Tb, 0.45), Tb)*emit*a;',
+          '   T *= 1.0-a; Tb *= (1.0-a)*eb;',
           '  }',
           '  t += dt;',
           ' }',
@@ -383,10 +511,24 @@
           // the curve, or the curve just hands back a bright pink core.
           '  float mx = max(max(col.r,col.g),col.b);',
           '  float bl = uWhite*0.35;',
-          '  col = mix(col, vec3(mx), smoothstep(bl, bl*3.0, mx));',
+          // The explicit clip to white is right for an ionising knot and wrong for a galactic
+          // bulge, which a photograph shows holding a warm cream right into the centre.
+          // uHueKeep 0 leaves the multiplier at 1.0 - the nebula is untouched.
+          '  col = mix(col, vec3(mx), smoothstep(bl, bl*3.0, mx)*(1.0-uHueKeep));',
           // Extended Reinhard: near-identity below about half the white point, so the faint
           // outskirts keep their colour and their structure, and reaching 1.0 exactly at it.
-          '  col = col*(1.0 + col/(uWhite*uWhite))/(1.0 + col);',
+          '  vec3 pc = col*(1.0 + col/(uWhite*uWhite))/(1.0 + col);',
+          '  if (uHueKeep > 0.0) {',
+          // Per-channel Reinhard is itself a desaturator: every channel asymptotes to 1, so
+          // ratios converge and anything bright drifts to white on its own. Running the same
+          // curve on LUMINANCE and scaling RGB by the ratio preserves hue exactly, then hands
+          // off to per-channel only where a channel would genuinely leave gamut.
+          '   float Lm = dot(col, vec3(0.2126,0.7152,0.0722));',
+          '   float Ln = Lm*(1.0 + Lm/(uWhite*uWhite))/(1.0 + Lm);',
+          '   vec3 hu = col*(Ln/max(Lm, 1e-5));',
+          '   float ov = clamp((max(max(hu.r,hu.g),hu.b) - 0.92)*uHueBreak, 0.0, 1.0);',
+          '   col = mix(pc, mix(hu, pc, ov), uHueKeep);',
+          '  } else col = pc;',
           '  col += (dither - 0.5)/255.0;',
           ' }',
           ' fragColor=vec4(col, 1.0-T);',
@@ -465,6 +607,9 @@
     u.uMid.value.fromArray(hsl(P.midHue, P.sat * 0.85, 0.60))
     u.uOiii.value.fromArray(hsl(P.coreHue, P.sat, 0.62))
     u.uHot.value.setScalar(P.hotGain)
+    u.uCream.value.fromArray(hsl(P.creamHue, P.sat * P.creamSat, P.creamLev))
+    u.uPeach.value.fromArray(hsl(P.peachHue, P.sat * P.peachSat, P.peachLev))
+    u.uArmC.value.fromArray(hsl(P.armHue, P.sat * P.armSat, P.armLev))
   }
 
   // The same cavity and lobe shaping the shader applies to the gas, so the particles sit in
@@ -546,6 +691,35 @@
     ' gl_FragColor = vec4(vCol*a, a);',
     '}'].join('\n')
 
+  function starPoints(t, mat, order, cull) {
+    if (!t.p.length) return null
+    var g = new THREE.BufferGeometry()
+    g.setAttribute('position', new THREE.Float32BufferAttribute(t.p, 3))
+    g.setAttribute('aColor', new THREE.Float32BufferAttribute(t.c, 3))
+    g.setAttribute('aSize', new THREE.Float32BufferAttribute(t.s, 1))
+    g.setAttribute('aGlare', new THREE.Float32BufferAttribute(t.g, 1))
+    var o = new THREE.Points(g, mat)
+    o.renderOrder = order
+    // The bounding sphere is computed before the shader runs, so it would cull the whole
+    // draw the moment the camera is inside the shell.
+    o.frustumCulled = !!cull
+    return o
+  }
+
+  var _lp = new THREE.Vector3(), _lq = new THREE.Quaternion(), _ls = new THREE.Vector3()
+  var _li = new THREE.Quaternion()
+  // The renderer calls onBeforeRender BEFORE it builds modelViewMatrix from matrixWorld, so
+  // rewriting matrixWorld here is the sanctioned way to opt ONE child out of its parent's
+  // rotation - here the disc's tilt, its roll, and the host's spin. Position and scale are
+  // kept. A background star field does not turn with the galaxy in front of it.
+  function lockToWorld(o) {
+    o.onBeforeRender = function () {
+      if (!this.parent) return
+      this.parent.matrixWorld.decompose(_lp, _lq, _ls)
+      this.matrixWorld.compose(_lp, _li, _ls)
+    }
+  }
+
   // Stars filling the whole shell, placed with no reference to the gas at all - which is the
   // point. buildParticles seeds FROM the density field, so its points crowd exactly where the
   // gas is brightest and leave the corners empty; a photograph is the other way round.
@@ -573,6 +747,16 @@
       t.s.push(1 + 0.40 * Math.log(1 + f))
       t.g.push(f > P.fieldGlareAt ? Math.min(1, (f - P.fieldGlareAt) / P.fieldGlareAt) : 0)
     }
+    if (P.fgBright > 0) {
+      // One authored foreground star. It lands in the bright bucket, drawn in FRONT of the
+      // gas where a foreground star belongs; its core clips all three channels and reads
+      // white while the saturated colour survives in the wings of the PSF.
+      var fc = bbColor(P.fgTemp)
+      F.p.push(P.fgX, P.fgY, P.fgZ)
+      F.c.push(fc[0] * P.fgBright, fc[1] * P.fgBright, fc[2] * P.fgBright)
+      F.s.push(1 + 0.40 * Math.log(1 + P.fgBright))
+      F.g.push(P.fgGlare)
+    }
     state.fieldMat = new THREE.ShaderMaterial({
       uniforms: {uStarPx: {value: P.fieldPx}, uDpr: {value: Math.min(2, global.devicePixelRatio || 1)},
         uMinPx: {value: 1.0}, uMinDist: {value: P.fieldMinDist}, uGlareSize: {value: P.fieldGlare},
@@ -585,17 +769,9 @@
     })
     var grp = new THREE.Group()
     function pts(t, order) {
-      if (!t.p.length) return
-      var g = new THREE.BufferGeometry()
-      g.setAttribute('position', new THREE.Float32BufferAttribute(t.p, 3))
-      g.setAttribute('aColor', new THREE.Float32BufferAttribute(t.c, 3))
-      g.setAttribute('aSize', new THREE.Float32BufferAttribute(t.s, 1))
-      g.setAttribute('aGlare', new THREE.Float32BufferAttribute(t.g, 1))
-      var o = new THREE.Points(g, state.fieldMat)
-      o.renderOrder = order
-      // The bounding sphere is computed before the shader runs, so it would cull the whole
-      // draw the moment the camera is inside the shell.
-      o.frustumCulled = false
+      var o = starPoints(t, state.fieldMat, order, false)
+      if (!o) return
+      if (P.fieldLock > 0) lockToWorld(o)
       grp.add(o)
     }
     pts(B, -2)
@@ -764,33 +940,81 @@
   }
 
   // Mirrors galaxyDensity() in the shader, so the stars land where the gas actually is.
+  function sstep(a, b, x) { var t = Math.max(0, Math.min(1, (x - a) / ((b - a) || 1e-6))); return t * t * (3 - 2 * t) }
+
+  // Mirrors galaxyDensity() and galDust() so the points sit in the same gas the shader
+  // marches - including thinning out where a lane is.
   function galaxyDensityAt(x, y, z, P) {
     var r = Math.sqrt(x * x + z * z), rn = r / P.galRadius
-    if (rn > 1) return {d: 0, bulge: 0, arm: 0}
+    if (rn > 1) return {d: 0, bulge: 0, arm: 0, lane: 0}
     var h = P.galThick * (1 + P.galFlare * rn * 2)
     var vert = Math.exp(-(y * y) / (h * h))
     var radial = Math.pow(Math.max(0, 1 - rn), P.galFalloff)
     var yb = y / Math.max(0.05, P.galBulgeFlat)
     var br = Math.sqrt(x * x + yb * yb + z * z) / Math.max(0.001, P.galBulge)
     var bulge = Math.exp(-br * br)
-    var th = Math.atan2(z, x)
-    var phase = th * P.galArms - Math.log(Math.max(rn, 0.05)) * P.galWind
+    var th = Math.atan2(z, x), lr = Math.log(Math.max(rn, 0.05))
+    var phase = th * P.galArms - lr * P.galWind
     var arm = Math.pow(0.5 + 0.5 * Math.cos(phase), P.galArmWidth)
-    var d = (radial * (0.22 + 0.78 * arm) + bulge * P.galBulgeGain) * vert
-    return {d: Math.max(0, d), bulge: bulge, arm: arm}
+    var bul = bulge * P.galBulgeGain, bl = bul * P.galBulgeLift
+    var d = (radial * (P.galArmFloor + (1 - P.galArmFloor) * arm) + (bul - bl)) * vert + bl
+    var lane = 0
+    if (P.laneAmt > 0) {
+      var win = sstep(P.laneIn, P.laneIn * 2.4, rn) * (1 - sstep(P.laneOut * 0.72, P.laneOut, rn))
+      if (win > 0.0001) {
+        var hd = h * P.laneThick
+        var u1 = (th * P.galArms - lr * P.galWind * P.laneWind) * 0.15915494 + P.laneOff
+        var t1 = Math.abs(u1 - Math.floor(u1) - 0.5)
+        lane = Math.exp(-t1 * t1 * P.laneK)
+        if (P.lane2 > 0) {
+          var u2 = u1 * 1.618034 + 0.37, t2 = Math.abs(u2 - Math.floor(u2) - 0.5)
+          lane = Math.max(lane, P.lane2 * Math.exp(-t2 * t2 * P.laneK * 1.7))
+        }
+        lane = Math.min(1, lane * Math.exp(-(y * y) / (hd * hd)) * win * P.laneAmt)
+      }
+    }
+    return {d: Math.max(0, d), bulge: bulge, arm: arm, lane: lane}
   }
 
   // Stars are a separate population from the gas: a thin disc biased into the arms, plus a
   // rounder, older bulge crowd. Arms read blue (young, hot), the bulge warm - which is the
   // single clearest colour cue that something is a spiral galaxy.
+  // Three stops, warm to cold, with RADIUS rather than with brightness. The bulge stop takes
+  // the core sprite's own hue so the sprite and the stars underneath it cannot disagree. The
+  // old code keyed colour on local arm strength, which is exactly what a photograph shows the
+  // colour is NOT a function of.
+  function galStarRamp(P) {
+    return {core: hsl(P.sunHue, P.sat * 0.40, 0.82),
+      mid: hsl(P.starMidHue, P.sat * 0.62, 0.74),
+      arm: hsl(P.starArmHue, P.sat * 0.85, 0.76)}
+  }
+  function rampAt(R, t) {
+    var a, b, k
+    if (t < 0.5) { a = R.core; b = R.mid; k = t * 2 } else { a = R.mid; b = R.arm; k = (t - 0.5) * 2 }
+    return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]
+  }
+
   function buildGalaxyStars(P, state) {
-    var n = Math.round(P.starCount), pos = [], col = [], siz = [], seed = [], guard = 0
+    // starPx 0 keeps the world-space points this has always used. Above 0 it switches to the
+    // field-star shader, which sizes in DEVICE PIXELS and so is immune to the roughly ninefold
+    // model scale the portal applies - the reason points turn to mush when you walk into the
+    // disc. starPx is read as pixels; do not repurpose starSize, which is metres.
+    var modern = P.starPx > 0
+    var n = Math.round(P.starCount), guard = 0, made = 0
     var armCol = hsl(P.starArmHue, P.sat * 0.9, 0.72)
     var coreCol = hsl(P.partHue, P.sat * 0.8, 0.76)
-    var inBulge = Math.round(n * P.starBulge)
-    while (pos.length / 3 < n && guard < n * 60) {
+    var R = modern ? galStarRamp(P) : null
+    var kBlue = hsl(P.knotHue, 0.45, 0.84), kPink = hsl(P.hiiHue, 0.78, 0.68)
+    // The disc draws BEFORE the gas so the arms veil it, as before. Knots draw AFTER, so an
+    // OB clump reads as a clump ON the arm rather than a brighter piece of arm the gas has
+    // already multiplied down - and a near-side knot punches through a dust lane.
+    function mk() { return {p: [], c: [], s: [], g: []} }
+    var D = mk(), K = mk()
+    var pos = [], col = [], siz = [], seed = []
+    var inBulge = Math.round(n * P.starBulge), invR = 1 / Math.max(0.001, P.galRadius)
+    while (made < n && guard < n * 60) {
       guard++
-      var bulgeStar = pos.length / 3 < inBulge
+      var bulgeStar = made < inBulge
       var x, y, z
       if (bulgeStar) {
         var rb = P.galBulge * Math.pow(Math.random(), 0.6)
@@ -802,49 +1026,120 @@
         x = (Math.random() * 2 - 1) * P.galRadius
         z = (Math.random() * 2 - 1) * P.galRadius
         // Sample a band around the mid-plane, then reject against the disc's own vertical
-        // profile. The stars sit in a THINNER disc than the gas by default - young stars form
-        // near the mid-plane - and starThick scales that independently.
+        // profile. The stars sit in a THINNER disc than the gas by default.
         var hStar = P.galThick * P.starThick
         y = (Math.random() * 2 - 1) * hStar * 3
-        var rr = Math.sqrt(x * x + z * z), rn2 = rr / P.galRadius
+        var rr = Math.sqrt(x * x + z * z), rn2 = rr * invR
         if (rn2 > 1) continue
         var hLocal = hStar * (1 + P.galFlare * rn2 * 2)
         var vert = Math.exp(-(y * y) / (hLocal * hLocal))
         var radial = Math.pow(Math.max(0, 1 - rn2), P.galFalloff)
         var phase2 = Math.atan2(z, x) * P.galArms - Math.log(Math.max(rn2, 0.05)) * P.galWind
         var armW = Math.pow(0.5 + 0.5 * Math.cos(phase2), P.galArmWidth)
-        // Every factor is already 0..1, so the probability needs no arbitrary gain - which is
-        // what previously saturated it and filled the whole sampling box.
-        var keep = radial * vert * (P.starScatter + (1 - P.starScatter) * armW)
-        if (Math.random() > keep) continue
+        if (Math.random() > radial * vert * (P.starScatter + (1 - P.starScatter) * armW)) continue
       }
       var gg = galaxyDensityAt(x, y, z, P)
       var hot = bulgeStar ? 0 : Math.min(1, gg.arm)
-      var base = bulgeStar ? coreCol : [
-        armCol[0] + (coreCol[0] - armCol[0]) * (1 - hot),
-        armCol[1] + (coreCol[1] - armCol[1]) * (1 - hot),
-        armCol[2] + (coreCol[2] - armCol[2]) * (1 - hot)]
-      var b = bulgeStar ? 0.7 + Math.random() * 0.5 : 0.5 + hot * 0.8
-      pos.push(x, y, z)
-      col.push(base[0] * b, base[1] * b, base[2] * b)
-      siz.push(0.35 + Math.random() * Math.random() * 2.4 + (bulgeStar ? 0.4 : hot * 1.2))
-      seed.push(Math.random())
+      // In a photograph the lanes are visible THROUGH the star cloud, not only through the
+      // gas: the disc population thins where the dust is.
+      if (P.starLaneCut > 0 && gg.lane > 0 && Math.random() < P.starLaneCut * gg.lane) continue
+      if (!modern) {
+        var base = bulgeStar ? coreCol : [
+          armCol[0] + (coreCol[0] - armCol[0]) * (1 - hot),
+          armCol[1] + (coreCol[1] - armCol[1]) * (1 - hot),
+          armCol[2] + (coreCol[2] - armCol[2]) * (1 - hot)]
+        var lb = bulgeStar ? 0.7 + Math.random() * 0.5 : 0.5 + hot * 0.8
+        pos.push(x, y, z)
+        col.push(base[0] * lb, base[1] * lb, base[2] * lb)
+        siz.push(0.35 + Math.random() * Math.random() * 2.4 + (bulgeStar ? 0.4 : hot * 1.2))
+        seed.push(Math.random())
+        made++
+        continue
+      }
+      var rn = Math.sqrt(x * x + z * z) * invR
+      var c = rampAt(R, Math.min(1, rn / Math.max(0.05, P.starRamp)))
+      // Dragged back toward cream by the bulge's own profile, the same weight the gas branch
+      // uses, so gas and stars turn warm over the same distance.
+      var blw = Math.min(1, gg.bulge * 1.6)
+      if (blw > 0) {
+        c = [c[0] + (R.core[0] - c[0]) * blw,
+          c[1] + (R.core[1] - c[1]) * blw,
+          c[2] + (R.core[2] - c[2]) * blw]
+      }
+      // Knots live on the OUTER arms: an association is a place the arm has just made stars,
+      // and the inner disc finished doing that long ago. arm*arm puts them in the ridge rather
+      // than the skirts. HII regions read pink rather than red, and there are far fewer of
+      // them than blue clumps - they are the reddest thing in the galaxy.
+      var outer = Math.max(0, Math.min(1, (rn - P.knotR0) / 0.45))
+      var pk = bulgeStar ? 0 : P.knotFrac * hot * hot * outer
+      var t = D, b, sz, gl = 0
+      if (Math.random() < pk) {
+        t = K; c = kBlue; b = 1.6 + Math.random() * 1.8
+        sz = 1.5 + Math.random() * 1.4; gl = 0.35 + Math.random() * 0.65
+      } else if (Math.random() < pk * P.hiiFrac) {
+        t = K; c = kPink; b = 1.1 + Math.random() * 0.7; sz = 0.9 + Math.random() * 0.5
+      } else {
+        b = bulgeStar ? 0.7 + Math.random() * 0.5 : 0.45 + hot * 0.7
+        // Log of flux, the same curve the field stars use: a recorded disc grows only
+        // logarithmically, which is why real stars stay small and hard while brightening.
+        sz = 0.55 + 0.45 * Math.log(1 + Math.random() * 6)
+      }
+      t.p.push(x, y, z)
+      // Deliberately not normalised: the brightest clip all three channels and read white
+      // while the wings of the PSF keep the tint.
+      t.c.push(c[0] * b, c[1] * b, c[2] * b)
+      t.s.push(sz)
+      t.g.push(gl)
+      made++
     }
-    var geo = new THREE.BufferGeometry()
-    geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
-    geo.setAttribute('aColor', new THREE.Float32BufferAttribute(col, 3))
-    geo.setAttribute('aSize', new THREE.Float32BufferAttribute(siz, 1))
-    geo.setAttribute('aSeed', new THREE.Float32BufferAttribute(seed, 1))
+    if (!modern) {
+      var geo = new THREE.BufferGeometry()
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+      geo.setAttribute('aColor', new THREE.Float32BufferAttribute(col, 3))
+      geo.setAttribute('aSize', new THREE.Float32BufferAttribute(siz, 1))
+      geo.setAttribute('aSeed', new THREE.Float32BufferAttribute(seed, 1))
+      state.partMat = new THREE.ShaderMaterial({
+        uniforms: {uTime: {value: 0}, uSize: {value: P.starSize}, uTwinkle: {value: P.partTwinkle},
+          uDrift: {value: P.partDrift * 0.2}, uPixH: {value: 400}},
+        vertexShader: PART_VERT, fragmentShader: PART_FRAG,
+        transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+      })
+      var legacy = new THREE.Points(geo, state.partMat)
+      legacy.renderOrder = -1
+      state.particleCount = made
+      var lg = new THREE.Group()
+      lg.add(legacy)
+      return lg
+    }
     state.partMat = new THREE.ShaderMaterial({
-      uniforms: {uTime: {value: 0}, uSize: {value: P.starSize}, uTwinkle: {value: P.partTwinkle},
-        uDrift: {value: P.partDrift * 0.2}, uPixH: {value: 400}},
-      vertexShader: PART_VERT, fragmentShader: PART_FRAG,
-      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending
+      uniforms: {
+        uStarPx: {value: P.starPx}, uDpr: {value: Math.min(2, global.devicePixelRatio || 1)},
+        uMinPx: {value: 1.0},
+        // 0, NOT fieldMinDist. The field shell stands for infinity and wants its pattern
+        // frozen; the disc is the thing you walk INTO, and its parallax is the reason the
+        // portal is worth entering. max(1.0, 0.0/dd) is an exact no-op.
+        uMinDist: {value: 0},
+        uGlareSize: {value: P.starGlare}, uPsf: {value: P.starPsf}, uHalo: {value: P.starHalo},
+        // The star shader declares none of these four, but all three hosts poke uTime and
+        // uPixH unconditionally and the panel writes uTwinkle and uDrift. The SLOTS have to
+        // exist or those lines throw; three.js silently skips uniforms a program does not
+        // declare, so this costs nothing and no host file needs editing.
+        uTime: {value: 0}, uPixH: {value: 400}, uTwinkle: {value: 0}, uDrift: {value: 0},
+        uSize: {value: P.starPx}
+      },
+      vertexShader: STAR_VERT, fragmentShader: STAR_FRAG, transparent: true, depthWrite: false,
+      // Premultiplied additive: the fragment shader emits vec4(col*a, a), and plain
+      // AdditiveBlending would square the falloff and undo the flux conservation.
+      blending: THREE.CustomBlending, blendSrc: THREE.OneFactor,
+      blendDst: THREE.OneFactor, blendEquation: THREE.AddEquation
     })
-    var pts = new THREE.Points(geo, state.partMat)
-    pts.renderOrder = -1
-    state.particleCount = pos.length / 3
-    return pts
+    var grp = new THREE.Group()
+    var disc = starPoints(D, state.partMat, -1, true)
+    var knot = starPoints(K, state.partMat, 3, true)
+    if (disc) grp.add(disc)
+    if (knot) grp.add(knot)
+    state.particleCount = made
+    return grp
   }
 
   // A bright nucleus at the centre. A Sprite rather than a particle so it always faces the
@@ -854,22 +1149,7 @@
   // reads as one overwhelming point with a wide glow around it, where a galactic core is all
   // glow. A galaxy passes knot false and gets exactly the single sprite it always had.
   function buildGalaxyCore(P, state, knot) {
-    if (!state.sunTex) {
-      state.sunTex = radial([
-        [0, 'rgba(255,255,255,1)'],
-        [0.12, 'rgba(255,255,255,0.92)'],
-        [0.32, 'rgba(255,255,255,0.30)'],
-        [0.62, 'rgba(255,255,255,0.07)'],
-        [1, 'rgba(255,255,255,0)']])
-    }
-    if (knot && !state.knotTex) {
-      state.knotTex = radial([
-        [0, 'rgba(255,255,255,1)'],
-        [0.06, 'rgba(255,255,255,0.95)'],
-        [0.16, 'rgba(255,255,255,0.30)'],
-        [0.40, 'rgba(255,255,255,0.06)'],
-        [1, 'rgba(255,255,255,0)']])
-    }
+    coreTextures(state)
     var grp = new THREE.Group()
     state.sunMats = []
     state.suns = []
@@ -889,6 +1169,90 @@
     applySun(P, state)
     grp.renderOrder = 2
     return grp
+  }
+
+  function coreTextures(state) {
+    if (!state.sunTex) {
+      state.sunTex = radial([
+        [0, 'rgba(255,255,255,1)'],
+        [0.12, 'rgba(255,255,255,0.92)'],
+        [0.32, 'rgba(255,255,255,0.30)'],
+        [0.62, 'rgba(255,255,255,0.07)'],
+        [1, 'rgba(255,255,255,0)']])
+    }
+    if (!state.knotTex) {
+      state.knotTex = radial([
+        [0, 'rgba(255,255,255,1)'],
+        [0.06, 'rgba(255,255,255,0.95)'],
+        [0.16, 'rgba(255,255,255,0.30)'],
+        [0.40, 'rgba(255,255,255,0.06)'],
+        [1, 'rgba(255,255,255,0)']])
+    }
+  }
+
+  // Authored as a flat NUMBERED set, the way the dark lane already is, because the copy and
+  // paste settings box only moves numbers - a nested object would not survive the round trip.
+  function companionSpecs(P) {
+    var out = []
+    for (var i = 1; i <= 2; i++) {
+      var k = 'comp' + i
+      if (!(P[k + 'R'] > 0) || !(P[k + 'Bright'] > 0)) continue
+      out.push({x: P[k + 'X'], y: P[k + 'Y'], z: P[k + 'Z'], r: P[k + 'R'], flat: P[k + 'Flat'],
+        rot: P[k + 'Rot'] * Math.PI / 180, bright: P[k + 'Bright'], core: P[k + 'Core'], hue: P[k + 'Hue']})
+    }
+    return out
+  }
+
+  // An elliptical galaxy is defined by having no internal structure, which is what the halo
+  // texture already draws. Points would need hundreds per core pixel to look smooth, and
+  // granular reads as a star CLUSTER - the opposite of a fuzzy elongated smudge. A second
+  // volume would double the cost of the most expensive pass in the scene. Four sprites.
+  function buildCompanions(P, state) {
+    var specs = companionSpecs(P)
+    if (!specs.length) return null
+    coreTextures(state)
+    var grp = new THREE.Group()
+    state.compSprites = []
+    for (var i = 0; i < specs.length; i++) {
+      for (var j = 0; j < 2; j++) {
+        // Two sprites each: the halo carries the shape and the colour, the nucleus is driven
+        // past white. M32 is unmistakably both - a cusped core inside a smooth fuzz.
+        var sp = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: j === 0 ? state.sunTex : state.knotTex,
+          transparent: true, depthWrite: false, blending: THREE.AdditiveBlending}))
+        sp.renderOrder = 2
+        sp.userData.comp = i
+        sp.userData.part = j
+        state.compSprites.push(sp)
+        grp.add(sp)
+      }
+    }
+    applyCompanions(P, state)
+    grp.renderOrder = 2
+    return grp
+  }
+
+  function applyCompanions(P, state) {
+    var sp = state.compSprites
+    if (!sp || !sp.length) return
+    var specs = companionSpecs(P)
+    for (var k = 0; k < sp.length; k++) {
+      var o = sp[k], d = specs[o.userData.comp]
+      if (!d) continue
+      var nuc = o.userData.part === 1
+      var c = hsl(d.hue, P.sat * 0.40, 0.80)   // an old population: warm, with no blue in it
+      var w = nuc ? 0.7 : 0, b = d.bright * (nuc ? d.core : 1)
+      o.material.color.setRGB((c[0] + (1 - c[0]) * w) * b, (c[1] + (1 - c[1]) * w) * b, (c[2] + (1 - c[2]) * w) * b)
+      // An elliptical's isophotes really do get rounder inward, so the nucleus is less
+      // elongated than the halo. That is the profile, not a cheat.
+      var r = nuc ? d.r * 0.34 : d.r
+      var f = nuc ? 1 + (d.flat - 1) * 0.4 : d.flat
+      o.scale.set(r * f, r, 1)
+      o.position.set(d.x, d.y, d.z)
+      // This rotation is a SCREEN-space roll, so the long axis sits at the authored angle but
+      // turns with the view if you orbit. Invisible below an elongation of about 1.5.
+      o.material.rotation = d.rot
+    }
   }
 
   // Colour, brightness and position in one place, so a rebuild and a slider agree.
@@ -942,7 +1306,23 @@
       uDarkEdge: {value: P.darkEdge}, uRimGain: {value: P.rimGain}, uRimW: {value: P.rimW},
       uEmitRho: {value: P.emitRho}, uIonAmt: {value: P.ionAmt}, uKnotQ: {value: P.knotQ},
       uIon0: {value: P.ion0}, uIon1: {value: P.ion1}, uIonDens: {value: P.ionDens},
-      uWhite: {value: P.white}, uHalf: {value: 0.5}
+      uWhite: {value: P.white}, uHalf: {value: 0.5},
+      uGalCull: {value: P.galCull}, uGalBulgeLift: {value: P.galBulgeLift},
+      uGalBulgeSoft: {value: P.galBulgeSoft}, uGalArmFloor: {value: P.galArmFloor},
+      uGalArmWobble: {value: P.galArmWobble}, uGalFrag: {value: P.galFrag},
+      uGalFragAlong: {value: P.galFragAlong}, uGalFragAcross: {value: P.galFragAcross},
+      uLaneAmt: {value: P.laneAmt}, uLaneK: {value: P.laneK}, uLaneWind: {value: P.laneWind},
+      uLaneOff: {value: P.laneOff}, uLane2: {value: P.lane2}, uLaneThick: {value: P.laneThick},
+      uLaneIn: {value: P.laneIn}, uLaneOut: {value: P.laneOut}, uLaneWob: {value: P.laneWob},
+      uGalDustAbsorb: {value: P.galDustAbsorb}, uGalDustBlue: {value: P.galDustBlue},
+      uGalDustVeil: {value: P.galDustVeil},
+      uGalPal: {value: P.galPal}, uColIn: {value: P.colIn}, uColSlope: {value: P.colSlope},
+      uColArm: {value: P.colArm}, uColNoise: {value: P.colNoise},
+      uColDense: {value: P.colDense}, uColDenseK: {value: P.colDenseK},
+      uBulgeMix: {value: P.bulgeMix},
+      uCream: {value: new THREE.Vector3()}, uPeach: {value: new THREE.Vector3()},
+      uArmC: {value: new THREE.Vector3()},
+      uHueKeep: {value: P.hueKeep}, uHueBreak: {value: P.hueBreak}
     }
     refreshDerived(P, u)
     if (useTex) {
@@ -973,6 +1353,7 @@
     state.partMat = null
     state.fieldMat = null
     state.fieldCount = 0
+    state.compSprites = null
     if (modeId === 'none') return {object3D: null, march: null, note: 'none'}
 
     if (modeId === 'points' || modeId === 'dust') {
@@ -993,7 +1374,7 @@
         dust.renderOrder = 1
         grp.add(dust)
       }
-      grp.rotation.x = tiltOf(P)
+      orientGroup(grp, P)
       return {object3D: grp, march: null,
         note: (modeId === 'dust' ? 'pts+dust ' : 'pts ') + Math.round(global.performance.now() - t0) + 'ms'}
     }
@@ -1004,7 +1385,7 @@
     if (useTex && !isGL2) return {object3D: null, march: null, note: 'needs WebGL2'}
     var mesh = raymarchMesh(P, useTex, state)
     if (modeId !== 'particles' && modeId !== 'galaxy') {
-      mesh.rotation.x = tiltOf(P)
+      orientGroup(mesh, P)
       return {object3D: mesh, march: mesh, note: useTex ? state.note : 'procedural'}
     }
     var group = new THREE.Group()
@@ -1014,20 +1395,38 @@
     if (P.sunBright > 0 && (modeId === 'galaxy' || P.sunHalo > 0)) {
       group.add(buildGalaxyCore(P, state, modeId !== 'galaxy'))
     }
+    if (modeId === 'galaxy') {
+      var comps = buildCompanions(P, state)
+      if (comps) group.add(comps)
+    }
     var field = buildFieldStars(P, state)
     if (field) group.add(field)
-    group.rotation.x = tiltOf(P)
+    orientGroup(group, P)
     return {object3D: group, march: mesh,
       note: (modeId === 'galaxy' ? 'disk + ' : 'procedural + ') + state.particleCount +
         (modeId === 'galaxy' ? ' stars' : 'p') + (state.fieldCount ? ' + ' + state.fieldCount + ' field' : '')}
   }
 
   function tiltOf(P) { return (Number(P.tilt) || 0) * Math.PI / 180 }
+  function rollOf(P) { return (Number(P.roll) || 0) * Math.PI / 180 }
+
+  // Euler order ZXY composes as Rz * Rx * Ry, so a vector meets Ry first - the host's own
+  // `rotation.y += spin`, about the disc's normal, exactly as before - then Rx for the
+  // inclination, then Rz outermost, which is a true roll about the line of sight. At roll 0
+  // this is Rx * Ry, identical to the default XYZ order with z left at zero.
+  function orientGroup(o, P) {
+    o.rotation.order = 'ZXY'
+    o.rotation.x = tiltOf(P)
+    o.rotation.z = rollOf(P)
+  }
 
   function dispose(object3D) {
     if (!object3D) return
     object3D.traverse(function (o) {
-      if (o.geometry) o.geometry.dispose()
+      // THREE.Sprite shares ONE module-level geometry across every sprite in the app, so
+      // disposing it here disposes it for all of them. Harmless while there was one sprite;
+      // the galaxy now has five, and the AR host rebuilds on every slider release.
+      if (o.geometry && !o.isSprite) o.geometry.dispose()
       if (o.material) o.material.dispose()
     })
   }
@@ -1056,7 +1455,26 @@
     sunX: 0, sunY: 0, sunZ: 0, sunHalo: 0, sunKnotBright: 2.5,
     fieldCount: 0, fieldPx: 2.2, fieldRadius: 0.62, fieldBright: 0.85, fieldAlpha: 1.5,
     fieldCap: 46, fieldPsf: 7, fieldHalo: 0.06, fieldGlareAt: 16, fieldGlare: 3.5,
-    fieldMinDist: 2.2
+    fieldMinDist: 2.2,
+    roll: 0,
+    galCull: 0, galBulgeLift: 0, galBulgeSoft: 0, galArmFloor: 0.22, galArmWobble: 0,
+    galFrag: 0, galFragAlong: 8, galFragAcross: 0.45,
+    laneAmt: 0, laneK: 260, laneWind: 1, laneOff: -0.13, lane2: 0.55, laneThick: 0.34,
+    laneIn: 0.12, laneOut: 0.80, laneWob: 0.30,
+    galDustAbsorb: 0, galDustBlue: 0.55, galDustVeil: 0.8,
+    galPal: 0, colIn: 0.10, colSlope: 1.7, colArm: 0.30, colNoise: 0.09,
+    colDense: 0.16, colDenseK: 3, bulgeMix: 1.8,
+    creamHue: 44, creamSat: 0.40, creamLev: 0.88,
+    peachHue: 26, peachSat: 0.68, peachLev: 0.70,
+    armHue: 214, armSat: 1.08, armLev: 0.66,
+    hueKeep: 0, hueBreak: 7,
+    starPx: 0, starPsf: 10, starHalo: 0.05, starGlare: 2.4, starRamp: 0.60, starMidHue: 28,
+    starLaneCut: 0, knotFrac: 0, knotHue: 205, knotR0: 0.36, hiiFrac: 0.13, hiiHue: 332,
+    fieldLock: 0, fgBright: 0, fgTemp: 0.10, fgX: -0.22, fgY: 0.16, fgZ: 0.50, fgGlare: 1,
+    comp1X: 0, comp1Y: 0, comp1Z: 0, comp1R: 0, comp1Flat: 1.35, comp1Rot: 0,
+    comp1Bright: 1.8, comp1Core: 2.4, comp1Hue: 44,
+    comp2X: 0, comp2Y: 0, comp2Z: 0, comp2R: 0, comp2Flat: 1.7, comp2Rot: 0,
+    comp2Bright: 0.5, comp2Core: 1.15, comp2Hue: 40
   }
 
   var COLOUR = ['baseHue', 'coreHue', 'sat', 'spread']
@@ -1071,7 +1489,20 @@
   var KNOT = ['sunSize', 'sunBright', 'sunHue', 'sunHalo', 'sunKnotBright', 'sunX', 'sunY', 'sunZ']
   var FIELD = ['fieldCount', 'fieldPx', 'fieldRadius', 'fieldBright', 'fieldAlpha', 'fieldCap',
     'fieldPsf', 'fieldHalo', 'fieldGlareAt', 'fieldGlare', 'fieldMinDist']
-  var TONE = ['premul', 'white']
+  var TONE = ['premul', 'white', 'hueKeep', 'hueBreak']
+  var GALDUST = ['laneAmt', 'galDustAbsorb', 'laneK', 'laneWind', 'laneOff', 'lane2', 'laneThick',
+    'laneIn', 'laneOut', 'laneWob', 'galDustBlue', 'galDustVeil', 'darkHue', 'darkLev']
+  var GALARM = ['galArmFloor', 'galArmWobble', 'galFrag', 'galFragAlong', 'galFragAcross',
+    'galBulgeLift', 'galBulgeSoft', 'galCull', 'roll']
+  var GALPAL = ['galPal', 'colIn', 'colSlope', 'colArm', 'colNoise', 'colDense', 'colDenseK',
+    'bulgeMix', 'creamHue', 'creamSat', 'creamLev', 'peachHue', 'peachSat', 'peachLev',
+    'armHue', 'armSat', 'armLev']
+  var STARPOP = ['starPx', 'starPsf', 'starHalo', 'starGlare', 'starRamp', 'starMidHue',
+    'starLaneCut', 'knotFrac', 'knotHue', 'knotR0', 'hiiFrac', 'hiiHue']
+  var FGSTAR = ['fieldLock', 'fgBright', 'fgTemp', 'fgX', 'fgY', 'fgZ', 'fgGlare']
+  var COMPANION = ['comp1X', 'comp1Y', 'comp1Z', 'comp1R', 'comp1Flat', 'comp1Rot', 'comp1Bright',
+    'comp1Core', 'comp1Hue', 'comp2X', 'comp2Y', 'comp2Z', 'comp2R', 'comp2Flat', 'comp2Rot',
+    'comp2Bright', 'comp2Core', 'comp2Hue']
   var SHAPE = ['clouds', 'seed', 'stretch', 'flatten', 'falloff', 'warp', 'layout', 'clump', 'clumpScale']
   var MODES = [
     {id: 'points', name: 'Points', sub: 'additive (today)', ctls: ['count', 'sizeRatio', 'opacity', 'contrast', 'dust', 'scale'].concat(SHAPE)},
@@ -1079,7 +1510,7 @@
     {id: 'march', name: 'Raymarch', sub: 'procedural fBm', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'turbulence', 'contrast', 'scale'].concat(SHAPE).concat(COLOUR).concat(TONE).concat(ION).concat(CAVITY).concat(DARKLANE)},
     {id: 'volume', name: 'Raymarch', sub: '3D texture', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'texSize', 'scale'].concat(SHAPE).concat(COLOUR)},
     {id: 'particles', name: 'Volume + Particles', sub: 'gas with stars in it', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'partCount', 'partSize', 'partHue', 'partTwinkle', 'partDrift', 'scale'].concat(SHAPE).concat(COLOUR).concat(TONE).concat(ION).concat(CAVITY).concat(DARKLANE).concat(KNOT).concat(FIELD)},
-    {id: 'galaxy', name: 'Galaxy', sub: 'disk, arms and stars', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'galRadius', 'galThick', 'galFlare', 'galFalloff', 'tilt', 'galArms', 'galWind', 'galArmWidth', 'galBulge', 'galBulgeGain', 'galBulgeFlat', 'sunSize', 'sunBright', 'sunHue', 'starCount', 'starSize', 'starThick', 'starScatter', 'starBulge', 'starArmHue', 'partTwinkle', 'partDrift', 'scale'].concat(['seed', 'warp', 'clump', 'clumpScale', 'turbulence', 'contrast', 'dust']).concat(COLOUR).concat(TONE).concat(FIELD)},
+    {id: 'galaxy', name: 'Galaxy', sub: 'disk, arms and stars', ctls: ['steps', 'density', 'absorb', 'emission', 'light', 'galRadius', 'galThick', 'galFlare', 'galFalloff', 'tilt', 'galArms', 'galWind', 'galArmWidth', 'galBulge', 'galBulgeGain', 'galBulgeFlat', 'sunSize', 'sunBright', 'sunHue', 'starCount', 'starSize', 'starThick', 'starScatter', 'starBulge', 'starArmHue', 'partTwinkle', 'partDrift', 'scale'].concat(['seed', 'warp', 'clump', 'clumpScale', 'turbulence', 'contrast', 'dust']).concat(COLOUR).concat(TONE).concat(FIELD).concat(ION).concat(GALDUST).concat(GALARM).concat(GALPAL).concat(STARPOP).concat(FGSTAR).concat(COMPANION)},
     {id: 'none', name: 'Nothing', sub: 'baseline floor', ctls: []}
   ]
   var RANGE = {
@@ -1097,13 +1528,13 @@
     partHue: [0, 360, 2, 'particle hue'], partTwinkle: [0, 1, 0.05, 'twinkle'], partDrift: [0, 0.03, 0.002, 'drift'],
     galRadius: [0.15, 0.5, 0.01, 'disk radius'], galThick: [0.005, 0.2, 0.005, 'disk thickness'],
     galFlare: [0, 1.5, 0.05, 'rim flare'], galBulge: [0.02, 0.3, 0.01, 'bulge size'],
-    galBulgeGain: [0, 4, 0.1, 'bulge brightness'], galArms: [1, 6, 1, 'arms'],
-    galWind: [0.5, 8, 0.1, 'arm winding'], galArmWidth: [0.5, 6, 0.1, 'arm tightness'],
+    galBulgeGain: [0, 4, 0.1, 'bulge brightness'], galArms: [1, 12, 1, 'arms'],
+    galWind: [0.5, 16, 0.1, 'arm winding'], galArmWidth: [0.5, 24, 0.1, 'arm tightness'],
     galFalloff: [0.4, 4, 0.1, 'radial falloff'], galBulgeFlat: [0.15, 1.5, 0.05, 'bulge flatten'],
     tilt: [-90, 90, 1, 'tilt'],
     starCount: [0, 12000, 250, 'stars'], starSize: [0.0005, 0.02, 0.0005, 'star size'],
     starScatter: [0, 1, 0.05, 'stars between arms'], starBulge: [0, 0.6, 0.02, 'bulge share'],
-    starArmHue: [0, 360, 2, 'arm star hue'], starThick: [0.1, 2, 0.05, 'star disk thickness'],
+    starArmHue: [0, 360, 2, 'arm star hue'], starThick: [0.1, 4, 0.05, 'star disk thickness'],
     sunSize: [0, 0.4, 0.005, 'core size'], sunBright: [0, 4, 0.1, 'core brightness'], sunHue: [0, 360, 2, 'core hue'],
     premul: [0, 1, 1, 'premultiplied'], white: [0, 8, 0.25, 'white point'],
     marchPad: [1, 1.6, 0.01, 'march padding'], detail: [2, 5, 1, 'noise octaves'],
@@ -1129,12 +1560,57 @@
     sunX: [-0.4, 0.4, 0.01, 'core x'], sunY: [-0.4, 0.4, 0.01, 'core y'],
     sunZ: [-0.4, 0.4, 0.01, 'core z'], sunHalo: [0, 16, 0.5, 'core halo'],
     sunKnotBright: [0.5, 6, 0.1, 'knot brightness'],
-    fieldCount: [0, 8000, 100, 'field stars'], fieldPx: [1, 6, 0.1, 'star size (px)'],
+    fieldCount: [0, 20000, 250, 'field stars'], fieldPx: [1, 6, 0.1, 'star size (px)'],
     fieldRadius: [0.35, 1.5, 0.05, 'field radius'], fieldBright: [0.1, 2.5, 0.05, 'star brightness'],
     fieldAlpha: [0.8, 3, 0.1, 'magnitude slope'], fieldCap: [4, 120, 2, 'brightest star'],
     fieldPsf: [2, 20, 0.5, 'star hardness'], fieldHalo: [0, 0.4, 0.01, 'star halo'],
     fieldGlareAt: [4, 60, 1, 'glare threshold'], fieldGlare: [0, 12, 0.5, 'glare size'],
-    fieldMinDist: [0.5, 8, 0.1, 'star lock dist']
+    fieldMinDist: [0.5, 8, 0.1, 'star lock dist'],
+    roll: [-90, 90, 1, 'roll'],
+    galCull: [0, 0.0019, 0.0001, 'empty-space cull'],
+    galBulgeLift: [0, 1, 0.05, 'bulge out of disk'], galBulgeSoft: [0, 1, 0.05, 'bulge softening'],
+    galArmFloor: [0.02, 0.6, 0.01, 'interarm light'], galArmWobble: [0, 2, 0.05, 'arm meander'],
+    galFrag: [0, 1, 0.05, 'arm fragmentation'], galFragAlong: [2, 24, 0.5, 'fragments per arm'],
+    galFragAcross: [0.05, 2, 0.05, 'fragment width'],
+    laneAmt: [0, 1, 0.05, 'dust lanes'], laneK: [40, 900, 10, 'lane narrowness'],
+    laneWind: [0.5, 4, 0.05, 'lane pitch'], laneOff: [-0.5, 0.5, 0.01, 'lane offset from arm'],
+    lane2: [0, 1, 0.05, 'second lane family'], laneThick: [0.1, 1, 0.02, 'lane layer thickness'],
+    laneIn: [0.02, 0.5, 0.01, 'lane inner radius'], laneOut: [0.3, 1, 0.02, 'lane outer radius'],
+    laneWob: [0, 1, 0.05, 'lane wander'],
+    galDustAbsorb: [0, 160, 2, 'lane opacity'], galDustBlue: [0, 1.5, 0.05, 'lane reddening'],
+    galDustVeil: [0, 1, 0.05, 'lane glow'],
+    galPal: [0, 1, 1, 'radial colour'], colIn: [0, 0.5, 0.01, 'cream radius'],
+    colSlope: [0.5, 4, 0.1, 'colour ramp rate'], colArm: [0, 1, 0.05, 'arms bluer'],
+    colNoise: [0, 0.4, 0.01, 'colour mottle'], colDense: [0, 0.6, 0.02, 'dense gas redder'],
+    colDenseK: [0.5, 10, 0.5, 'density colour knee'], bulgeMix: [0, 4, 0.1, 'bulge colour reach'],
+    creamHue: [0, 360, 2, 'bulge hue'], creamSat: [0, 1.5, 0.02, 'bulge saturation'],
+    creamLev: [0.3, 1, 0.01, 'bulge lightness'],
+    peachHue: [0, 360, 2, 'inner disc hue'], peachSat: [0, 1.5, 0.02, 'inner disc saturation'],
+    peachLev: [0.2, 1, 0.01, 'inner disc lightness'],
+    armHue: [0, 360, 2, 'outer arm hue'], armSat: [0, 1.5, 0.02, 'outer arm saturation'],
+    armLev: [0.2, 1, 0.01, 'outer arm lightness'],
+    hueKeep: [0, 1, 0.05, 'keep hue in highlights'], hueBreak: [1, 24, 0.5, 'highlight whitening'],
+    starPx: [0, 6, 0.1, 'star size (px)'], starPsf: [2, 20, 0.5, 'star hardness'],
+    starHalo: [0, 0.4, 0.01, 'star halo'], starGlare: [0, 8, 0.25, 'knot glare'],
+    starRamp: [0, 1.2, 0.02, 'star colour radius'], starMidHue: [0, 360, 2, 'inner disc star hue'],
+    starLaneCut: [0, 1, 0.05, 'lanes cut stars'],
+    knotFrac: [0, 0.4, 0.01, 'blue knots'], knotHue: [0, 360, 2, 'knot hue'],
+    knotR0: [0, 0.8, 0.02, 'knot inner radius'],
+    hiiFrac: [0, 0.6, 0.02, 'hii share'], hiiHue: [0, 360, 2, 'hii hue'],
+    fieldLock: [0, 1, 1, 'lock star field'],
+    fgBright: [0, 60, 0.5, 'bright star'], fgTemp: [0, 1, 0.02, 'bright star colour'],
+    fgX: [-1.5, 1.5, 0.01, 'bright star x'], fgY: [-1.5, 1.5, 0.01, 'bright star y'],
+    fgZ: [-1.5, 1.5, 0.01, 'bright star z'], fgGlare: [0, 1, 0.05, 'bright star glare'],
+    comp1X: [-0.9, 0.9, 0.01, 'm32 x'], comp1Y: [-0.9, 0.9, 0.01, 'm32 y'],
+    comp1Z: [-0.9, 0.9, 0.01, 'm32 z'], comp1R: [0, 0.4, 0.005, 'm32 size'],
+    comp1Flat: [1, 3, 0.05, 'm32 elongation'], comp1Rot: [-90, 90, 2, 'm32 angle'],
+    comp1Bright: [0, 4, 0.05, 'm32 brightness'], comp1Core: [1, 6, 0.1, 'm32 nucleus'],
+    comp1Hue: [0, 360, 2, 'm32 hue'],
+    comp2X: [-0.9, 0.9, 0.01, 'm110 x'], comp2Y: [-0.9, 0.9, 0.01, 'm110 y'],
+    comp2Z: [-0.9, 0.9, 0.01, 'm110 z'], comp2R: [0, 0.4, 0.005, 'm110 size'],
+    comp2Flat: [1, 3, 0.05, 'm110 elongation'], comp2Rot: [-90, 90, 2, 'm110 angle'],
+    comp2Bright: [0, 4, 0.05, 'm110 brightness'], comp2Core: [1, 6, 0.1, 'm110 nucleus'],
+    comp2Hue: [0, 360, 2, 'm110 hue']
   }
   // Grounded in the emission lines: true colour is Ha red with an [O III] core; the Hubble
   // palette is the gold/teal false colour everyone recognises; reflection nebulae (the
@@ -1155,13 +1631,25 @@
     lobeSharp: 'uLobeSharp', lobeBias: 'uLobeBias', striate: 'uStriate', striaGain: 'uStriaGain',
     ionAmt: 'uIonAmt', knotQ: 'uKnotQ', ion0: 'uIon0', ion1: 'uIon1', ionDens: 'uIonDens',
     darkAbsorb: 'uDarkAbsorb', darkR: 'uDarkR', dark2R: 'uDark2R', darkScallop: 'uDarkScallop',
-    darkScale: 'uDarkScale', darkEdge: 'uDarkEdge', rimGain: 'uRimGain', rimW: 'uRimW'}
+    darkScale: 'uDarkScale', darkEdge: 'uDarkEdge', rimGain: 'uRimGain', rimW: 'uRimW',
+    galCull: 'uGalCull', galBulgeLift: 'uGalBulgeLift', galBulgeSoft: 'uGalBulgeSoft',
+    galArmFloor: 'uGalArmFloor', galArmWobble: 'uGalArmWobble', galFrag: 'uGalFrag',
+    galFragAlong: 'uGalFragAlong', galFragAcross: 'uGalFragAcross',
+    laneAmt: 'uLaneAmt', laneK: 'uLaneK', laneWind: 'uLaneWind', laneOff: 'uLaneOff',
+    lane2: 'uLane2', laneThick: 'uLaneThick', laneIn: 'uLaneIn', laneOut: 'uLaneOut',
+    laneWob: 'uLaneWob', galDustAbsorb: 'uGalDustAbsorb', galDustBlue: 'uGalDustBlue',
+    galDustVeil: 'uGalDustVeil',
+    galPal: 'uGalPal', colIn: 'uColIn', colSlope: 'uColSlope', colArm: 'uColArm',
+    colNoise: 'uColNoise', colDense: 'uColDense', colDenseK: 'uColDenseK', bulgeMix: 'uBulgeMix',
+    hueKeep: 'uHueKeep', hueBreak: 'uHueBreak'}
 
   // Not plain scalars: each of these feeds a vec3 or a normalised direction, so it goes
   // through refreshDerived rather than straight into a uniform slot.
   var DERIVED = {stretch: 1, flatten: 1, lobeAz: 1, lobeEl: 1, darkAz: 1, darkEl: 1,
     darkX: 1, darkY: 1, darkZ: 1, dark2X: 1, dark2Y: 1, dark2Z: 1, darkHue: 1, darkLev: 1,
-    midHue: 1, hotGain: 1, sunX: 1, sunY: 1, sunZ: 1}
+    midHue: 1, hotGain: 1, sunX: 1, sunY: 1, sunZ: 1,
+    creamHue: 1, creamSat: 1, creamLev: 1, peachHue: 1, peachSat: 1, peachLev: 1,
+    armHue: 1, armSat: 1, armLev: 1}
   // These change the size of the proxy box, which is geometry, not a uniform.
   var HULL = {marchPad: 1}
   // These change the JS density field as well, so the particles only follow after a rebuild.
@@ -1169,6 +1657,14 @@
     lobeAz: 1, lobeEl: 1, stretch: 1, flatten: 1, sunX: 1, sunY: 1, sunZ: 1}
   var SUNP = {sunX: 1, sunY: 1, sunZ: 1, sunSize: 1, sunHalo: 1, sunBright: 1, sunHue: 1,
     sunKnotBright: 1}
+  var COMPP = {}
+  ;['X', 'Y', 'Z', 'R', 'Flat', 'Rot', 'Bright', 'Core', 'Hue'].forEach(function (k) {
+    COMPP['comp1' + k] = 1
+    COMPP['comp2' + k] = 1
+  })
+  // The disc star population when it is using the pixel-sized star shader. The uStarPx guard
+  // is what stops this firing on the nebula's own particle material.
+  var STARU = {starPx: 'uStarPx', starGlare: 'uGlareSize', starPsf: 'uPsf', starHalo: 'uHalo'}
   var FIELDU = {fieldPx: 'uStarPx', fieldGlare: 'uGlareSize', fieldPsf: 'uPsf',
     fieldHalo: 'uHalo', fieldMinDist: 'uMinDist'}
 
@@ -1230,6 +1726,12 @@
           out.textContent = P[key]
           var rt = opts.runtime() || {}
           if (key === 'scale' && rt.object3D) { rt.object3D.scale.setScalar(P.scale); return }
+          if ((key === 'roll' || key === 'tilt') && rt.object3D) {
+            rt.object3D.rotation.order = 'ZXY'
+            rt.object3D.rotation.x = P.tilt * Math.PI / 180
+            rt.object3D.rotation.z = P.roll * Math.PI / 180
+            return
+          }
           if (rt.march && DERIVED[key]) {
             refreshDerived(P, rt.march.material.uniforms)
             if (rt.state && SUNP[key]) applySun(P, rt.state)
@@ -1258,6 +1760,11 @@
             // Turning the core off entirely has to rebuild, since the sprite is removed.
             if (!(key === 'sunBright' && (P.sunBright === 0 || !rt.state.sunMat))) return
           }
+          if (rt.partMat && rt.partMat.uniforms.uStarPx && STARU[key]) {
+            rt.partMat.uniforms[STARU[key]].value = P[key]
+            return
+          }
+          if (rt.state && rt.state.compSprites && COMPP[key]) { applyCompanions(P, rt.state); return }
           if (rt.state && rt.state.fieldMat && FIELDU[key]) {
             rt.state.fieldMat.uniforms[FIELDU[key]].value = P[key]
             return
@@ -1409,6 +1916,7 @@
 
   global.NebulaCore = {
     buildFieldStars: buildFieldStars, refreshDerived: refreshDerived, shapeMulJS: shapeMulJS,
+    buildCompanions: buildCompanions, applyCompanions: applyCompanions,
     densityAt: densityAt, ensureLayout: ensureLayout, tintAt: tintAt,
     hsl: hsl, hueOffset: hueOffset, cloudPalette: cloudPalette,
     build: build, dispose: dispose, bake: bake,
