@@ -1057,7 +1057,12 @@ var GALAXY = [
     var D = mk(), K = mk()
     var pos = [], col = [], siz = [], seed = []
     var inBulge = Math.round(n * P.starBulge), invR = 1 / Math.max(0.001, P.galRadius)
-    while (made < n && guard < n * 60) {
+    // The try budget scales with how picky placement is. With tight arms, few sparse gaps and a
+    // small bulge share most tries are rejected, and a flat 60 per star ran out long before the
+    // requested count - 12,000 stars came out as 6,600. Rejected tries cost a handful of
+    // arithmetic ops; only accepted ones reach galaxyDensityAt.
+    var budget = n * Math.round(40 * Math.max(1, P.starArmSharp) / Math.max(0.02, P.starScatter + 0.1))
+    while (made < n && guard < budget) {
       guard++
       var bulgeStar = made < inBulge
       var x, y, z
@@ -1068,20 +1073,34 @@ var GALAXY = [
         y = rb * Math.cos(a2) * P.galBulgeFlat
         z = rb * Math.sin(a2) * Math.sin(a1)
       } else {
-        x = (Math.random() * 2 - 1) * P.galRadius
-        z = (Math.random() * 2 - 1) * P.galRadius
-        // Sample a band around the mid-plane, then reject against the disc's own vertical
-        // profile. The stars sit in a THINNER disc than the gas by default.
+        // The same distribution the old square-and-reject produced, drawn in an order that lets
+        // most tries fail before paying for any trig. That matters once the arms are tight: with
+        // most placements rejected, the old loop spent ~0.5 s per build computing atan2, log and
+        // pow for positions it then threw away.
+        //
+        // Uniform over the disc's area...
+        var rr = P.galRadius * Math.sqrt(Math.random()), th = Math.random() * 6.2831853
+        var rn2 = rr * invR
+        // ...weighted by the radial falloff AND by the local thickness, since a thicker slice of
+        // disc used to accept proportionally more of its uniform vertical band. Both cheap.
         var hStar = P.galThick * P.starThick
-        y = (Math.random() * 2 - 1) * hStar * 3
-        var rr = Math.sqrt(x * x + z * z), rn2 = rr * invR
-        if (rn2 > 1) continue
+        var flare = (1 + P.galFlare * rn2 * 2) / (1 + P.galFlare * 2)
+        if (Math.random() > Math.pow(Math.max(0, 1 - rn2), P.galFalloff) * flare) continue
+        // Only now the spiral. starArmSharp tightens the arm the STARS follow without touching the
+        // gas: above 1 they crowd onto the arm's ridge instead of spreading into its soft shoulders,
+        // which is what leaves the gaps between arms dark. 1 is the gas's own profile.
+        // (th stands in for atan2(z, x): they differ by 2*pi, which an integer arm count absorbs.)
+        var phase2 = th * P.galArms - Math.log(Math.max(rn2, 0.05)) * P.galWind
+        var armW = Math.pow(0.5 + 0.5 * Math.cos(phase2), P.galArmWidth * P.starArmSharp)
+        if (Math.random() > P.starScatter + (1 - P.starScatter) * armW) continue
+        // Height from the disc's own vertical profile - a gaussian truncated at three star scale
+        // heights, exactly what the uniform band and its exp() rejection used to give.
         var hLocal = hStar * (1 + P.galFlare * rn2 * 2)
-        var vert = Math.exp(-(y * y) / (hLocal * hLocal))
-        var radial = Math.pow(Math.max(0, 1 - rn2), P.galFalloff)
-        var phase2 = Math.atan2(z, x) * P.galArms - Math.log(Math.max(rn2, 0.05)) * P.galWind
-        var armW = Math.pow(0.5 + 0.5 * Math.cos(phase2), P.galArmWidth)
-        if (Math.random() > radial * vert * (P.starScatter + (1 - P.starScatter) * armW)) continue
+        do {
+          y = Math.sqrt(-2 * Math.log(Math.random() || 1e-9)) * Math.cos(6.2831853 * Math.random()) * hLocal / Math.SQRT2
+        } while (Math.abs(y) > hStar * 3)
+        x = rr * Math.cos(th)
+        z = rr * Math.sin(th)
       }
       var gg = galaxyDensityAt(x, y, z, P)
       var hot = bulgeStar ? 0 : Math.min(1, gg.arm)
@@ -1516,7 +1535,7 @@ var GALAXY = [
     peachHue: 26, peachSat: 0.68, peachLev: 0.70,
     armHue: 214, armSat: 1.08, armLev: 0.66,
     hueKeep: 0, hueBreak: 7,
-    starPx: 0, starPsf: 10, starHalo: 0.05, starGlare: 2.4, starRamp: 0.60, starMidHue: 28,
+    starPx: 0, starPsf: 10, starHalo: 0.05, starGlare: 2.4, starRamp: 0.60, starMidHue: 28, starArmSharp: 1,
     starLaneCut: 0, knotFrac: 0, knotHue: 205, knotR0: 0.36, hiiFrac: 0.13, hiiHue: 332,
     fieldLock: 0, fgBright: 0, fgTemp: 0.10, fgX: -0.22, fgY: 0.16, fgZ: 0.50, fgGlare: 1,
     comp1X: 0, comp1Y: 0, comp1Z: 0, comp1R: 0, comp1Flat: 1.35, comp1Rot: 0,
@@ -1546,7 +1565,7 @@ var GALAXY = [
   var GALPAL = ['galPal', 'colIn', 'colSlope', 'colArm', 'colNoise', 'colDense', 'colDenseK',
     'bulgeMix', 'creamHue', 'creamSat', 'creamLev', 'peachHue', 'peachSat', 'peachLev',
     'armHue', 'armSat', 'armLev']
-  var STARPOP = ['starPx', 'starPsf', 'starHalo', 'starGlare', 'starRamp', 'starMidHue',
+  var STARPOP = ['starArmSharp', 'starPx', 'starPsf', 'starHalo', 'starGlare', 'starRamp', 'starMidHue',
     'starLaneCut', 'knotFrac', 'knotHue', 'knotR0', 'hiiFrac', 'hiiHue']
   var FGSTAR = ['fieldLock', 'fgBright', 'fgTemp', 'fgX', 'fgY', 'fgZ', 'fgGlare']
   var COMPANION = ['comp1X', 'comp1Y', 'comp1Z', 'comp1R', 'comp1Flat', 'comp1Rot', 'comp1Bright',
@@ -1581,7 +1600,7 @@ var GALAXY = [
     galWind: [0.5, 16, 0.1, 'arm winding'], galArmWidth: [0.5, 24, 0.1, 'arm tightness'],
     galFalloff: [0.4, 4, 0.1, 'radial falloff'], galBulgeFlat: [0.15, 1.5, 0.05, 'bulge flatten'],
     tilt: [-90, 90, 1, 'tilt'],
-    starCount: [0, 12000, 250, 'stars'], starSize: [0.0005, 0.02, 0.0005, 'star size'],
+    starCount: [0, 20000, 250, 'stars'], starSize: [0.0005, 0.02, 0.0005, 'star size'],
     starScatter: [0, 1, 0.05, 'stars between arms'], starBulge: [0, 0.6, 0.02, 'bulge share'],
     starArmHue: [0, 360, 2, 'arm star hue'], starThick: [0.1, 4, 0.05, 'star disk thickness'],
     sunSize: [0, 0.4, 0.005, 'core size'], sunBright: [0, 4, 0.1, 'core brightness'], sunHue: [0, 360, 2, 'core hue'],
@@ -1646,6 +1665,7 @@ var GALAXY = [
     starPx: [0, 6, 0.1, 'star size (px)'], starPsf: [2, 20, 0.5, 'star hardness'],
     starHalo: [0, 0.4, 0.01, 'star halo'], starGlare: [0, 8, 0.25, 'knot glare'],
     starRamp: [0, 1.2, 0.02, 'star colour radius'], starMidHue: [0, 360, 2, 'inner disc star hue'],
+    starArmSharp: [0.5, 6, 0.1, 'stars hug the arms'],
     starLaneCut: [0, 1, 0.05, 'lanes cut stars'],
     knotFrac: [0, 0.4, 0.01, 'blue knots'], knotHue: [0, 360, 2, 'knot hue'],
     knotR0: [0, 0.8, 0.02, 'knot inner radius'],
