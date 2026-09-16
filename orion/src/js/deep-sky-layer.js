@@ -4,9 +4,14 @@
 // grows in its place, turning slowly, with one orb that opens its story. A cluster is a star
 // figure, so it REPLACES the constellation and behaves exactly like one.
 //
-// The mode discipline is lifted from lore-journey.js, which already proves it: hide Recenter,
-// close the info panel, remember the 2D/3D state, and put every one of those back on the way
-// out. The two modes are mutually exclusive.
+// The mode discipline is lifted from lore-journey.js, which already proves it: close the info
+// panel, remember the 2D/3D state, and put it back on the way out. The two modes are mutually
+// exclusive.
+//
+// One difference: Recenter stays available here. The lore journey hides it because the tour
+// swings #root to frame each star itself, and a recenter would fight that. Nothing in this
+// layer moves #root, so Recenter does exactly what it does outside - brings the portal, and
+// the object inside it, back in front of you.
 //
 // One piece of that discipline does NOT carry over. lore-journey strips one-finger rotation
 // because a guided tour drives the view itself. A cluster has no tour: it is a star figure in
@@ -29,7 +34,6 @@ const deepSkyLayerComponent = {
     this.awaitingClose = false
     this.onPanelClosed = null
     this.onStarVisited = null
-    this.prevResetVisible = false
     this.lossCanvas = null
 
     this.onRequest = this.onRequest.bind(this)
@@ -135,18 +139,6 @@ const deepSkyLayerComponent = {
 
   // ---- mode ----
 
-  resetButton() {
-    const el = document.querySelector('[reset-view-button]')
-    return (el && el.components['reset-view-button']) || null
-  },
-
-  // reset-view-button shows itself from a 500 ms timeout after constellationPlaced. Entering
-  // inside that window used to re-reveal Recenter mid-layer; showButton now defers to us and
-  // calls this instead, so the button stays hidden and comes back on the way out.
-  noteResetWanted() {
-    this.prevResetVisible = true
-  },
-
   // A cluster keeps the drag-to-rotate the constellation had: swapFigure rebuilds it as stars
   // and connection lines in the SAME rotatingContainer, so it is a constellation figure in
   // every respect and should handle like one. Only the generated fields lock rotation, where
@@ -160,11 +152,6 @@ const deepSkyLayerComponent = {
       this.rotatingContainer.removeAttribute('xrextras-one-finger-rotate')
       this.rotateWasEnabled = true
     }
-    // Remember what we found rather than assuming Recenter was up: it is hidden before the
-    // constellation is placed, and restoring it unconditionally would reveal it too early.
-    const reset = this.resetButton()
-    this.prevResetVisible = !!(reset && reset.isVisible)
-    if (reset) reset.hideButton()
     this.el.sceneEl.emit('starInfoClosed')
     this.showBack(true)
   },
@@ -184,9 +171,6 @@ const deepSkyLayerComponent = {
     }
     const l = this.loader()
     if (l) { l.data.showRealPositions = this.prevShowReal; l.updatePositions(true) }
-    const reset = this.resetButton()
-    if (reset && this.prevResetVisible) reset.showButton()
-    this.prevResetVisible = false
   },
 
   // Hide rather than remove: nothing is destroyed, so restoring is exact and cheap.
