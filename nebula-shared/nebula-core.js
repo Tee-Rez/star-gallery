@@ -295,6 +295,24 @@ var GALAXY = [
           '  vec3 inv=1.0/rd; vec3 t0=(vec3(-uHalf)-ro)*inv, t1=(vec3(uHalf)-ro)*inv;',
           '  vec3 tn=min(t0,t1), tf=max(t0,t1);',
           '  tEnter=max(max(tn.x,tn.y),tn.z); tExit=min(min(tf.x,tf.y),tf.z);',
+          // A disc is a thin slab through the middle of its marching box, so a ray through the
+          // box spends most of its steps in empty space above and below it - and at a low step
+          // count most pixels barely sample the disc at all. Clipping the ray to the slab and
+          // the cylinder the disc can occupy puts every step where there is something to see.
+          // The slab half-height covers the flared rim and the softened bulge.
+          '  if (uGalBound > 0.5) {',
+          '   float H = max(uGalThick*(1.0 + uGalFlare*2.0)*2.6,',
+          '                 uGalBulge*max(0.05, uGalBulgeFlat)*mix(3.0, 8.0, uGalBulgeSoft));',
+          '   if (abs(rd.y) > 1e-5) {',
+          '    float s0 = (-H - ro.y)/rd.y, s1 = (H - ro.y)/rd.y;',
+          '    tEnter = max(tEnter, min(s0, s1)); tExit = min(tExit, max(s0, s1));',
+          '   } else if (abs(ro.y) > H) discard;',
+          '   float ca = dot(rd.xz, rd.xz), cb = dot(ro.xz, rd.xz), cc = dot(ro.xz, ro.xz) - uGalRadius*uGalRadius;',
+          '   if (ca > 1e-8) {',
+          '    float ch = cb*cb - ca*cc; if (ch < 0.0) discard; ch = sqrt(ch);',
+          '    tEnter = max(tEnter, (-cb - ch)/ca); tExit = min(tExit, (-cb + ch)/ca);',
+          '   } else if (cc > 0.0) discard;',
+          '  }',
           ' } else {',
           // A unit cube's inscribed ellipsoid is under a third of its volume, so most rays
           // were spending most of their steps in empty corners.
@@ -405,7 +423,7 @@ var GALAXY = [
           'uniform float uGalDustAbsorb, uGalDustBlue, uGalDustVeil, uHueKeep, uHueBreak;',
           useTex ? 'uniform vec3 uCloudA[6]; uniform vec3 uCloudB[6]; uniform int uCloudN;' : '',
           useTex ? '' : 'uniform float uGalRadius, uGalThick, uGalFlare, uGalBulge, uGalBulgeGain, uGalArms, uGalWind, uGalArmWidth, uGalFalloff, uGalBulgeFlat;',
-          useTex ? '' : 'uniform float uGalCull, uGalBulgeLift, uGalBulgeSoft, uGalArmFloor, uGalArmWobble, uGalFrag, uGalFragAlong, uGalFragAcross;',
+          useTex ? '' : 'uniform float uGalCull, uGalBulgeLift, uGalBulgeSoft, uGalArmFloor, uGalArmWobble, uGalFrag, uGalFragAlong, uGalFragAcross, uGalBound;',
           useTex ? '' : 'uniform float uLaneAmt, uLaneK, uLaneWind, uLaneOff, uLane2, uLaneThick, uLaneIn, uLaneOut, uLaneWob;',
           useTex ? '' : 'uniform float uGalPal, uColIn, uColSlope, uColArm, uColNoise, uColDense, uColDenseK, uBulgeMix;',
           useTex ? '' : 'uniform vec3 uCream, uPeach, uArmC;',
@@ -707,15 +725,24 @@ var GALAXY = [
   }
 
   var _lp = new THREE.Vector3(), _lq = new THREE.Quaternion(), _ls = new THREE.Vector3()
-  var _li = new THREE.Quaternion()
+  var _li = new THREE.Quaternion(), _fp = new THREE.Vector3(), _fs = new THREE.Vector3()
   // The renderer calls onBeforeRender BEFORE it builds modelViewMatrix from matrixWorld, so
   // rewriting matrixWorld here is the sanctioned way to opt ONE child out of its parent's
   // rotation - here the disc's tilt, its roll, and the host's spin. Position and scale are
   // kept. A background star field does not turn with the galaxy in front of it.
-  function lockToWorld(o) {
+  //
+  // The orientation comes from `frame` when a host supplies one, and otherwise from whatever
+  // the tilting group sits in. Plain world axes are wrong as soon as the object lives inside
+  // something that is itself turned - an AR portal placed to face the viewer - and they are
+  // badly wrong for a field confined to a box, which then no longer lines up with its box.
+  function lockToWorld(o, frame) {
     o.onBeforeRender = function () {
-      if (!this.parent) return
-      this.parent.matrixWorld.decompose(_lp, _lq, _ls)
+      var p = this.parent
+      if (!p) return
+      p.matrixWorld.decompose(_lp, _lq, _ls)
+      var f = frame || (p.parent && p.parent.parent)
+      if (f) f.matrixWorld.decompose(_fp, _li, _fs)
+      else _li.identity()
       this.matrixWorld.compose(_lp, _li, _ls)
     }
   }
@@ -732,13 +759,31 @@ var GALAXY = [
     var B = {p: [], c: [], s: [], g: []}, F = {p: [], c: [], s: [], g: []}
     var rIn = P.fieldRadius * 0.45, v3 = rIn * rIn * rIn
     var dv = P.fieldRadius * P.fieldRadius * P.fieldRadius - v3
-    for (var i = 0; i < n; i++) {
-      var ct = 2 * Math.random() - 1, ph = Math.random() * 6.2831853
-      var st = Math.sqrt(Math.max(0, 1 - ct * ct))
-      var r = Math.pow(v3 + Math.random() * dv, 1 / 3)   // uniform in VOLUME -> flat on the sky
+    // A box, when one is given, instead of the open shell: a field meant to stay inside a
+    // container - the AR portal - rather than surround the viewer. Its z range is its own,
+    // since the object rarely sits at the centre of what holds it. fieldConc gathers the stars
+    // toward the object and lets them thin out toward the walls.
+    var boxed = P.fieldBoxX > 0 && P.fieldBoxY > 0 && P.fieldBoxZ1 > P.fieldBoxZ0
+    var cr2 = Math.max(1e-4, P.fieldConcR * P.fieldConcR), placed = 0, tries = 0
+    while (placed < n && tries < n * 40) {
+      tries++
+      var px, py, pz
+      if (boxed) {
+        px = (Math.random() * 2 - 1) * P.fieldBoxX
+        py = (Math.random() * 2 - 1) * P.fieldBoxY
+        pz = P.fieldBoxZ0 + Math.random() * (P.fieldBoxZ1 - P.fieldBoxZ0)
+        if (P.fieldConc > 0 &&
+            Math.random() > (1 - P.fieldConc) + P.fieldConc * Math.exp(-(px * px + py * py + pz * pz) / cr2)) continue
+      } else {
+        var ct = 2 * Math.random() - 1, ph = Math.random() * 6.2831853
+        var st = Math.sqrt(Math.max(0, 1 - ct * ct))
+        var r = Math.pow(v3 + Math.random() * dv, 1 / 3)   // uniform in VOLUME -> flat on the sky
+        px = r * st * Math.cos(ph); py = r * ct; pz = r * st * Math.sin(ph)
+      }
+      placed++
       var f = starFlux(P.fieldAlpha, P.fieldCap), c = bbColor(starTemp()), b = P.fieldBright * f
       var t = f > P.fieldGlareAt ? F : B
-      t.p.push(r * st * Math.cos(ph), r * ct, r * st * Math.sin(ph))
+      t.p.push(px, py, pz)
       // Deliberately not normalised: the brightest clip all three channels and read white
       // while the outer wings of the PSF keep their tint. That blowout is free.
       t.c.push(c[0] * b, c[1] * b, c[2] * b)
@@ -771,7 +816,7 @@ var GALAXY = [
     function pts(t, order) {
       var o = starPoints(t, state.fieldMat, order, false)
       if (!o) return
-      if (P.fieldLock > 0) lockToWorld(o)
+      if (P.fieldLock > 0) lockToWorld(o, state.lockFrame)
       grp.add(o)
     }
     pts(B, -2)
@@ -1311,6 +1356,7 @@ var GALAXY = [
       uGalBulgeSoft: {value: P.galBulgeSoft}, uGalArmFloor: {value: P.galArmFloor},
       uGalArmWobble: {value: P.galArmWobble}, uGalFrag: {value: P.galFrag},
       uGalFragAlong: {value: P.galFragAlong}, uGalFragAcross: {value: P.galFragAcross},
+      uGalBound: {value: P.galBound},
       uLaneAmt: {value: P.laneAmt}, uLaneK: {value: P.laneK}, uLaneWind: {value: P.laneWind},
       uLaneOff: {value: P.laneOff}, uLane2: {value: P.lane2}, uLaneThick: {value: P.laneThick},
       uLaneIn: {value: P.laneIn}, uLaneOut: {value: P.laneOut}, uLaneWob: {value: P.laneWob},
@@ -1456,6 +1502,8 @@ var GALAXY = [
     fieldCount: 0, fieldPx: 2.2, fieldRadius: 0.62, fieldBright: 0.85, fieldAlpha: 1.5,
     fieldCap: 46, fieldPsf: 7, fieldHalo: 0.06, fieldGlareAt: 16, fieldGlare: 3.5,
     fieldMinDist: 2.2,
+    fieldBoxX: 0, fieldBoxY: 0, fieldBoxZ0: 0, fieldBoxZ1: 0, fieldConc: 0, fieldConcR: 0.3,
+    galBound: 0,
     roll: 0,
     galCull: 0, galBulgeLift: 0, galBulgeSoft: 0, galArmFloor: 0.22, galArmWobble: 0,
     galFrag: 0, galFragAlong: 8, galFragAcross: 0.45,
@@ -1488,11 +1536,12 @@ var GALAXY = [
     'rimGain', 'rimW']
   var KNOT = ['sunSize', 'sunBright', 'sunHue', 'sunHalo', 'sunKnotBright', 'sunX', 'sunY', 'sunZ']
   var FIELD = ['fieldCount', 'fieldPx', 'fieldRadius', 'fieldBright', 'fieldAlpha', 'fieldCap',
-    'fieldPsf', 'fieldHalo', 'fieldGlareAt', 'fieldGlare', 'fieldMinDist']
+    'fieldPsf', 'fieldHalo', 'fieldGlareAt', 'fieldGlare', 'fieldMinDist',
+    'fieldBoxX', 'fieldBoxY', 'fieldBoxZ0', 'fieldBoxZ1', 'fieldConc', 'fieldConcR']
   var TONE = ['premul', 'white', 'hueKeep', 'hueBreak']
   var GALDUST = ['laneAmt', 'galDustAbsorb', 'laneK', 'laneWind', 'laneOff', 'lane2', 'laneThick',
     'laneIn', 'laneOut', 'laneWob', 'galDustBlue', 'galDustVeil', 'darkHue', 'darkLev']
-  var GALARM = ['galArmFloor', 'galArmWobble', 'galFrag', 'galFragAlong', 'galFragAcross',
+  var GALARM = ['galBound', 'galArmFloor', 'galArmWobble', 'galFrag', 'galFragAlong', 'galFragAcross',
     'galBulgeLift', 'galBulgeSoft', 'galCull', 'roll']
   var GALPAL = ['galPal', 'colIn', 'colSlope', 'colArm', 'colNoise', 'colDense', 'colDenseK',
     'bulgeMix', 'creamHue', 'creamSat', 'creamLev', 'peachHue', 'peachSat', 'peachLev',
@@ -1566,6 +1615,10 @@ var GALAXY = [
     fieldPsf: [2, 20, 0.5, 'star hardness'], fieldHalo: [0, 0.4, 0.01, 'star halo'],
     fieldGlareAt: [4, 60, 1, 'glare threshold'], fieldGlare: [0, 12, 0.5, 'glare size'],
     fieldMinDist: [0.5, 8, 0.1, 'star lock dist'],
+    fieldBoxX: [0, 1.5, 0.005, 'star box half-width'], fieldBoxY: [0, 1.5, 0.005, 'star box half-height'],
+    fieldBoxZ0: [-1.5, 1.5, 0.005, 'star box back'], fieldBoxZ1: [-1.5, 1.5, 0.005, 'star box front'],
+    fieldConc: [0, 1, 0.05, 'stars gather at centre'], fieldConcR: [0.05, 1.5, 0.01, 'gather radius'],
+    galBound: [0, 1, 1, 'march only the disk'],
     roll: [-90, 90, 1, 'roll'],
     galCull: [0, 0.0019, 0.0001, 'empty-space cull'],
     galBulgeLift: [0, 1, 0.05, 'bulge out of disk'], galBulgeSoft: [0, 1, 0.05, 'bulge softening'],
@@ -1632,7 +1685,7 @@ var GALAXY = [
     ionAmt: 'uIonAmt', knotQ: 'uKnotQ', ion0: 'uIon0', ion1: 'uIon1', ionDens: 'uIonDens',
     darkAbsorb: 'uDarkAbsorb', darkR: 'uDarkR', dark2R: 'uDark2R', darkScallop: 'uDarkScallop',
     darkScale: 'uDarkScale', darkEdge: 'uDarkEdge', rimGain: 'uRimGain', rimW: 'uRimW',
-    galCull: 'uGalCull', galBulgeLift: 'uGalBulgeLift', galBulgeSoft: 'uGalBulgeSoft',
+    galCull: 'uGalCull', galBound: 'uGalBound', galBulgeLift: 'uGalBulgeLift', galBulgeSoft: 'uGalBulgeSoft',
     galArmFloor: 'uGalArmFloor', galArmWobble: 'uGalArmWobble', galFrag: 'uGalFrag',
     galFragAlong: 'uGalFragAlong', galFragAcross: 'uGalFragAcross',
     laneAmt: 'uLaneAmt', laneK: 'uLaneK', laneWind: 'uLaneWind', laneOff: 'uLaneOff',
