@@ -33,6 +33,24 @@ const tapPlaceCursorComponent = {
     // placementDistance stays the single source of truth for where this lands.
     this.el.object3D.position.set(0, 0, -this.data.placementDistance)
 
+    // A layered ring around the burst, so the reticle reads as an instrument looking for a
+    // surface rather than a sticker on the screen. Added from here rather than the markup
+    // because the markup exists twice (body.html and the flattened index.html) and the two
+    // have to be edited in step; this file is the one that owns the cursor either way.
+    //
+    // billboard: false - the cursor is a child of the camera, so it already faces the user and
+    // the billboard maths would resolve to identity every frame for nothing.
+    this.hud = document.createElement('a-entity')
+    this.hud.setAttribute('hud-element', {
+      preset: 'idle',
+      radius: 0.5,
+      color: '#8fd8ff',
+      opacity: 0.85,
+      rate: 0.8,
+      billboard: false,
+    })
+    this.el.appendChild(this.hud)
+
     // Bind handlers
     this.handleClick = this.handleClick.bind(this)
     this.handleTouchStart = this.handleTouchStart.bind(this)

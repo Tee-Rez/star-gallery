@@ -304,7 +304,7 @@ const deepSkyLayerComponent = {
       easing: 'easeOutCubic',
     })
 
-    // The object's own explorable part is the SAME dashed ring you tapped to get here, in its
+    // The object's own explorable part is the SAME layered ring you tapped to get here, in its
     // 'detail' role. It hangs outside the host so the host's fit scale cannot shrink it out of
     // reach, and it carries the object's id so the component can name it when tapped.
     this.orb = document.createElement('a-entity')

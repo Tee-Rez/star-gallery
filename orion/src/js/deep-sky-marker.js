@@ -1,8 +1,14 @@
 // js/deep-sky-marker.js - "something is here" for a deep-sky object.
 //
-// A dashed ring that turns slowly. It is deliberately NOT a star: it carries no label sphere
+// A layered ring that turns slowly. It is deliberately NOT a star: it carries no label sphere
 // and never appears in the connection graph, because connections are built from the
 // connections array and reference star ids only.
+//
+// The ring is a hud-element (js/hud-elements.js) - a stack of layers on a camera-facing plane,
+// rather than the single flat dashed circle this used to draw. Two reasons beyond the look:
+// the old ring lay in its own XY plane, so it collapsed to a line when the user stood to one
+// side of the constellation, and it could only ever say one thing. The stack always faces the
+// user, and its layers can carry the object's state - explored or not, how far a scan has got.
 //
 // Tapping uses the same convention as stars - an invisible .cantap sphere - so the existing
 // raycaster needs no changes.
@@ -10,8 +16,6 @@ const deepSkyMarkerComponent = {
   schema: {
     radius: {type: 'number', default: 0.45},
     color: {type: 'color', default: '#8fd8ff'},
-    segments: {type: 'int', default: 64},      // dashes are drawn as gaps in a line loop
-    dashRatio: {type: 'number', default: 0.55},  // fraction of each segment that is drawn
     spin: {type: 'number', default: 0.6},      // radians per second
     visited: {type: 'boolean', default: false},
     // The same ring means two different things depending on where it hangs:
@@ -19,6 +23,10 @@ const deepSkyMarkerComponent = {
     //   detail - inside the entered object; tapping opens its INFO panel
     // One component, two roles, so the two rings are visually identical by construction.
     role: {type: 'string', default: 'select'},
+    // Which layered element to draw. The select marker sits among the stars and has to read at
+    // the size of a thumbnail, so it gets the quiet one; the detail marker is alone inside the
+    // object with room around it, so it gets the full stack.
+    preset: {type: 'string', default: ''},
   },
 
   init() {
@@ -40,31 +48,28 @@ const deepSkyMarkerComponent = {
     this.build()
   },
 
+  // Which element each role draws, unless the caller names one.
+  presetFor() {
+    if (this.data.preset) return this.data.preset
+    return this.data.role === 'detail' ? 'orrery' : 'idle'
+  },
+
   build() {
-    const THREE = window.THREE || AFRAME.THREE
     this.dispose()
 
-    // Dashes as explicit segment pairs: LineDashedMaterial needs computeLineDistances and
-    // behaves inconsistently across A-Frame's renderer settings, so draw the gaps instead.
-    const pts = []
-    const step = (Math.PI * 2) / this.data.segments
-    for (let i = 0; i < this.data.segments; i++) {
-      const a0 = i * step
-      const a1 = a0 + step * this.data.dashRatio
-      pts.push(
-        new THREE.Vector3(Math.cos(a0) * this.data.radius, Math.sin(a0) * this.data.radius, 0),
-        new THREE.Vector3(Math.cos(a1) * this.data.radius, Math.sin(a1) * this.data.radius, 0)
-      )
-    }
-    const geometry = new THREE.BufferGeometry().setFromPoints(pts)
-    const material = new THREE.LineBasicMaterial({
-      color: new THREE.Color(this.data.color),
-      transparent: true,
-      opacity: this.data.visited ? 0.30 : 0.85,
-      depthWrite: false,
+    // The element's own entity, so the plane can billboard without turning the hit sphere with
+    // it. It is drawn a little outside the tap radius: the layers read as an aura around what
+    // you touch rather than as the touch target itself.
+    this.ring = document.createElement('a-entity')
+    this.ring.classList.add('deep-sky-hud')
+    this.ring.setAttribute('hud-element', {
+      preset: this.presetFor(),
+      radius: this.data.radius * 1.15,
+      color: this.data.color,
+      rate: Math.max(this.data.spin, 0.05) / 0.6,   // the old spin, in the element's own terms
+      opacity: this.data.visited ? 0.42 : 1,
     })
-    this.ring = new THREE.LineSegments(geometry, material)
-    this.el.setObject3D('ring', this.ring)
+    this.el.appendChild(this.ring)
 
     this.ensureTapTarget()
   },
@@ -114,23 +119,22 @@ const deepSkyMarkerComponent = {
     this.el.sceneEl.emit(event, {id: this.el.dataset.deepSkyId})
   },
 
+  // "Once visited, the ring dims." The element fades as a whole rather than the line alone,
+  // because every layer in the stack should step back together.
   applyVisited() {
-    if (this.ring) this.ring.material.opacity = this.data.visited ? 0.30 : 0.85
+    if (this.ring) this.ring.setAttribute('hud-element', 'opacity', this.data.visited ? 0.42 : 1)
   },
 
   setVisited(v) {
     this.el.setAttribute('deep-sky-marker', 'visited', !!v)
   },
 
-  tick(time, delta) {
-    if (this.ring) this.ring.rotation.z += (delta / 1000) * this.data.spin
-  },
+  // No tick: the element runs its own clock and turns its own layers, each at its own rate.
+  // A single rotation.z applied to everything at once is what made the old ring read as flat.
 
   dispose() {
     if (!this.ring) return
-    this.el.removeObject3D('ring')
-    this.ring.geometry.dispose()
-    this.ring.material.dispose()
+    if (this.ring.parentNode) this.ring.parentNode.removeChild(this.ring)
     this.ring = null
   },
 

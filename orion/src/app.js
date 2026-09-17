@@ -28,6 +28,12 @@ AFRAME.registerComponent('deep-sky-marker', deepSkyMarkerComponent)
 import {deepSkyLayerComponent} from './js/deep-sky-layer'
 AFRAME.registerComponent('deep-sky-layer', deepSkyLayerComponent)
 
+import {hudElementComponent} from './js/hud-elements'
+AFRAME.registerComponent('hud-element', hudElementComponent)
+
+import {selectionHudComponent} from './js/selection-hud'
+AFRAME.registerComponent('selection-hud', selectionHudComponent)
+
 // The back control is attached here rather than in the scene markup so it exists for every
 // constellation, and from the first frame rather than only once a portal has been placed.
 window.addEventListener('DOMContentLoaded', () => {
@@ -37,6 +43,11 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   if (scene && !scene.hasAttribute('star-audio')) {
     scene.setAttribute('star-audio', '')
+  }
+  // The selection ring follows whichever star is tapped, so like the two above it belongs to the
+  // scene rather than to any one constellation - it has to survive a gallery switch.
+  if (scene && !scene.hasAttribute('selection-hud')) {
+    scene.setAttribute('selection-hud', '')
   }
 })
 

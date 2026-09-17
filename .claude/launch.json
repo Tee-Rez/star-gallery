@@ -6,6 +6,12 @@
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8765", "--directory", "star-gallery"],
       "port": 8765
+    },
+    {
+      "name": "orion",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-c", "import functools;from http.server import SimpleHTTPRequestHandler,ThreadingHTTPServer;ThreadingHTTPServer(('127.0.0.1',8766), functools.partial(SimpleHTTPRequestHandler, directory='orion')).serve_forever()"],
+      "port": 8766
     }
   ]
 }
