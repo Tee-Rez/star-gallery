@@ -234,6 +234,14 @@ const PARTS = {
   partHandles:    'Corner brackets and grab nubs - "this is selected"',
   partMarquee:    'Marching ants running the border',
   partTicksFrame: 'Corner-and-midpoint frame, no full border',
+  partRingStack:  'Concentric rings, thinning and dimming outward',
+  partSegRing:    'Segmented value ring with a lit head',
+  partGyro:       'Rings on different axes - the gyroscope',
+  partPlate:      'One tilted plate of a stack, near edge lit',
+  partSpokes:     'Radiating hairs between two radii',
+  partHalo:       'Soft ring of light, no line - the backing layer',
+  partArcLayers:  'Counter-rotating arcs at rising radii',
+  partNotchRing:  'Thick ring with notches cut out of it',
   partTickRing:   'Graduated ruler ring, minor and major ticks',
   partIndex:      'Index triangles pointing in at the rim',
   partSweep:      'Sweeping highlight sector',
@@ -458,6 +466,104 @@ vec3 partOrbit(vec2 p, float r, float n, float rate, vec3 col){
     c += col * glow(max(d, 0.0), 0.03) * 0.6;
   }
   return c;
+}
+
+// -- layered circles ----------------------------------------------------------------------------
+// The circular HUD is almost never one circle. It is a stack: a halo behind, rings at rising
+// radii turning at their own rates, a segmented value ring, spokes, a hub. What makes a stack
+// read as one object rather than n circles is that the layers differ on a gradient - weight,
+// brightness and rate all falling outward - and share a centre exactly.
+
+// The base stack: n rings, alternating direction, thinning and dimming outward.
+vec3 partRingStack(vec2 p, float r0, float gap, float n, float rate, vec3 col){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 9; i++){
+    float f = float(i);
+    if (f >= n) break;
+    float r = r0 + f * gap;
+    float dir = mod(f, 2.0) < 0.5 ? 1.0 : -1.0;
+    float d = sdRing(p, r);
+    float dash = dashes(p * rot(uTime * rate * (0.5 - f * 0.055) * dir), 4.0 + f * 5.0, 0.18 + f * 0.04);
+    float fade = 1.0 - f * 0.085;
+    c += col * strokeW(d, max(0.014 - f * 0.0013, 0.003), px()) * dash * fade;
+    c += col * glow(d, 0.02) * dash * 0.35 * fade;
+  }
+  return c;
+}
+// A ring cut into blocks with the first "value" of them lit and the head picked out: a progress
+// ring that still reads when it is only a few pixels across.
+vec3 partSegRing(vec2 p, float r, float w, float n, float duty, float value, vec3 col){
+  float a = (atan(p.y, p.x) + PI) / TAU;
+  float f = fract(a * n);
+  float seg = smoothstep(0.0, duty, f) * smoothstep(1.0, 1.0 - duty, f);
+  float lit = smoothstep(value + 0.5 / n, value - 0.5 / n, a);
+  float d = abs(length(p) - r) - w * 0.5;
+  vec3 c = col * fillW(d, px()) * seg * (0.16 + 0.84 * lit);
+  c += mix(col, vec3(1.0), 0.7) * fillW(d, px()) * seg * smoothstep(1.5 / n, 0.0, abs(a - value)) * 0.9;
+  return c;
+}
+// Rings on different axes - the gyroscope. These read as layered in depth rather than flat and
+// concentric, because each is squashed on its own axis and turned at its own rate.
+vec3 partGyro(vec2 p, float r, float n, float rate, vec3 col){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 5; i++){
+    float f = float(i);
+    if (f >= n) break;
+    float squash = max(0.16 + 0.74 * abs(sin(uTime * rate * 0.3 + f * 2.1)), 0.12);
+    vec2 q = p * rot(f * 1.05 + uTime * rate * 0.09);
+    q.y /= squash;
+    float rr = r * (1.0 - f * 0.11);
+    float d = (abs(length(q) - rr)) * squash;      // back into p units, so the weight holds
+    // the near half of each ring is brighter, which is what sells the tilt
+    float near = 0.4 + 0.6 * smoothstep(-0.3, 0.7, sin(atan(q.y, q.x) + uTime * rate * (0.3 + f * 0.15)));
+    c += col * fillW(d - 0.006, px()) * near;
+    c += col * glow(max(d - 0.006, 0.0), 0.02) * near * 0.45;
+  }
+  return c;
+}
+// One plate of a stack: an ellipse at a tilt, lifted up the screen, its near edge picked out.
+// Several at rising lifts are the layered-disc look, without a camera or any depth buffer.
+vec3 partPlate(vec2 p, float r, float tilt, float lift, vec3 col){
+  float t = max(tilt, 0.05);
+  vec2 q = vec2(p.x, (p.y - lift) / t);
+  float e = (length(q) - r) * t;
+  vec3 c = col * fillW(e, px()) * 0.09;
+  c += col * strokeW(e, 0.008, px());
+  c += mix(col, vec3(1.0), 0.6) * strokeW(e, 0.012, px()) * smoothstep(0.1, -0.8, q.y / max(r, 1e-3)) * 0.8;
+  return c;
+}
+// Hairs radiating between two radii: the layer that gives a ring stack its texture.
+vec3 partSpokes(vec2 p, float r0, float r1, float n, float rate, vec3 col){
+  float a = atan(p.y, p.x) + uTime * rate;
+  float rr = length(p);
+  float band = smoothstep(r0 - px(), r0 + px(), rr) * smoothstep(r1 + px(), r1 - px(), rr);
+  return col * pow(max(0.0, cos(a * n)), 50.0) * band * smoothstep(r1, r0, rr);
+}
+// No line at all, just a soft ring of light. The layer that sits behind the others and gives the
+// stack somewhere to sit - and the one to drop first when a HUD has to get cheaper.
+vec3 partHalo(vec2 p, float r, float soft, vec3 col){
+  return col * exp(-abs(length(p) - r) / max(soft, 1e-4)) * 0.5;
+}
+// Arcs stacked at rising radii, counter-rotating, each covering a different share of its ring.
+// Reads as one mechanism turning, where separate dials would read as several readings.
+vec3 partArcLayers(vec2 p, float r0, float gap, float n, float rate, vec3 col){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 7; i++){
+    float f = float(i);
+    if (f >= n) break;
+    float dir = mod(f, 2.0) < 0.5 ? 1.0 : -1.0;
+    float ap = 0.4 + 0.9 * hash11(f * 3.7);
+    float mid = uTime * rate * (0.3 + 0.22 * hash11(f * 5.1)) * dir + f * 2.0;
+    float d = sdArc(p * rot(-mid + PI * 0.5), ap, r0 + f * gap, max(0.010 - f * 0.0008, 0.003));
+    c += col * fill(d) * (1.0 - f * 0.1);
+    c += col * glow(max(d, 0.0), 0.025) * 0.45;
+  }
+  return c;
+}
+// A thick ring with bites out of it, so a plain circle reads as machined rather than drawn.
+vec3 partNotchRing(vec2 p, float r, float w, float n, float depth, vec3 col){
+  float notch = pow(max(0.0, cos(atan(p.y, p.x) * n)), 8.0) * clamp(depth, 0.0, 0.9);
+  return col * fillW(abs(length(p) - r) - (w * 0.5 - notch * w), px()) * 0.9;
 }
 
 // -- meters -----------------------------------------------------------------------------------
@@ -1275,6 +1381,130 @@ vec3 hud(vec2 p){
 }`,
 },
 
+// --- layered circles ---------------------------------------------------------------------------
+// The circular HUD, taken seriously: not one ring but a stack of them, each layer differing on a
+// gradient so the set reads as a single object turning.
+{
+  id: 'ring-stack', title: 'Layered ring stack', family: 'radial',
+  tags: ['layered', 'loop', 'centrepiece', 'idle'],
+  parts: ['partHalo', 'partRingStack', 'partSegRing', 'partSpokes'],
+  bio: "Halo, rings, a value ring and a hairline of spokes, sharing one centre. The layers differ on a gradient - weight, brightness and rate all falling outward - which is what makes a stack read as one object rather than as several circles.",
+  params: [
+    {key: 'rings', label: 'Rings', min: 2, max: 9, step: 1, value: 6},
+    {key: 'r0', label: 'Inner radius', min: 0.08, max: 0.5, step: 0.01, value: 0.2},
+    {key: 'gap', label: 'Layer gap', min: 0.02, max: 0.16, step: 0.005, value: 0.09},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float n = floor(P_rings);
+  float outer = P_r0 + P_gap * (n - 1.0);
+  c += partHalo(p, outer * 0.62, 0.09, uAccent) * 0.45;
+  c += partRingStack(p, P_r0, P_gap, n, P_rate, uAccent);
+  c += partSegRing(p, max(P_r0 - 0.07, 0.05), 0.03, 24.0, 0.7, 0.5 + 0.5 * sin(uTime * 0.4 * P_rate), uAccent);
+  c += partSpokes(p, outer * 1.04, outer * 1.16, 48.0, 0.04 * P_rate, uAccent) * 0.55;
+  c += mix(uAccent, vec3(1.0), 0.5) * glow(length(p) - 0.018, 0.05) * 0.75;
+  return c;
+}`,
+},
+{
+  id: 'gyro-rings', title: 'Gyroscope rings', family: 'radial',
+  tags: ['layered', 'depth', 'loop', 'centrepiece'],
+  parts: ['partGyro', 'partHalo', 'partTickRing'],
+  bio: "Rings on different axes, each squashed and turned at its own rate with its near half brighter. Depth read purely from layering - no camera, no depth buffer, and it still faces the user in AR.",
+  params: [
+    {key: 'rings', label: 'Rings', min: 1, max: 5, step: 1, value: 3},
+    {key: 'r', label: 'Radius', min: 0.2, max: 0.85, step: 0.01, value: 0.6},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partHalo(p, P_r * 0.95, 0.1, uAccent) * 0.3;
+  c += partGyro(p, P_r, floor(P_rings), P_rate, uAccent);
+  c += partTickRing(p, P_r * 1.2, 72.0, 6.0, 0.05, uAccent) * 0.5;
+  c += mix(uAccent, vec3(1.0), 0.6) * glow(length(p) - 0.014, 0.06) * 0.85;
+  return c;
+}`,
+},
+{
+  id: 'strata-disc', title: 'Disc strata', family: 'radial',
+  tags: ['layered', 'depth', 'reveal', 'medium'],
+  parts: ['partPlate', 'partHalo', 'partSpokes'],
+  bio: "Plates stacked up a spindle, each a tilted ellipse with its near edge lit. The layered-circle look with actual separation between the layers: good for anything with levels - depth, altitude, a stack of records.",
+  params: [
+    {key: 'plates', label: 'Plates', min: 2, max: 6, step: 1, value: 5},
+    {key: 'spread', label: 'Spacing', min: 0.05, max: 0.32, step: 0.01, value: 0.16},
+    {key: 'tilt', label: 'Tilt', min: 0.08, max: 0.7, step: 0.01, value: 0.26},
+    {key: 'r', label: 'Radius', min: 0.2, max: 0.9, step: 0.01, value: 0.6},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float n = floor(P_plates), mid = (n - 1.0) * 0.5;
+  c += uAccent * fillW(sdBox(p, vec2(0.0018, mid * P_spread + 0.07)), px()) * 0.45;   // the spindle
+  for (int i = 0; i < 6; i++){
+    float f = float(i);
+    if (f >= n) break;
+    float lift = (f - mid) * P_spread;
+    float r = P_r * (1.0 - abs(f - mid) * 0.07);
+    float k = 0.45 + 0.55 * (0.5 + 0.5 * sin(uTime * P_rate * 0.7 - f * 0.8));
+    c += partPlate(p, r, P_tilt, lift, uAccent) * k;
+    c += partHalo(vec2(p.x, (p.y - lift) / max(P_tilt, 0.05)), r, 0.06, uAccent) * 0.12 * k;
+  }
+  c += partSpokes(p, P_r * 1.1, P_r * 1.22, 40.0, 0.05 * P_rate, uAccent) * 0.4;
+  return c;
+}`,
+},
+{
+  id: 'segment-rings', title: 'Segmented value rings', family: 'meter',
+  tags: ['layered', 'data-driven', 'gauge', 'cheap'],
+  parts: ['partSegRing', 'partNotchRing', 'partHalo'],
+  bio: "Three block rings, each filling to its own value with the head picked out in white. Three numbers in one glyph, and legible at a size where three bar charts would be mush.",
+  params: [
+    {key: 'rings', label: 'Rings', min: 1, max: 4, step: 1, value: 3},
+    {key: 'r0', label: 'Inner radius', min: 0.12, max: 0.5, step: 0.01, value: 0.3},
+    {key: 'segs', label: 'Segments', min: 8, max: 60, step: 2, value: 30},
+    {key: 'duty', label: 'Block width', min: 0.1, max: 0.9, step: 0.02, value: 0.6},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 4; i++){
+    float f = float(i);
+    if (f >= P_rings) break;
+    float v = 0.12 + 0.82 * vnoise(vec2(f * 3.1, uTime * 0.3 * P_rate));
+    c += partSegRing(p, P_r0 + f * 0.13, 0.05 - f * 0.007, max(floor(P_segs) - f * 6.0, 6.0), P_duty, v, uAccent);
+  }
+  c += partNotchRing(p, max(P_r0 - 0.08, 0.06), 0.03, 12.0, 0.45, uAccent) * 0.6;
+  c += partHalo(p, P_r0, 0.08, uAccent) * 0.25;
+  return c;
+}`,
+},
+{
+  id: 'arc-layers', title: 'Counter-rotating arcs', family: 'radial',
+  tags: ['layered', 'loop', 'idle', 'cheap'],
+  parts: ['partArcLayers', 'partHalo', 'partOrbit'],
+  bio: "Arcs at rising radii turning opposite ways, with dots running the gaps. The idle state that says a system is live without claiming any number at all - and the cheapest layered circle here.",
+  params: [
+    {key: 'layers', label: 'Layers', min: 2, max: 7, step: 1, value: 5},
+    {key: 'r0', label: 'Inner radius', min: 0.1, max: 0.5, step: 0.01, value: 0.22},
+    {key: 'gap', label: 'Layer gap', min: 0.03, max: 0.16, step: 0.005, value: 0.1},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partHalo(p, P_r0 + P_gap * (floor(P_layers) - 1.0) * 0.5, 0.1, uAccent) * 0.3;
+  c += partArcLayers(p, P_r0, P_gap, floor(P_layers), P_rate, uAccent);
+  c += partOrbit(p, P_r0 * 0.7, 3.0, P_rate * 0.6, uAccent) * 0.8;
+  return c;
+}`,
+},
+
 // --- fusions: several groups on one screen, running off one clock ------------------------------
 {
   id: 'scanner-disc', title: 'Scanner disc', family: 'composite',
@@ -1397,6 +1627,122 @@ vec3 hud(vec2 p){
   vec3 bg = mix(vec3(0.015, 0.021, 0.032), vec3(0.90, 0.93, 0.97), k);
   vec3 lit = clamp(ink, 0.0, 1.4);
   return mix(bg + lit * uAccent, bg - lit * vec3(0.72, 0.60, 0.26), k);
+}`,
+},
+{
+  id: 'halo-target', title: 'Halo target', family: 'composite',
+  tags: ['layered', 'tracking', 'composite', 'label'],
+  parts: ['partHalo', 'partRingStack', 'partSegRing', 'partHandles', 'partCallout', 'partIndex'],
+  bio: "A ring stack wrapped in a square selection frame, with a callout off the side. The layered circle says what the thing is doing; the square says the user picked it. Both at once is the readable combination.",
+  params: [
+    {key: 'rings', label: 'Rings', min: 2, max: 8, step: 1, value: 5},
+    {key: 'size', label: 'Frame size', min: 0.25, max: 0.7, step: 0.01, value: 0.44},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 o = vec2(-uAspect * 0.34, 0.0);
+  vec2 q = p - o;
+  float k = cycle(7.0, 0.82);
+  c += partHalo(q, 0.24, 0.1, uAccent) * 0.5 * k;
+  c += partRingStack(q, 0.14, 0.07, floor(P_rings), P_rate, uAccent) * k;
+  c += partSegRing(q, 0.1, 0.028, 20.0, 0.7, 0.5 + 0.5 * sin(uTime * 0.5 * P_rate), uAccent) * k;
+  c += partIndex(q, P_size * 0.82, 4.0, 0.045, PI * 0.25, uAccent) * 0.8 * k;
+  vec2 b = vec2(P_size) * (1.0 + 0.4 * (1.0 - k));
+  c += partHandles(q, b, 0.12, 0.009, step(0.5, fract(uTime * 1.5)), uAccent) * k;
+  c += partCallout(p, o + vec2(b.x * 0.75, b.y * 0.75), vec2(uAspect * 0.1, 0.42), 0.28, 3.0, uAccent) * k;
+  return c;
+}`,
+},
+{
+  id: 'ring-console', title: 'Ring console', family: 'composite', wide: true,
+  tags: ['layered', 'composite', 'data-driven', 'heavy'],
+  parts: ['partPanel', 'partRingStack', 'partSegRing', 'partGyro', 'partTracks', 'partReadout', 'partRail', 'partBadge', 'partSpokes'],
+  bio: "The layered circle used as the centre of a working panel: rings and a gyroscope in the middle, faders and readouts either side, badges along the bottom. The circle carries the state; the straight elements carry the numbers.",
+  params: [
+    {key: 'rings', label: 'Rings', min: 2, max: 8, step: 1, value: 5},
+    {key: 'channels', label: 'Channels', min: 3, max: 12, step: 1, value: 6},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.94, 0.9);
+  c += partPanel(p, b, 0.28, 0.008, uAccent) * 0.8;
+
+  vec2 g = p - vec2(0.0, 0.04);
+  c += partHalo(g, 0.34, 0.12, uAccent) * 0.4;
+  c += partRingStack(g, 0.16, 0.075, floor(P_rings), P_rate, uAccent);
+  c += partGyro(g, 0.24, 2.0, P_rate * 0.8, uAccent) * 0.7;
+  c += partSegRing(g, 0.12, 0.03, 22.0, 0.7, 0.5 + 0.5 * sin(uTime * 0.45 * P_rate), uAccent);
+  c += partSpokes(g, 0.56, 0.64, 60.0, 0.03 * P_rate, uAccent) * 0.45;
+
+  vec2 lp = p - vec2(-b.x * 0.62, 0.06);
+  c += partTracks(lp, vec2(b.x * 0.2, 0.4), floor(P_channels), 3.0, P_rate * 0.5, uAccent);
+  c += partReadout(lp - vec2(0.0, -0.56), vec2(b.x * 0.18, 0.05), 4.0, 1.0, uAccent) * 0.85;
+
+  for (int i = 0; i < 3; i++){
+    float f = float(i);
+    vec2 rp = p - vec2(b.x * 0.63, 0.4 - f * 0.33);
+    c += partReadout(rp, vec2(b.x * 0.15, 0.05), 3.0, f * 4.0 + 3.0, uAccent);
+    c += partRail(rp - vec2(0.0, -0.1), vec2(b.x * 0.17, 0.024),
+                  0.2 + 0.75 * vnoise(vec2(f * 2.0, uTime * P_rate * 0.35)), P_rate * 0.3, uAccent) * 0.85;
+  }
+  for (int i = 0; i < 4; i++){
+    float f = float(i);
+    c += partBadge(p - vec2((f - 1.5) * 0.24, -0.74), 0.062, f, uTime * P_rate * 0.5 + f, uAccent) * 0.9;
+  }
+  return c;
+}`,
+},
+{
+  id: 'orrery', title: 'Orrery', family: 'composite',
+  tags: ['layered', 'composite', 'spatial', 'centrepiece'],
+  parts: ['partGyro', 'partRingStack', 'partOrbit', 'partRadialBars', 'partTickRing', 'partIndex'],
+  bio: "Gyroscope rings inside a ring stack, with bodies orbiting and a bar fan reading off the rim. Built for a deep-sky object: the layers wrap it, the bars say what is being measured, the dots say something is moving out there.",
+  params: [
+    {key: 'rings', label: 'Stack rings', min: 2, max: 8, step: 1, value: 4},
+    {key: 'bars', label: 'Fan slices', min: 8, max: 72, step: 2, value: 40},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partHalo(p, 0.3, 0.14, uAccent) * 0.45;
+  c += partGyro(p, 0.3, 3.0, P_rate, uAccent);
+  c += partRingStack(p, 0.46, 0.075, floor(P_rings), P_rate * 0.7, uAccent) * 0.85;
+  c += partRadialBars(p, 0.78, 0.12, floor(P_bars), 2.0, P_rate * 0.4, uAccent) * 0.8;
+  c += partTickRing(p, 0.93, 96.0, 8.0, 0.045, uAccent) * 0.5;
+  c += partIndex(p, 0.99, 3.0, 0.04, uTime * 0.1 * P_rate, uAccent) * 0.8;
+  c += partOrbit(p, 0.62, 4.0, P_rate * 0.5, uAccent);
+  c += mix(uAccent, vec3(1.0), 0.6) * glow(length(p) - 0.02, 0.06) * 0.8;
+  return c;
+}`,
+},
+{
+  id: 'deep-scan', title: 'Deep scan', family: 'composite',
+  tags: ['layered', 'composite', 'reveal', 'portal'],
+  parts: ['partHalo', 'partRingStack', 'partIris', 'partVortex', 'partSweep', 'partMarquee', 'partSegRing'],
+  bio: "A portal mouth: rings layered outward from an aperture, a vortex behind it, a sector sweeping the whole stack. Made for the moment a deep-sky object opens - the aperture is the progress, the rings are the frame.",
+  params: [
+    {key: 'open', label: 'Aperture', min: 0, max: 1, step: 0.01, value: 0.5},
+    {key: 'rings', label: 'Rings', min: 2, max: 8, step: 1, value: 5},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+    {key: 'auto', label: 'Cycle the aperture', min: 0, max: 1, step: 1, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float open = mix(P_open, 0.5 - 0.5 * cos(uTime * 0.5 * P_rate), step(0.5, P_auto));
+  c += partVortex(p, 0.3, 0.18 * P_rate + 0.02, 7.0, uAccent) * (1.0 - open * 0.65);
+  c += partIris(p, 0.3, open, 6.0, uAccent);
+  c += partHalo(p, 0.42, 0.12, uAccent) * (0.25 + 0.5 * open);
+  c += partRingStack(p, 0.42, 0.08, floor(P_rings), P_rate, uAccent);
+  c += partSegRing(p, 0.36, 0.03, 24.0, 0.7, open, uAccent);
+  c += partSweep(p, 0.3, 0.42 + 0.08 * floor(P_rings), uTime * 0.55 * P_rate, 0.4, uAccent) * 0.3;
+  c += partMarquee(p, vec2(uAspect * 0.9, 0.9), 24.0, 0.3 * P_rate, 0.005, uAccent) * 0.5;
+  return c;
 }`,
 },
 ]
