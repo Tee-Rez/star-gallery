@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HUD Visual Lab</title>
+<!--
+  HUD Visual Lab - a live catalogue of HUD techniques.
+
+  One self-contained file. Double-click it, or serve it, or host it. Nothing is loaded from
+  anywhere: no libraries, no images, no video. Every window below is drawn by a small shader,
+  which is the whole argument of this tool - a HUD made of distance fields stays sharp at any
+  size, weighs nothing, and can be driven by live data, where a video can do none of those.
+
+  TO ADD A VISUAL: append one entry to VISUALS (search for "THE LIBRARY"). The window, the
+  labels, the tag filter and the source view are all generated from it. Keep the families and
+  tags consistent - being able to ask for "that kind of thing" and find it is the point.
+-->
+<style>
+  :root {
+    --bg: #07090e;
+    --panel: #0d1118;
+    --panel-2: #10151e;
+    --line: #1d2534;
+    --ink: #dfe6f2;
+    --muted: #7b8698;
+    --accent: #4fd2ff;
+    --warn: #ffb648;
+    --radius: 10px;
+    --mono: ui-monospace, "Cascadia Mono", Consolas, "SF Mono", monospace;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font: 15px/1.5 var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  /* One WebGL surface behind the whole page. Each window is drawn into its own rectangle of it,
+     which is far cheaper than giving every window its own canvas and context. */
+  #gl { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+  .page { position: relative; z-index: 1; max-width: 1560px; margin: 0 auto; padding: 22px 18px 80px; }
+
+  header { display: grid; gap: 14px; margin-bottom: 18px; }
+  .title-row { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  h1 { font-size: 21px; margin: 0; letter-spacing: -0.01em; }
+  .sub { color: var(--muted); font-size: 14px; max-width: 78ch; }
+  .kbd { font: 12px/1 var(--mono); color: var(--muted); border: 1px solid var(--line); padding: 4px 7px; border-radius: 5px; }
+
+  .controls {
+    display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+    background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 10px 12px;
+  }
+  .ctl { display: flex; align-items: center; gap: 7px; font-size: 13px; color: var(--muted); }
+  button, select, input[type="range"] { font: inherit; }
+  button {
+    background: var(--panel-2); color: var(--ink); border: 1px solid var(--line);
+    border-radius: 7px; padding: 7px 12px; cursor: pointer; font-size: 13px;
+    min-height: 34px;
+  }
+  button:hover { border-color: var(--accent); }
+  button[aria-pressed="true"] { background: var(--accent); color: #04121a; border-color: var(--accent); font-weight: 600; }
+  input[type="range"] { width: 110px; accent-color: var(--accent); }
+  .swatches { display: flex; gap: 6px; }
+  .sw { width: 26px; height: 26px; min-height: 26px; border-radius: 50%; padding: 0; border: 2px solid transparent; cursor: pointer; }
+  .sw[aria-pressed="true"] { border-color: #fff; }
+  .fps { font: 12px/1 var(--mono); color: var(--muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  .tags-bar { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip {
+    font: 12px/1 var(--mono); padding: 6px 9px; border-radius: 999px;
+    border: 1px solid var(--line); background: transparent; color: var(--muted); cursor: pointer;
+    min-height: 0;
+  }
+  .chip[aria-pressed="true"] { background: var(--accent); color: #04121a; border-color: var(--accent); }
+
+  .grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); }
+  /* No background on the card itself: the window area has to stay see-through to the shared
+     canvas behind the page. The panel colour goes on the text block instead. */
+  .card {
+    background: transparent; border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; display: flex; flex-direction: column;
+  }
+  .card.wide { grid-column: 1 / -1; }
+  /* The window: left transparent so the shared canvas shows through. */
+  .screen { position: relative; aspect-ratio: 16 / 9; background: transparent; cursor: pointer; }
+  .card.wide .screen { aspect-ratio: 21 / 8; }
+  .screen::after {
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
+  }
+  .screen .err {
+    position: absolute; inset: 0; padding: 12px; overflow: auto; background: #1a0d0d;
+    color: #ff9b8f; font: 11px/1.4 var(--mono); white-space: pre-wrap;
+  }
+  .meta { padding: 12px 13px 13px; display: grid; gap: 8px; background: var(--panel); }
+  .meta-top { display: flex; align-items: baseline; gap: 8px; justify-content: space-between; }
+  .name { font-size: 15px; font-weight: 650; }
+  .family { font: 11px/1 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; white-space: nowrap; }
+  .bio { font-size: 13.5px; color: #aab4c4; }
+  .tags { display: flex; gap: 5px; flex-wrap: wrap; }
+  .tag { font: 11px/1 var(--mono); padding: 4px 7px; border-radius: 999px; background: var(--panel-2); border: 1px solid var(--line); color: var(--muted); }
+  .row { display: flex; gap: 7px; flex-wrap: wrap; }
+  .row button { padding: 5px 10px; font-size: 12px; min-height: 30px; }
+  pre.src {
+    margin: 0; padding: 12px; background: #05070b; border-top: 1px solid var(--line);
+    font: 11.5px/1.5 var(--mono); color: #9fd8ef; overflow: auto; max-height: 340px; display: none;
+  }
+  .card.showsrc pre.src { display: block; }
+
+  footer { margin-top: 34px; border-top: 1px solid var(--line); padding-top: 18px; color: var(--muted); font-size: 13.5px; display: grid; gap: 10px; max-width: 80ch; }
+  footer code { font-family: var(--mono); font-size: 12.5px; color: var(--ink); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
+  @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } .page { padding: 16px 12px 60px; } }
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<canvas id="gl"></canvas>
+<div class="page">
+  <header>
+    <div class="title-row">
+      <h1>HUD Visual Lab</h1>
+      <span class="sub">Every window is drawn by a shader, live. Nothing here is video or a sprite sheet.</span>
+    </div>
+    <div class="controls">
+      <button id="play" aria-pressed="true">Pause</button>
+      <label class="ctl">Speed <input id="speed" type="range" min="0" max="2.5" step="0.05" value="1"><span id="speedv" class="kbd">1.0x</span></label>
+      <span class="ctl">Colour</span>
+      <span class="swatches" id="swatches"></span>
+      <label class="ctl"><input id="labels" type="checkbox" checked> Labels</label>
+      <span class="fps" id="fps">--</span>
+    </div>
+    <div class="tags-bar" id="tags"></div>
+  </header>
+  <div class="grid" id="grid"></div>
+  <footer>
+    <p><b>How this is built.</b> Each window is one fragment shader that draws shapes from distance fields: a distance to the nearest edge, turned into a crisp line by the screen-space derivative. That is why every window stays sharp at any size, and why the whole page is smaller than one frame of the reference videos.</p>
+    <p><b>Adding a visual.</b> Open this file and append one entry to <code>VISUALS</code>. Write <code>vec3 hud(vec2 p)</code>, where <code>p</code> is centred on the window, <code>y</code> runs -1..1 and <code>x</code> is scaled by the aspect. Give it a family, tags and a line about what it is for. The window, the labels, the filter and the source view are generated for you. A shader that fails to compile shows its error in its own window instead of breaking the page.</p>
+    <p><b>Taking one into an app.</b> The body of each shader is portable: paste it into a three.js <code>ShaderMaterial</code> for the AR build, or into a Unity Shader Graph Custom Function node, where the renames are <code>mix</code> to <code>lerp</code>, <code>fract</code> to <code>frac</code>, <code>mod</code> to a written-out modulo, and <code>atan(y,x)</code> to <code>atan2</code>.</p>
+  </footer>
+</div>
+
+<script>
+// ---------------------------------------------------------------------------------------------
+// THE LIBRARY
+// ---------------------------------------------------------------------------------------------
+const FAMILIES = {
+  frame:     {label: 'Frames & borders'},
+  radial:    {label: 'Radial & dials'},
+  meter:     {label: 'Meters & rails'},
+  signal:    {label: 'Signals & traces'},
+  field:     {label: 'Fields & grids'},
+  particle:  {label: 'Particles & assembly'},
+  texture:   {label: 'Data texture'},
+  noise:     {label: 'Interference'},
+  composite: {label: 'Composites'},
+}
+
+// Shared helpers every visual can use: distance fields, anti-aliasing, glow, and the small set
+// of motions the reference videos were all built from.
+const PRELUDE = `#version 300 es
+precision highp float;
+uniform vec2 uRes;      // this window's size in device pixels
+uniform vec2 uOrigin;   // this window's lower-left corner in the shared canvas
+uniform float uTime;
+uniform vec3 uAccent;
+uniform float uAspect;
+out vec4 fragColor;
+
+const float PI = 3.14159265359;
+const float TAU = 6.28318530718;
+
+float hash11(float n){ return fract(sin(n * 78.233) * 43758.5453); }
+float hash21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float vnoise(vec2 p){
+  vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  float a = hash21(i), b = hash21(i + vec2(1,0)), c = hash21(i + vec2(0,1)), d = hash21(i + vec2(1,1));
+  return mix(mix(a, b, f.x), mix(c, d, f.x), f.y);
+}
+float fbm(vec2 p){ float s = 0.0, a = 0.5; for (int i = 0; i < 4; i++){ s += a * vnoise(p); p *= 2.03; a *= 0.5; } return s; }
+
+// One pixel of softness on every edge, whatever the zoom. Nothing uses a hard step.
+float fill(float d){ return clamp(0.5 - d / max(fwidth(d), 1e-6), 0.0, 1.0); }
+float stroke(float d, float w){ return fill(abs(d) - w * 0.5); }
+// Glow as a distance falloff - what replaces a full-screen bloom pass. It costs a few
+// instructions, stays inside the element, and never touches a camera feed behind it.
+float glow(float d, float r){ return exp(-max(d, 0.0) / max(r, 1e-5)); }
+// For shapes built on repeated cells, the coordinate jumps at every cell edge, so fwidth() of
+// the distance spikes there and fill() paints blobs. Give those an explicit width instead.
+float fillW(float d, float w){ return smoothstep(w, -w, d); }
+float strokeW(float d, float t, float w){ return fillW(abs(d) - t * 0.5, w); }
+
+float sdBox(vec2 p, vec2 b){ vec2 q = abs(p) - b; return length(max(q, 0.0)) + min(max(q.x, q.y), 0.0); }
+float sdRound(vec2 p, vec2 b, float r){ return sdBox(p, b - r) - r; }
+// The cut-corner panel every sci-fi frame is made from: a box intersected with a rotated box.
+float sdChamfer(vec2 p, vec2 b, float c){
+  vec2 q = abs(p);
+  return max(sdBox(p, b), (q.x + q.y - (b.x + b.y - c)) * 0.70710678);
+}
+float sdSeg(vec2 p, vec2 a, vec2 b){
+  vec2 pa = p - a, ba = b - a;
+  return length(pa - ba * clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0));
+}
+float sdRing(vec2 p, float r){ return abs(length(p) - r); }
+float sdHexagon(vec2 p, float r){
+  const vec3 k = vec3(-0.866025404, 0.5, 0.577350269);
+  p = abs(p);
+  p -= 2.0 * min(dot(k.xy, p), 0.0) * k.xy;
+  p -= vec2(clamp(p.x, -k.z * r, k.z * r), r);
+  return length(p) * sign(p.y);
+}
+// An arc centred on +x, half-aperture ap, radius ra, thickness rb. Continuous everywhere, so
+// the derivative never spikes at the ends - unlike masking an angle range, which seams.
+float sdArc(vec2 p, float ap, float ra, float rb){
+  vec2 sc = vec2(sin(ap), cos(ap));
+  p.x = abs(p.x);
+  return ((sc.y * p.x > sc.x * p.y) ? length(p - sc * ra) : abs(length(p) - ra)) - rb;
+}
+mat2 rot(float a){ float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+float tri(float x){ return abs(fract(x) - 0.5) * 2.0; }
+// Dashes around a ring, from sin() of an integer multiple of the angle so the pattern stays
+// continuous where atan() wraps. Taking a derivative across that wrap is a classic seam.
+float dashes(vec2 p, float n, float duty){
+  return smoothstep(-duty, duty + 0.02, sin(atan(p.y, p.x) * n));
+}
+// One reveal ramp, so a whole HUD can build in on a single clock.
+float cycle(float period, float hold){
+  float t = mod(uTime, period) / period;
+  return smoothstep(0.0, 0.18, t) * (1.0 - smoothstep(hold, 1.0, t));
+}
+`
+
+const MAIN = `
+void main(){
+  // gl_FragCoord is in canvas coordinates, not window coordinates: every window is a viewport
+  // into one shared canvas, so its own origin has to come out first.
+  vec2 p = (gl_FragCoord.xy - uOrigin - 0.5 * uRes) / (0.5 * uRes.y);
+  vec3 c = hud(p);
+  c += (hash21(gl_FragCoord.xy + fract(uTime)) - 0.5) / 255.0;   // break up banding in the glow
+  fragColor = vec4(c, 1.0);
+}`
+
+const VISUALS = [
+{
+  id: 'chamfer-frame', title: 'Chamfered panel frame', family: 'frame',
+  tags: ['line-art', 'reveal', 'cheap', 'portal'],
+  bio: "The workhorse: a cut-corner border with a hazard bar that grows, a highlight sliding along a rail, and marker rings. Wrap it around a portal opening, an info card, or a scanned object.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.80, 0.74);
+  float frame = sdChamfer(p, b, 0.26);
+  c += uAccent * stroke(frame, 0.012);
+  c += uAccent * glow(abs(frame), 0.05) * 0.30;
+
+  float grow = 0.12 + 0.88 * cycle(6.0, 0.74);
+  vec2 hp = p - vec2(-b.x * 0.06, b.y - 0.09);
+  float bar = sdBox(hp, vec2(b.x * 0.44 * grow, 0.034));
+  float stripes = smoothstep(0.35, 0.5, fract((hp.x * 0.6 + hp.y) * 13.0));
+  c += uAccent * fill(bar) * (0.25 + 0.75 * stripes);
+
+  vec2 rp = p - vec2(b.x * 0.16, -b.y + 0.085);
+  float rail = sdBox(rp, vec2(b.x * 0.5, 0.022));
+  c += uAccent * stroke(rail, 0.008) * 0.8;
+  float head = smoothstep(0.14, 0.0, abs(rp.x - (fract(uTime * 0.22) * 2.0 - 1.0) * b.x * 0.5));
+  c += uAccent * fill(sdBox(rp, vec2(b.x * 0.5 - 0.008, 0.014))) * head;
+
+  for (int i = 0; i < 3; i++){
+    vec2 mp = p - vec2(-b.x + 0.11, 0.26 - float(i) * 0.19);
+    float r = sdRing(mp, 0.042);
+    float d = dashes(mp * rot(uTime * (0.6 + float(i) * 0.3)), 6.0, 0.22);
+    c += uAccent * stroke(r, 0.012) * d;
+    c += uAccent * glow(r, 0.028) * 0.45 * d;
+  }
+  for (int i = 0; i < 2; i++){
+    float f = step(0.55, hash11(floor(uTime * 3.0) + float(i) * 17.0));
+    vec2 cp = p - vec2(b.x - 0.18, b.y - 0.03 - float(i) * 0.075);
+    c += uAccent * fill(sdBox(cp, vec2(0.085, 0.006))) * f;
+  }
+  return c;
+}`,
+},
+{
+  id: 'bracket-lock', title: 'Target brackets', family: 'frame',
+  tags: ['line-art', 'reveal', 'tracking', 'cheap'],
+  bio: "Four corner brackets that fly inward and settle, with a lock ring. The standard way to say 'this is selected' - put it on a deep-sky marker or a tapped star.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 col = vec3(0.0);
+  float k = cycle(4.0, 0.78);
+  vec2 b = vec2(uAspect * 0.56, 0.54) + mix(0.26, 0.0, smoothstep(0.0, 1.0, k));
+  float s = 0.22, w = 0.008;
+  vec2 q = abs(p);                                  // one corner, mirrored into four
+  float d = min(sdSeg(q, vec2(b.x - s, b.y), b), sdSeg(q, vec2(b.x, b.y - s), b)) - w;
+  col += uAccent * fill(d) * k;
+  col += uAccent * glow(max(d, 0.0), 0.045) * 0.55 * k;
+  float t = min(sdSeg(p, vec2(-0.07, 0.0), vec2(0.07, 0.0)), sdSeg(p, vec2(0.0, -0.07), vec2(0.0, 0.07))) - 0.004;
+  col += uAccent * fill(t) * k * 0.85;
+  float ring = sdRing(p, 0.66 - 0.12 * k);
+  col += uAccent * stroke(ring, 0.006) * dashes(p * rot(uTime * 1.1), 12.0, 0.35) * k * 0.75;
+  return col;
+}`,
+},
+{
+  id: 'dashed-rings', title: 'Concentric dashed rings', family: 'radial',
+  tags: ['line-art', 'loop', 'cheap', 'idle'],
+  bio: "Rings with different dash counts turning at different speeds. Reads as 'working' without claiming a number. Good as a loading state, or as a halo around a point of interest.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 4; i++){
+    float f = float(i);
+    float r = 0.22 + f * 0.155;
+    float dir = mod(f, 2.0) < 0.5 ? 1.0 : -1.0;
+    float ring = sdRing(p, r);
+    float d = dashes(p * rot(uTime * (0.55 - f * 0.09) * dir), 5.0 + f * 4.0, 0.2 + f * 0.05);
+    c += uAccent * stroke(ring, 0.016 - f * 0.002) * d;
+    c += uAccent * glow(ring, 0.022) * 0.45 * d;
+  }
+  float ticks = sdRing(p, 0.87);
+  c += uAccent * stroke(ticks, 0.004) * dashes(p, 60.0, 0.55) * 0.5;
+  c += uAccent * fill(length(p) - 0.028) * (0.55 + 0.45 * sin(uTime * 3.0));
+  return c;
+}`,
+},
+{
+  id: 'radar-sweep', title: 'Radar sweep', family: 'radial',
+  tags: ['loop', 'data-driven', 'spatial', 'medium'],
+  bio: "A rotating sweep with a decaying trail and contacts that light as it passes. Feed it real bearings and it becomes a live 'what is around me' display.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float r = length(p);
+  float edge = smoothstep(0.92, 0.90, r);
+  float sweep = mod(atan(p.y, p.x) - uTime * 1.1, TAU) / TAU;
+  c += uAccent * pow(1.0 - sweep, 6.0) * edge * 0.5;
+  for (int i = 1; i <= 4; i++){
+    c += uAccent * stroke(sdRing(p, float(i) * 0.215), 0.004) * 0.45;
+  }
+  c += uAccent * fill(min(abs(p.x), abs(p.y)) - 0.0025) * edge * 0.3;
+  for (int i = 0; i < 5; i++){
+    float f = float(i);
+    float ba = hash11(f * 3.7) * TAU;
+    vec2 bp = vec2(cos(ba), sin(ba)) * (0.2 + hash11(f * 9.1) * 0.6);
+    float lit = pow(1.0 - mod(ba - uTime * 1.1, TAU) / TAU, 3.0);
+    float d = length(p - bp);
+    c += uAccent * (glow(d - 0.012, 0.022) * 1.2 + fill(d - 0.013)) * lit;
+  }
+  return c;
+}`,
+},
+{
+  id: 'orbit-dials', title: 'Orbit dials', family: 'radial',
+  tags: ['loop', 'data-driven', 'cheap', 'gauge'],
+  bio: "Arc segments orbiting a centre, each one a value between 0 and 1. Drive the arc lengths from real numbers and it becomes a compact multi-gauge.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 3; i++){
+    float f = float(i);
+    float r = 0.28 + f * 0.185;
+    float len = mix(0.5, 2.3, 0.5 + 0.5 * sin(uTime * (0.4 + f * 0.22) + f));
+    float mid = uTime * (0.5 + f * 0.33) + f * 2.0;
+    float d = sdArc(p * rot(-mid + PI * 0.5), len, r, 0.014);
+    c += uAccent * fill(d);
+    c += uAccent * glow(max(d, 0.0), 0.03) * 0.5;
+    vec2 head = vec2(cos(mid + len), sin(mid + len)) * r;
+    c += vec3(1.0) * glow(length(p - head) - 0.009, 0.018) * 0.85;
+  }
+  c += uAccent * stroke(sdRing(p, 0.70), 0.003) * 0.28;
+  return c;
+}`,
+},
+{
+  id: 'scan-rail', title: 'Segmented rail', family: 'meter',
+  tags: ['data-driven', 'reveal', 'cheap', 'label'],
+  bio: "A segmented bar filling to a value, with a scan head running ahead of the fill. The honest way to show progress: loading, charge, distance, completion.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float value = 0.5 + 0.5 * sin(uTime * 0.5);
+  float w = uAspect * 0.80;
+  for (int row = 0; row < 3; row++){
+    float fr = float(row);
+    vec2 q = p - vec2(0.0, 0.40 - fr * 0.40);
+    float v = clamp(value - fr * 0.17, 0.02, 1.0);
+    c += uAccent * stroke(sdBox(q, vec2(w, 0.06)), 0.006) * 0.5;
+    float u = (q.x + w) / (2.0 * w);
+    float seg = fract(u * 22.0);
+    float segMask = smoothstep(0.1, 0.22, seg) * smoothstep(0.98, 0.86, seg);
+    float body = fill(sdBox(q, vec2(w - 0.014, 0.044)));
+    c += uAccent * body * segMask * step(u, v) * 0.85;
+    c += vec3(1.0) * body * smoothstep(0.07, 0.0, abs(q.x - (-w + v * 2.0 * w))) * 0.9;
+  }
+  return c;
+}`,
+},
+{
+  id: 'spectrum-bars', title: 'Spectrum bars', family: 'meter',
+  tags: ['data-driven', 'loop', 'audio', 'medium'],
+  bio: "A bar per band with peak markers. Wire it to audio, to a star's spectrum, or to any array of values that changes over time.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float n = 26.0;
+  float x = (p.x / uAspect * 0.5 + 0.5) * n;
+  float idx = floor(x);
+  float inBar = smoothstep(0.06, 0.2, fract(x)) * smoothstep(0.94, 0.8, fract(x));
+  float h = 0.12 + 0.8 * fbm(vec2(idx * 0.35, uTime * 0.8));
+  float peak = max(h, 0.12 + 0.8 * fbm(vec2(idx * 0.35, uTime * 0.8 - 0.35)));
+  float y = clamp(p.y * 0.62 + 0.5, 0.0, 1.0);
+  float bar = smoothstep(0.004, 0.0, y - h) * step(0.001, y);
+  c += mix(uAccent, vec3(1.0), smoothstep(0.35, 1.0, y)) * bar * inBar * (0.3 + 0.7 * y);
+  c += vec3(1.0) * inBar * smoothstep(0.018, 0.0, abs(y - peak)) * 0.85;
+  c += uAccent * fill(sdBox(p - vec2(0.0, -0.81), vec2(uAspect, 0.006))) * 0.7;
+  return c;
+}`,
+},
+{
+  id: 'waveform-burst', title: 'Waveform burst', family: 'signal',
+  tags: ['loop', 'glow', 'centrepiece', 'medium'],
+  bio: "Layered traces pinched at the centre with a blown-out core: the 'energy signature' look. Use it as the hero of a panel, or as the voice of something speaking.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float x = p.x / uAspect;
+  float env = exp(-x * x * 5.0);
+  for (int i = 0; i < 5; i++){
+    float f = float(i);
+    float amp = (0.42 - f * 0.065) * env;
+    float y = sin(x * (7.0 + f * 3.1) + uTime * (1.4 + f * 0.5)) * amp
+            + sin(x * (17.0 + f * 5.0) - uTime * (2.1 + f * 0.3)) * amp * 0.34;
+    float d = abs(p.y - y) - 0.004;
+    float a = 1.0 - f * 0.16;
+    c += uAccent * fill(d) * a;
+    c += uAccent * glow(max(d, 0.0), 0.05) * 0.32 * a;
+  }
+  float core = length(p * vec2(1.0, 2.2));
+  c += vec3(0.72, 0.88, 1.0) * glow(core - 0.02, 0.09) * 1.25;
+  c += vec3(1.0) * fill(core - 0.028);
+  c += uAccent * fill(abs(p.y) - 0.0015) * 0.3;
+  return c;
+}`,
+},
+{
+  id: 'oscilloscope', title: 'Phosphor trace', family: 'signal',
+  tags: ['loop', 'grid', 'instrument', 'cheap'],
+  bio: "A single trace on a measured grid, brightest just behind the writing head. Reads as an instrument rather than decoration, for a readout that should feel measured.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 g = abs(fract(p * 4.0) - 0.5);
+  c += uAccent * smoothstep(0.035, 0.0, min(g.x, g.y)) * 0.15;
+  c += uAccent * smoothstep(0.006, 0.0, min(abs(p.x), abs(p.y))) * 0.35;
+  float x = p.x / uAspect;
+  float head = fract(uTime * 0.35) * 2.0 - 1.0;
+  float y = sin(x * 6.0 + uTime * 2.0) * 0.4 * exp(-abs(x) * 0.4) + sin(x * 21.0 - uTime * 3.0) * 0.07;
+  float d = abs(p.y - y) - 0.005;
+  float bright = pow(1.0 - mod(head - x, 2.0) / 2.0, 3.0);
+  c += uAccent * fill(d) * (0.22 + bright);
+  c += uAccent * glow(max(d, 0.0), 0.04) * bright * 0.9;
+  c += vec3(1.0) * glow(length(p - vec2(head * uAspect, y)) - 0.007, 0.02) * 0.9;
+  return c;
+}`,
+},
+{
+  id: 'greeble-columns', title: 'Data greeble', family: 'texture',
+  tags: ['loop', 'texture', 'cheap', 'background'],
+  bio: "Columns of unreadable rows scrolling at different speeds: the texture that makes a panel feel dense with information. Deliberately not text, because nobody reads it, so it should cost nothing.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float cols = 5.0;
+  float u = p.x / uAspect * 0.5 + 0.5;
+  float cx = floor(u * cols), fx = fract(u * cols);
+  float y = p.y * 3.4 + uTime * (0.1 + hash11(cx) * 0.22) * 6.0;
+  float row = floor(y), fy = fract(y);
+  float seed = hash21(vec2(cx, row));
+  float words = floor(2.0 + seed * 5.0);
+  float wx = fract(fx * words + seed * 10.0);
+  float glyph = smoothstep(0.1, 0.16, wx) * smoothstep(0.78, 0.7, wx - 0.2 * hash21(vec2(cx + wx, row)));
+  float line = smoothstep(0.16, 0.3, fy) * smoothstep(0.84, 0.7, fy);
+  float lit = 0.22 + 0.78 * step(0.86, hash21(vec2(row, floor(uTime * 2.0) + cx)));
+  c += uAccent * glyph * line * lit * smoothstep(0.04, 0.09, fx) * smoothstep(0.96, 0.91, fx) * 0.85;
+  return c;
+}`,
+},
+{
+  id: 'hex-field', title: 'Hex field pulse', family: 'field',
+  tags: ['loop', 'shield', 'fill-heavy', 'surface'],
+  bio: "A honeycomb with a ripple running out through it. Made for surfaces rather than frames: a shield, a scanned wall, the skin of something being analysed.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 q = p * 7.0;
+  vec2 r = vec2(1.0, 1.73205), h = r * 0.5;
+  vec2 a = mod(q, r) - h, b = mod(q - h, r) - h;
+  vec2 gv = dot(a, a) < dot(b, b) ? a : b;
+  vec2 id = q - gv;
+  float d = sdHexagon(gv, 0.46);
+  float w = 7.0 * 2.0 / uRes.y;                       // one pixel, in the scaled cell space
+  float lit = smoothstep(0.2, 1.0, sin(length(id) * 0.6 - uTime * 2.2));
+  c += uAccent * strokeW(d, 0.05, w) * (0.22 + 0.78 * lit);
+  c += uAccent * fillW(d + 0.1, w) * lit * 0.1;
+  // a whole cell lighting up now and then, in the theme colour rather than a grey dot
+  float spark = step(0.992, hash21(floor(id) + floor(uTime * 1.5)));
+  c += mix(uAccent, vec3(1.0), 0.35) * fillW(d + 0.02, w * 0.5) * spark * 0.7;
+  return c;
+}`,
+},
+{
+  id: 'horizon-grid', title: 'Horizon grid', family: 'field',
+  tags: ['loop', 'depth', 'background', 'cheap'],
+  bio: "A ground plane running to a horizon, drawn flat. Sets a stage behind other elements, or suggests travel without moving the camera, which matters in AR where the camera is the user's head.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float horizon = 0.18;
+  float y = p.y - horizon;
+  if (y < -0.004){
+    float z = -1.0 / y;
+    vec2 g = vec2(p.x * z * 0.5, z * 0.5 + uTime * 0.6);
+    vec2 f = abs(fract(g) - 0.5);
+    c += uAccent * smoothstep(0.07, 0.0, min(f.x, f.y)) * smoothstep(0.0, 0.5, -y) * 0.85;
+  }
+  float hz = abs(p.y - horizon);
+  c += uAccent * smoothstep(0.004, 0.0, hz - 0.001) * 0.9;
+  c += uAccent * glow(hz, 0.09) * 0.3;
+  c += uAccent * smoothstep(0.0, 0.6, p.y - horizon) * (0.5 + 0.5 * sin(p.y * 22.0 - uTime)) * 0.05;
+  return c;
+}`,
+},
+{
+  id: 'warp-streaks', title: 'Warp streaks', family: 'particle',
+  tags: ['loop', 'background', 'motion', 'medium'],
+  bio: "Streaks flying out from a vanishing point, the background of the data-viz reference. Keep it slow and dim in a headset, where fast radial motion is a comfort risk.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 26; i++){
+    float f = float(i);
+    float sa = hash11(f * 1.7) * TAU;
+    float t = fract(uTime * (0.35 + hash11(f * 5.3) * 0.5) + hash11(f * 9.9));
+    float head = t * 1.7;
+    float len = 0.12 + hash11(f * 3.3) * 0.3;
+    vec2 dir = vec2(cos(sa), sin(sa));
+    float d = sdSeg(p, dir * max(head - len, 0.0), dir * head) - 0.0025;
+    float fade = smoothstep(0.0, 0.25, t) * smoothstep(1.0, 0.6, t);
+    c += uAccent * fill(d) * fade;
+    c += uAccent * glow(max(d, 0.0), 0.02) * fade * 0.6;
+  }
+  c += vec3(0.8, 0.92, 1.0) * glow(length(p) - 0.01, 0.06) * 0.6;
+  return c;
+}`,
+},
+{
+  id: 'helix-assembly', title: 'Helix assembly', family: 'particle',
+  tags: ['reveal', 'points', 'data-driven', 'medium'],
+  bio: "Points scattered at random gather into a double helix, hold, then scatter again. The general technique for anything assembling itself: swap the target positions for any shape.",
+  points: {
+    count: 1600,
+    // Return a position for point t (0..1) with its own seed. The morph between the scattered
+    // cloud and the target is one mix, staggered per point so the shape builds rather than snaps.
+    body: `
+vec3 place(float t, float seed){
+  float strand = step(0.5, fract(seed * 7.0));
+  float a = t * TAU * 3.2 + strand * PI + uTime * 0.7;
+  vec3 target = vec3(cos(a) * 0.42, (t * 2.0 - 1.0) * 0.8, sin(a) * 0.42);
+  if (fract(seed * 13.0) > 0.86) target.xz *= 2.0 * fract(seed * 29.0) - 1.0;   // rungs between strands
+  vec3 scattered = (vec3(hash11(seed * 3.1), hash11(seed * 5.7), hash11(seed * 9.3)) * 2.0 - 1.0) * 1.1;
+  float phase = mod(uTime * 0.16, 1.0);
+  float stagger = fract(seed * 17.0) * 0.3;
+  float k = smoothstep(stagger, 0.5 + stagger, phase) * (1.0 - smoothstep(0.84, 0.99, phase));
+  return mix(scattered, target, k);
+}`,
+  },
+},
+{
+  id: 'scanline-glitch', title: 'Scanline break-up', family: 'noise',
+  tags: ['loop', 'transition', 'texture', 'cheap'],
+  bio: "Scanlines, a rolling band and occasional tearing. Use it briefly: as a transition when a panel changes state, or to say a signal is degraded.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float band = floor(p.y * 26.0);
+  float jump = step(0.86, hash21(vec2(band, floor(uTime * 6.0)))) * (hash21(vec2(band, floor(uTime * 6.0) + 3.0)) - 0.5) * 0.3;
+  vec2 q = p + vec2(jump, 0.0);
+  vec2 box = vec2(uAspect * 0.66, 0.56);
+  float body = fill(sdRound(q, box, 0.06));
+  float lines = 0.55 + 0.45 * sin(q.y * 220.0);
+  float rr = fill(sdRound(q + vec2(0.01, 0.0), box, 0.06));
+  float bb = fill(sdRound(q - vec2(0.01, 0.0), box, 0.06));
+  c += vec3(rr, body, bb) * uAccent * lines * 0.45;
+  c += uAccent * stroke(sdRound(q, box, 0.06), 0.008);
+  c += uAccent * smoothstep(0.06, 0.0, abs(fract(p.y * 0.5 - uTime * 0.35) - 0.5)) * body * 0.45;
+  c += vec3(1.0) * body * step(0.997, hash21(p * 90.0 + fract(uTime))) * 0.4;
+  return c;
+}`,
+},
+{
+  id: 'console-panel', title: 'Console panel', family: 'composite',
+  tags: ['composite', 'reveal', 'label', 'medium'],
+  bio: "Frame, title bar, waveform, greeble and a rail composed into one panel: how the pieces are meant to work together. The closest thing here to a finished info card.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.84, 0.78);
+  float frame = sdChamfer(p, b, 0.22);
+  c += uAccent * stroke(frame, 0.009);
+  c += uAccent * glow(abs(frame), 0.04) * 0.22;
+  c += uAccent * fill(frame) * 0.045;            // faint backing, so glow survives a bright room
+
+  vec2 tp = p - vec2(0.0, b.y - 0.13);
+  c += uAccent * fill(sdBox(tp, vec2(b.x - 0.05, 0.002))) * 0.55;
+  for (int i = 0; i < 7; i++){
+    float f = float(i);
+    vec2 gp = tp - vec2(-b.x + 0.14 + f * 0.065, 0.06);
+    c += uAccent * fill(sdBox(gp, vec2(0.022, 0.012))) * (0.22 + 0.78 * step(0.5, hash11(f + floor(uTime * 1.5))));
+  }
+  float x = p.x / uAspect;
+  float y = (sin(x * 9.0 + uTime * 1.6) * 0.5 + sin(x * 19.0 - uTime * 2.2) * 0.2) * 0.2 * exp(-x * x * 6.0) + 0.14;
+  float d = abs(p.y - y) - 0.004;
+  c += uAccent * fill(d);
+  c += uAccent * glow(max(d, 0.0), 0.05) * 0.38;
+  c += vec3(0.78, 0.9, 1.0) * glow(length((p - vec2(0.0, 0.14)) * vec2(1.0, 2.0)) - 0.014, 0.07) * 0.85;
+
+  vec2 gq = p - vec2(-b.x + 0.32, -0.42);
+  float inBlock = step(abs(gq.x), 0.26) * step(abs(gq.y), 0.2);
+  float row = floor(gq.y * 24.0 + uTime * 1.5);
+  float wlen = 0.06 + hash11(row) * 0.38;
+  c += uAccent * inBlock * step(abs(gq.x + 0.26 - wlen), wlen)
+       * smoothstep(0.5, 0.18, abs(fract(gq.y * 24.0 + uTime * 1.5) - 0.5)) * 0.42;
+
+  vec2 rp = p - vec2(0.12, -b.y + 0.13);
+  float v = 0.5 + 0.5 * sin(uTime * 0.6);
+  c += uAccent * stroke(sdBox(rp, vec2(b.x * 0.52, 0.018)), 0.005) * 0.55;
+  c += uAccent * fill(sdBox(rp - vec2(-b.x * 0.52 * (1.0 - v), 0.0), vec2(b.x * 0.52 * v, 0.012))) * 0.85;
+
+  vec2 dp = p - vec2(b.x - 0.26, -0.4);
+  float ring = sdRing(dp, 0.13);
+  float dsh = dashes(dp * rot(uTime * 0.8), 9.0, 0.3);
+  c += uAccent * stroke(ring, 0.01) * dsh;
+  c += uAccent * glow(ring, 0.025) * 0.4 * dsh;
+  return c;
+}`,
+},
+{
+  id: 'reticle-stack', title: 'Reticle stack', family: 'composite',
+  tags: ['composite', 'tracking', 'centre-screen', 'cheap'],
+  bio: "Brackets, a dashed ring, compass ticks and a range bar stacked into one aiming reticle. Built for the centre of the screen, where it has to stay legible and never block the view.",
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float breathe = 0.5 + 0.5 * sin(uTime * 1.6);
+  c += uAccent * stroke(sdRing(p, 0.30 + breathe * 0.012), 0.006) * dashes(p * rot(-uTime * 0.5), 3.0, 0.45);
+  c += uAccent * stroke(sdRing(p, 0.46), 0.003) * dashes(p * rot(uTime * 0.9), 24.0, 0.5) * 0.65;
+  for (int i = 0; i < 4; i++){
+    float a = float(i) * PI * 0.5 + PI * 0.25;
+    vec2 dir = vec2(cos(a), sin(a));
+    c += uAccent * fill(sdSeg(p, dir * 0.54, dir * 0.64) - 0.004) * 0.9;
+  }
+  c += vec3(1.0) * glow(length(p) - 0.005, 0.014) * 0.9;
+  float ch = min(sdSeg(p, vec2(0.08, 0.0), vec2(0.18, 0.0)), sdSeg(p, vec2(-0.18, 0.0), vec2(-0.08, 0.0)));
+  ch = min(ch, min(sdSeg(p, vec2(0.0, 0.08), vec2(0.0, 0.18)), sdSeg(p, vec2(0.0, -0.18), vec2(0.0, -0.08))));
+  c += uAccent * fill(ch - 0.004);
+  vec2 rp = p - vec2(0.0, -0.74);
+  float v = 0.5 + 0.5 * sin(uTime * 0.7);
+  c += uAccent * stroke(sdBox(rp, vec2(0.34, 0.012)), 0.004) * 0.5;
+  c += uAccent * fill(sdBox(rp - vec2(-0.34 * (1.0 - v), 0.0), vec2(0.34 * v, 0.007)));
+  return c;
+}`,
+},
+]
+
+// ---------------------------------------------------------------------------------------------
+// THE LAB - one WebGL surface, one rectangle per window
+// ---------------------------------------------------------------------------------------------
+const canvas = document.getElementById('gl')
+const gl = canvas.getContext('webgl2', {antialias: false, alpha: false, premultipliedAlpha: false})
+const grid = document.getElementById('grid')
+
+const ACCENTS = [
+  ['Ice', [0.31, 0.82, 1.0]],
+  ['Portal green', [0.16, 0.95, 0.55]],
+  ['Amber', [1.0, 0.67, 0.22]],
+  ['Magenta', [1.0, 0.35, 0.78]],
+  ['Bone', [0.86, 0.9, 1.0]],
+]
+const state = {playing: true, speed: 1, accent: ACCENTS[0][1], clock: 0, last: performance.now(), filter: null}
+
+if (!gl) {
+  grid.innerHTML = '<p style="color:#ff9b8f">This browser has no WebGL2, so the lab cannot draw. Try a current Chrome, Safari or Firefox.</p>'
+}
+
+const QUAD_VS = `#version 300 es
+// location pinned: the vertex array binds slot 0, and an unpinned attribute is free to land
+// anywhere the linker likes - which silently draws nothing.
+layout(location = 0) in vec2 aPos;
+void main(){ gl_Position = vec4(aPos, 0.0, 1.0); }`
+
+const POINT_VS_HEAD = `#version 300 es
+precision highp float;
+layout(location = 0) in float aIndex;
+uniform vec2 uRes;
+uniform float uTime;
+uniform float uAspect;
+uniform float uCount;
+uniform float uDpr;
+out float vFade;
+const float PI = 3.14159265359;
+const float TAU = 6.28318530718;
+float hash11(float n){ return fract(sin(n * 78.233) * 43758.5453); }
+`
+const POINT_VS_TAIL = `
+void main(){
+  float t = aIndex / uCount;
+  float seed = hash11(aIndex * 1.37 + 3.1);
+  vec3 q = place(t, seed);
+  // straight orthographic projection with a touch of depth, so the far strand sits back
+  float depth = 0.5 + 0.5 * q.z;
+  vec2 pos = vec2(q.x / uAspect, q.y) * (0.82 + 0.18 * depth);
+  gl_Position = vec4(pos, 0.0, 1.0);
+  gl_PointSize = (1.4 + 2.2 * depth) * uDpr;
+  vFade = 0.35 + 0.65 * depth;
+}`
+const POINT_FS = `#version 300 es
+precision highp float;
+uniform vec3 uAccent;
+in float vFade;
+out vec4 fragColor;
+void main(){
+  float d = length(gl_PointCoord - 0.5) * 2.0;
+  float a = exp(-d * d * 4.0);
+  fragColor = vec4(mix(uAccent, vec3(1.0), 0.25 * vFade) * a * vFade, a);
+}`
+
+function compile(type, src) {
+  const s = gl.createShader(type)
+  gl.shaderSource(s, src)
+  gl.compileShader(s)
+  if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) {
+    const log = gl.getShaderInfoLog(s)
+    gl.deleteShader(s)
+    throw new Error(log)
+  }
+  return s
+}
+function link(vsSrc, fsSrc) {
+  const p = gl.createProgram()
+  gl.attachShader(p, compile(gl.VERTEX_SHADER, vsSrc))
+  gl.attachShader(p, compile(gl.FRAGMENT_SHADER, fsSrc))
+  gl.linkProgram(p)
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p))
+  return p
+}
+
+let quadVAO = null, pointBuffers = {}
+if (gl) {
+  quadVAO = gl.createVertexArray()
+  gl.bindVertexArray(quadVAO)
+  const vb = gl.createBuffer()
+  gl.bindBuffer(gl.ARRAY_BUFFER, vb)
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW)
+  gl.enableVertexAttribArray(0)
+  gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0)
+  gl.bindVertexArray(null)
+  gl.enable(gl.SCISSOR_TEST)
+  gl.enable(gl.BLEND)
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)   // premultiplied: glow adds, nothing fringes
+}
+
+// Build one card per visual. A shader that will not compile shows its error in its own window
+// rather than taking the page down - which is what you want while writing a new one.
+const cards = []
+for (const v of VISUALS) {
+  const card = document.createElement('article')
+  card.className = 'card'
+  card.dataset.id = v.id
+  const src = v.points ? v.points.body : v.frag
+  card.innerHTML =
+    '<div class="screen"><span class="err" hidden></span></div>' +
+    '<div class="meta">' +
+      '<div class="meta-top"><span class="name"></span><span class="family"></span></div>' +
+      '<p class="bio"></p>' +
+      '<div class="tags"></div>' +
+      '<div class="row"><button class="expand">Expand</button><button class="srcbtn">Source</button><button class="copy">Copy shader</button></div>' +
+    '</div>' +
+    '<pre class="src"></pre>'
+  card.querySelector('.name').textContent = v.title
+  card.querySelector('.family').textContent = (FAMILIES[v.family] || {label: v.family}).label
+  card.querySelector('.bio').textContent = v.bio
+  card.querySelector('.src').textContent = src.trim()
+  const tagWrap = card.querySelector('.tags')
+  for (const t of v.tags) {
+    const el = document.createElement('span')
+    el.className = 'tag'
+    el.textContent = t
+    tagWrap.appendChild(el)
+  }
+  const screen = card.querySelector('.screen')
+  const toggleWide = () => card.classList.toggle('wide')
+  screen.addEventListener('click', toggleWide)
+  card.querySelector('.expand').addEventListener('click', toggleWide)
+  card.querySelector('.srcbtn').addEventListener('click', () => card.classList.toggle('showsrc'))
+  card.querySelector('.copy').addEventListener('click', async (e) => {
+    try {
+      await navigator.clipboard.writeText(src.trim())
+      e.target.textContent = 'Copied'
+    } catch (err) {
+      card.classList.add('showsrc')
+      e.target.textContent = 'Select it below'
+    }
+    setTimeout(() => { e.target.textContent = 'Copy shader' }, 1600)
+  })
+  grid.appendChild(card)
+
+  const entry = {v, card, screen, program: null, uniforms: null, error: null, visible: true}
+  if (gl) {
+    try {
+      if (v.points) {
+        entry.program = link(POINT_VS_HEAD + v.points.body + POINT_VS_TAIL, POINT_FS)
+        if (!pointBuffers[v.points.count]) {
+          const idx = new Float32Array(v.points.count)
+          for (let i = 0; i < v.points.count; i++) idx[i] = i
+          const vao = gl.createVertexArray()
+          gl.bindVertexArray(vao)
+          const b = gl.createBuffer()
+          gl.bindBuffer(gl.ARRAY_BUFFER, b)
+          gl.bufferData(gl.ARRAY_BUFFER, idx, gl.STATIC_DRAW)
+          gl.enableVertexAttribArray(0)
+          gl.vertexAttribPointer(0, 1, gl.FLOAT, false, 0, 0)
+          gl.bindVertexArray(null)
+          pointBuffers[v.points.count] = vao
+        }
+      } else {
+        entry.program = link(QUAD_VS, PRELUDE + v.frag + MAIN)
+      }
+      const names = ['uRes', 'uOrigin', 'uTime', 'uAccent', 'uAspect', 'uCount', 'uDpr']
+      entry.uniforms = {}
+      for (const n of names) entry.uniforms[n] = gl.getUniformLocation(entry.program, n)
+    } catch (err) {
+      entry.error = String(err.message || err)
+      const e = screen.querySelector('.err')
+      e.hidden = false
+      e.textContent = v.title + ' failed to compile:\n\n' + entry.error
+    }
+  }
+  cards.push(entry)
+}
+
+// Only draw windows that are actually on screen.
+if ('IntersectionObserver' in window) {
+  const io = new IntersectionObserver((entries) => {
+    for (const e of entries) {
+      const c = cards.find(c => c.card === e.target)
+      if (c) c.visible = e.isIntersecting
+    }
+  }, {rootMargin: '150px'})
+  cards.forEach(c => io.observe(c.card))
+}
+
+// ---- controls ----
+const playBtn = document.getElementById('play')
+playBtn.addEventListener('click', () => {
+  state.playing = !state.playing
+  playBtn.textContent = state.playing ? 'Pause' : 'Play'
+  playBtn.setAttribute('aria-pressed', String(state.playing))
+})
+const speed = document.getElementById('speed'), speedv = document.getElementById('speedv')
+speed.addEventListener('input', () => {
+  state.speed = parseFloat(speed.value)
+  speedv.textContent = state.speed.toFixed(2).replace(/0$/, '') + 'x'
+})
+const swatches = document.getElementById('swatches')
+ACCENTS.forEach(([name, rgb], i) => {
+  const b = document.createElement('button')
+  b.className = 'sw'
+  b.title = name
+  b.style.background = 'rgb(' + rgb.map(x => Math.round(x * 255)).join(',') + ')'
+  b.setAttribute('aria-pressed', String(i === 0))
+  b.addEventListener('click', () => {
+    state.accent = rgb
+    document.documentElement.style.setProperty('--accent', b.style.background)
+    swatches.querySelectorAll('.sw').forEach(s => s.setAttribute('aria-pressed', 'false'))
+    b.setAttribute('aria-pressed', 'true')
+  })
+  swatches.appendChild(b)
+})
+document.getElementById('labels').addEventListener('change', (e) => {
+  document.querySelectorAll('.meta').forEach(m => { m.style.display = e.target.checked ? '' : 'none' })
+})
+
+// Tag filter, built from whatever tags the library happens to use.
+const allTags = [...new Set(VISUALS.flatMap(v => v.tags))].sort()
+const tagsBar = document.getElementById('tags')
+function applyFilter() {
+  for (const c of cards) {
+    const show = !state.filter || c.v.tags.includes(state.filter)
+    c.card.style.display = show ? '' : 'none'
+  }
+}
+const allChip = document.createElement('button')
+allChip.className = 'chip'
+allChip.textContent = 'all (' + VISUALS.length + ')'
+allChip.setAttribute('aria-pressed', 'true')
+tagsBar.appendChild(allChip)
+const chips = [allChip]
+allChip.addEventListener('click', () => {
+  state.filter = null
+  chips.forEach(c => c.setAttribute('aria-pressed', String(c === allChip)))
+  applyFilter()
+})
+for (const t of allTags) {
+  const b = document.createElement('button')
+  b.className = 'chip'
+  b.textContent = t
+  tagsBar.appendChild(b)
+  chips.push(b)
+  b.addEventListener('click', () => {
+    state.filter = state.filter === t ? null : t
+    chips.forEach(c => c.setAttribute('aria-pressed', String(state.filter === null ? c === allChip : c === b)))
+    applyFilter()
+  })
+}
+
+// ---- the loop ----
+let frames = 0, fpsAt = performance.now()
+const fpsEl = document.getElementById('fps')
+let drawn = 0
+function frame(now, manual) {
+  if (!manual) requestAnimationFrame(frame)
+  const dt = Math.min(0.05, (now - state.last) / 1000)
+  state.last = now
+  if (state.playing) state.clock += dt * state.speed
+  if (!gl) return
+
+  const dpr = Math.min(2, window.devicePixelRatio || 1)
+  const w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr)
+  if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h }
+
+  gl.disable(gl.SCISSOR_TEST)
+  gl.clearColor(0, 0, 0, 0)
+  gl.clear(gl.COLOR_BUFFER_BIT)
+  gl.enable(gl.SCISSOR_TEST)
+
+  for (const c of cards) {
+    if (!c.program || !c.visible || c.card.style.display === 'none') continue
+    const r = c.screen.getBoundingClientRect()
+    if (r.bottom < 0 || r.top > window.innerHeight || r.width < 2) continue
+    const x = Math.round(r.left * dpr)
+    const y = Math.round((window.innerHeight - r.bottom) * dpr)
+    const rw = Math.round(r.width * dpr), rh = Math.round(r.height * dpr)
+    gl.viewport(x, y, rw, rh)
+    gl.scissor(x, y, rw, rh)
+    // the window's own dark ground, so each one reads as a screen rather than a hole
+    gl.clearColor(0.016, 0.022, 0.033, 1)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+    gl.useProgram(c.program)
+    const u = c.uniforms
+    if (u.uRes) gl.uniform2f(u.uRes, rw, rh)
+    if (u.uOrigin) gl.uniform2f(u.uOrigin, x, y)
+    if (u.uTime) gl.uniform1f(u.uTime, state.clock)
+    if (u.uAccent) gl.uniform3fv(u.uAccent, state.accent)
+    if (u.uAspect) gl.uniform1f(u.uAspect, rw / rh)
+    if (c.v.points) {
+      if (u.uCount) gl.uniform1f(u.uCount, c.v.points.count)
+      if (u.uDpr) gl.uniform1f(u.uDpr, dpr)
+      gl.bindVertexArray(pointBuffers[c.v.points.count])
+      gl.drawArrays(gl.POINTS, 0, c.v.points.count)
+    } else {
+      gl.bindVertexArray(quadVAO)
+      gl.drawArrays(gl.TRIANGLES, 0, 3)
+    }
+    drawn++
+  }
+  gl.bindVertexArray(null)
+
+  frames++
+  if (now - fpsAt > 500) {
+    fpsEl.textContent = Math.round(frames * 1000 / (now - fpsAt)) + ' fps · ' +
+      cards.filter(c => c.visible && c.program).length + ' live'
+    frames = 0
+    fpsAt = now
+  }
+}
+requestAnimationFrame(frame)
+
+// A handle for scripting the lab: window.HUDLAB.draw() renders one frame on demand, which is
+// also how to grab a still without waiting for the animation loop.
+window.HUDLAB = {
+  VISUALS, FAMILIES, cards, state, gl,
+  draw(){ drawn = 0; frame(performance.now(), true); return drawn },
+}
+</script>
+</body>
+</html>
