@@ -13,8 +13,14 @@
   size, weighs nothing, and can be driven by live data, where a video can do none of those.
 
   TO ADD A VISUAL: append one entry to VISUALS (search for "THE LIBRARY"). The window, the
-  labels, the tag filter and the source view are all generated from it. Keep the families and
-  tags consistent - being able to ask for "that kind of thing" and find it is the point.
+  labels, the tag filter, the settings sliders and the source view are all generated from it.
+  Keep the families and tags consistent - being able to ask for "that kind of thing" and find it
+  is the point.
+
+  THE PARTS KIT (search for "THE PARTS KIT") holds the element groups the visuals are built from:
+  tick rings, bar fans, selection frames, fader banks, badges. A new visual should be a short
+  list of part calls wherever it can be, so a groove that works in one window can be lifted into
+  another - and so the same code goes into the AR build and the Unity project once, not per HUD.
 -->
 <style>
   :root {
@@ -109,6 +115,45 @@
   }
   .card.showsrc pre.src { display: block; }
 
+  /* The parts a visual is built from. Pressing one filters the grid to everything else that
+     uses it, which is how a groove from one window gets found again in another. */
+  .parts { display: flex; gap: 5px; flex-wrap: wrap; }
+  .part {
+    font: 11px/1 var(--mono); padding: 4px 7px; min-height: 0; border-radius: 5px;
+    background: transparent; border: 1px dashed var(--line); color: #8ea0b8; cursor: pointer;
+  }
+  .part:hover { border-color: var(--accent); color: var(--accent); }
+  .card.selected { border-color: var(--accent); }
+  .card.selected .screen::after { box-shadow: inset 0 0 0 2px var(--accent); }
+
+  /* ---- the settings window ---- */
+  #drawer {
+    position: fixed; top: 0; right: 0; bottom: 0; width: min(340px, 92vw); z-index: 5;
+    background: var(--panel); border-left: 1px solid var(--line);
+    display: none; grid-template-rows: auto minmax(0, 1fr) auto;
+    box-shadow: -18px 0 46px rgba(0, 0, 0, .5);
+  }
+  #drawer.open { display: grid; }
+  body.drawer-open .page { padding-right: calc(18px + min(340px, 92vw)); }
+  #drawer .dhead { padding: 14px 44px 11px 14px; border-bottom: 1px solid var(--line); display: grid; gap: 3px; }
+  #drawer .dname { font-size: 16px; font-weight: 650; }
+  #drawer .dsub { font: 11px/1.3 var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  #drawer .dbody { overflow: auto; padding: 13px 14px 16px; display: grid; gap: 15px; align-content: start; }
+  #drawer .dfoot { padding: 10px 14px; border-top: 1px solid var(--line); display: flex; gap: 8px; flex-wrap: wrap; }
+  #drawer .dx { position: absolute; top: 10px; right: 10px; padding: 4px 9px; min-height: 0; }
+  .field { display: grid; gap: 6px; }
+  .field .lab { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; font-size: 13px; color: #b6c0d0; }
+  .field .lab b { color: var(--accent); font: 12px/1 var(--mono); font-variant-numeric: tabular-nums; font-weight: 500; }
+  .field input[type="range"] { width: 100%; }
+  .dnote { font-size: 12.5px; color: var(--muted); }
+  .dparts { display: grid; gap: 6px; }
+  .dparts .p { font: 11.5px/1.4 var(--mono); color: #8ea0b8; }
+  .dparts .p b { color: var(--ink); font-weight: 600; }
+  @media (max-width: 720px) {
+    #drawer { top: auto; left: 0; width: auto; max-height: 64svh; border-left: 0; border-top: 1px solid var(--line); }
+    body.drawer-open .page { padding-right: 12px; padding-bottom: 66svh; }
+  }
+
   footer { margin-top: 34px; border-top: 1px solid var(--line); padding-top: 18px; color: var(--muted); font-size: 13.5px; display: grid; gap: 10px; max-width: 80ch; }
   footer code { font-family: var(--mono); font-size: 12.5px; color: var(--ink); background: var(--panel-2); padding: 1px 5px; border-radius: 4px; }
   @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } .page { padding: 16px 12px 60px; } }
@@ -121,7 +166,7 @@
   <header>
     <div class="title-row">
       <h1>HUD Visual Lab</h1>
-      <span class="sub">Every window is drawn by a shader, live. Nothing here is video or a sprite sheet.</span>
+      <span class="sub">Every window is drawn by a shader, live. Click one to open its settings and turn its parameters while it runs.</span>
     </div>
     <div class="controls">
       <button id="play" aria-pressed="true">Pause</button>
@@ -132,14 +177,37 @@
       <span class="fps" id="fps">--</span>
     </div>
     <div class="tags-bar" id="tags"></div>
+    <div class="tags-bar" id="parts-bar"></div>
   </header>
   <div class="grid" id="grid"></div>
   <footer>
+    <p><b>The parts kit.</b> Every window below the first seventeen is a short list of calls into one shared set of element groups - a tick ring, a bar fan, a selection frame, a fader bank. Press a part under any window to find everything else built from it, or open the settings on a window and turn its parameters while it runs.</p>
     <p><b>How this is built.</b> Each window is one fragment shader that draws shapes from distance fields: a distance to the nearest edge, turned into a crisp line by the screen-space derivative. That is why every window stays sharp at any size, and why the whole page is smaller than one frame of the reference videos.</p>
     <p><b>Adding a visual.</b> Open this file and append one entry to <code>VISUALS</code>. Write <code>vec3 hud(vec2 p)</code>, where <code>p</code> is centred on the window, <code>y</code> runs -1..1 and <code>x</code> is scaled by the aspect. Give it a family, tags and a line about what it is for. The window, the labels, the filter and the source view are generated for you. A shader that fails to compile shows its error in its own window instead of breaking the page.</p>
+    <p><b>Composing from parts.</b> The element groups live in one block in the prelude, named <code>partTickRing</code>, <code>partRadialBars</code>, <code>partHandles</code> and so on. Each takes a local position, returns light to <em>add</em>, and takes its colour and its rate as arguments - so a part never fights the one beside it, and a whole panel can run off one clock. To place one, move the position: <code>partIris(p - vec2(0.4, 0.0), 0.2, open, 6.0, uAccent)</code>. List the parts a visual uses in its <code>parts</code> array and they become the chips under its window.</p>
+    <p><b>Settings.</b> Give an entry a <code>params</code> list - <code>{key, label, min, max, step, value}</code> - and each one becomes a <code>uniform float P_&lt;key&gt;</code> your shader can read, plus a slider in the settings window. Click any window to open it. Nothing recompiles while you turn a slider: the value goes straight to the uniform on the next frame, which is exactly how these are meant to be driven from live data in the app. <em>Copy settings</em> gives you the values as JSON, and <em>Copy shader</em> gives you the body with those values written in as defaults.</p>
     <p><b>Taking one into an app.</b> The body of each shader is portable: paste it into a three.js <code>ShaderMaterial</code> for the AR build, or into a Unity Shader Graph Custom Function node, where the renames are <code>mix</code> to <code>lerp</code>, <code>fract</code> to <code>frac</code>, <code>mod</code> to a written-out modulo, and <code>atan(y,x)</code> to <code>atan2</code>.</p>
   </footer>
 </div>
+
+<!-- The settings window. One drawer, re-filled for whichever visual is selected: the controls
+     belong to the visual, not to the page, so they are generated from its own parameter list. -->
+<aside id="drawer" aria-label="Visual settings" hidden>
+  <div class="dhead">
+    <span class="dname"></span>
+    <span class="dsub"></span>
+    <button class="dx" id="drawer-close" aria-label="Close settings">✕</button>
+  </div>
+  <div class="dbody">
+    <div class="dfields"></div>
+    <div class="dparts"></div>
+  </div>
+  <div class="dfoot">
+    <button id="drawer-reset">Reset</button>
+    <button id="drawer-copy">Copy settings</button>
+    <button id="drawer-src">Source</button>
+  </div>
+</aside>
 
 <script>
 // ---------------------------------------------------------------------------------------------
@@ -155,6 +223,32 @@ const FAMILIES = {
   texture:   {label: 'Data texture'},
   noise:     {label: 'Interference'},
   composite: {label: 'Composites'},
+}
+
+// The parts kit, described for the page. Each key is a function in the shader prelude; a visual
+// lists the ones it is made of, and the chips under every window are clickable - press one and
+// the grid shows every other visual built from the same part. That is the whole point of writing
+// them as parts: a groove you like in one window can be lifted into another.
+const PARTS = {
+  partPanel:      'Chamfered plate - the ground everything else sits on',
+  partHandles:    'Corner brackets and grab nubs - "this is selected"',
+  partMarquee:    'Marching ants running the border',
+  partTicksFrame: 'Corner-and-midpoint frame, no full border',
+  partTickRing:   'Graduated ruler ring, minor and major ticks',
+  partIndex:      'Index triangles pointing in at the rim',
+  partSweep:      'Sweeping highlight sector',
+  partRadialBars: 'Polar histogram - one bar per slice',
+  partIris:       'Aperture of straight blades, open to shut',
+  partVortex:     'Rings falling inward, with a swirl',
+  partOrbit:      'Dots orbiting at their own rates',
+  partTracks:     'Vertical channel faders with knobs',
+  partRail:       'Horizontal rail with a scan head',
+  partReadout:    'Changing numeric blocks - counts without a font',
+  partBadge:      'Hex badge with a glyph and a rim dot',
+  partDots:       'Dot-matrix cell block',
+  partBlip:       'Short live trace in a box',
+  partGrid:       'Measured ground grid',
+  partCallout:    'Leader line out to a label plate',
 }
 
 // Shared helpers every visual can use: distance fields, anti-aliasing, glow, and the small set
@@ -229,6 +323,246 @@ float cycle(float period, float hold){
   float t = mod(uTime, period) / period;
   return smoothstep(0.0, 0.18, t) * (1.0 - smoothstep(hold, 1.0, t));
 }
+// One device pixel, measured in p units. Anything built on folded or repeated coordinates has to
+// pass this to fillW/strokeW: fwidth() of a distance spikes at every fold, and fill() paints the
+// spike as a blob.
+float px(){ return 2.0 / uRes.y; }
+
+// =============================================================================================
+// THE PARTS KIT
+//
+// Every reference HUD is a handful of elements arranged on a screen - a tick ring, a bar fan,
+// a selection frame - reused at different sizes, colours and rates. So they are written once
+// here, as functions that take a local position and return light to add. A visual is then a
+// short list of part calls, and two visuals can share a part without sharing any code.
+//
+// The contract, so parts always compose:
+//   - p is local to the part. Move it with p - offset, turn it with p * rot(a), mirror with abs().
+//   - the return value is ADDED, never multiplied over what is already there.
+//   - col is passed in, so one part can be the accent and its neighbour white or a warning hue.
+//   - nothing reads uTime except through a rate argument, so a whole panel can run off one clock.
+// =============================================================================================
+
+// -- frames -----------------------------------------------------------------------------------
+// The cut-corner plate. Everything else sits inside one of these.
+vec3 partPanel(vec2 p, vec2 b, float cut, float w, vec3 col){
+  float d = sdChamfer(p, b, cut);
+  return col * (stroke(d, w) + glow(abs(d), 0.045) * 0.28 + fill(d) * 0.035);
+}
+// Corner handles: the four L-brackets and grab nubs that say "this object is selected".
+vec3 partHandles(vec2 p, vec2 b, float len, float w, float nub, vec3 col){
+  vec2 q = abs(p);
+  float arm = min(sdSeg(q, vec2(b.x - len, b.y), b), sdSeg(q, vec2(b.x, b.y - len), b)) - w * 0.5;
+  vec3 c = col * fill(arm);
+  c += col * glow(max(arm, 0.0), 0.04) * 0.45;
+  c += mix(col, vec3(1.0), 0.4) * fill(sdBox(q - b, vec2(w * 1.9))) * nub;
+  return c;
+}
+// Marching ants. The dash runs along whichever edge is nearest, so it turns the corners.
+vec3 partMarquee(vec2 p, vec2 b, float n, float rate, float w, vec3 col){
+  float d = abs(sdBox(p, b)) - w * 0.5;
+  vec2 q = abs(p) - b;
+  float u = q.x > q.y ? p.y : p.x;
+  float dash = step(0.45, fract(u * n - uTime * rate));
+  return col * fillW(d, px()) * dash;
+}
+// A frame that only exists at its corners and edge midpoints - lighter than a full border.
+vec3 partTicksFrame(vec2 p, vec2 b, float len, float w, vec3 col){
+  vec2 q = abs(p);
+  float d = min(min(sdSeg(q, vec2(b.x, 0.0), vec2(b.x, len)), sdSeg(q, vec2(0.0, b.y), vec2(len, b.y))),
+                min(sdSeg(q, vec2(b.x - len, b.y), vec2(b.x, b.y)), sdSeg(q, vec2(b.x, b.y - len), vec2(b.x, b.y)))) - w * 0.5;
+  return col * fill(d);
+}
+
+// -- radial -----------------------------------------------------------------------------------
+// The graduated ruler ring off the instrument reference: n fine ticks, every major-th one long.
+// Built from cos(a * n) rather than a modulo of the angle, so it stays continuous where atan wraps.
+vec3 partTickRing(vec2 p, float r, float n, float major, float len, vec3 col){
+  float a = atan(p.y, p.x), rr = length(p);
+  float minor = pow(max(0.0, cos(a * n)), 60.0);
+  float maj = pow(max(0.0, cos(a * max(1.0, floor(n / max(major, 1.0))))), 90.0);
+  float L = len * (0.4 + 0.6 * maj);
+  float band = smoothstep(r - L - px(), r - L + px(), rr) * smoothstep(r + px(), r - px(), rr);
+  return col * band * max(minor * 0.6, maj);
+}
+// Index triangles pointing in at the rim: where a dial is read from.
+vec3 partIndex(vec2 p, float r, float n, float size, float spin, vec3 col){
+  p *= rot(spin);
+  float k = TAU / n;
+  float s = floor(atan(p.y, p.x) / k + 0.5) * k;
+  vec2 dir = vec2(cos(s), sin(s));
+  vec2 q = vec2(dot(p, dir), dot(p, vec2(-dir.y, dir.x)));
+  float apex = q.x - (r - size);
+  float d = max(q.x - r, max(-apex, abs(q.y) - apex * 0.85));
+  return col * fillW(d, px());
+}
+// The sweeping highlight sector. Angular distance, so it has no seam at the wrap either.
+vec3 partSweep(vec2 p, float r0, float r1, float ang, float width, vec3 col){
+  float a = atan(p.y, p.x), rr = length(p);
+  float d = abs(mod(a - ang + PI, TAU) - PI);
+  float wedge = smoothstep(width, 0.0, d);
+  float band = smoothstep(r0 - 0.02, r0 + 0.02, rr) * smoothstep(r1 + 0.02, r1 - 0.02, rr);
+  return col * wedge * band * (0.25 + 0.75 * smoothstep(width, width * 0.15, d));
+}
+// The polar histogram from the command-centre reference: one bar per slice, tip picked out.
+vec3 partRadialBars(vec2 p, float r0, float len, float n, float seed, float rate, vec3 col){
+  float k = (atan(p.y, p.x) + PI) / TAU * n;
+  float idx = floor(k), f = fract(k);
+  float h = 0.12 + 0.88 * vnoise(vec2(idx * 0.7 + seed, uTime * rate));
+  float rr = length(p), r1 = r0 + len * h;
+  float gap = smoothstep(0.0, 0.14, f) * smoothstep(1.0, 0.86, f);
+  float band = smoothstep(r0 - px(), r0 + px(), rr) * smoothstep(r1 + px(), r1 - px(), rr);
+  vec3 c = col * band * gap * (0.45 + 0.55 * h);
+  c += mix(col, vec3(1.0), 0.65) * gap * smoothstep(0.022, 0.0, abs(rr - r1)) * 0.9;
+  return c;
+}
+// An aperture of straight blades. open 0 is shut, 1 is wide; the blade seams show either way.
+vec3 partIris(vec2 p, float r, float open, float blades, vec3 col){
+  float k = TAU / max(blades, 3.0);
+  float ang = mod(atan(p.y, p.x) + k * 0.5, k) - k * 0.5;
+  float rr = length(p);
+  float R = mix(0.06, 0.95, clamp(open, 0.0, 1.0)) * r;
+  float d = max(rr - r, R - rr * cos(ang));
+  vec3 c = col * fillW(d, px()) * 0.14;
+  c += col * strokeW(d, 0.012, px());
+  c += col * fillW(max(abs(ang) * rr - 0.004, d), px()) * 0.45;   // the seam between blades
+  return c;
+}
+// Rings falling inward, the "something is being pulled in" panel. Reads as depth with no depth.
+vec3 partVortex(vec2 p, float r, float rate, float twist, vec3 col){
+  vec3 c = vec3(0.0);
+  float rr = length(p), a = atan(p.y, p.x);
+  for (int i = 0; i < 7; i++){
+    float t = fract(uTime * rate + float(i) / 7.0);
+    float rad = r * t * t;
+    float fade = t * (1.0 - t) * 4.0;
+    float d = abs(rr - rad) - 0.004;
+    c += col * fillW(d, px()) * fade * 0.9;
+    c += col * glow(max(d, 0.0), 0.022) * fade * 0.5;
+  }
+  float swirl = 0.5 + 0.5 * sin(a * 3.0 + log(max(rr, 0.02)) * twist - uTime * rate * 6.0);
+  c += col * swirl * smoothstep(r, 0.0, rr) * smoothstep(0.0, r * 0.3, rr) * 0.16;
+  c += mix(col, vec3(1.0), 0.6) * glow(abs(rr - r * 0.08), 0.03) * 0.9;
+  return c;
+}
+// Dots going round a ring at their own rates: the cheapest "live" element there is.
+vec3 partOrbit(vec2 p, float r, float n, float rate, vec3 col){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 6; i++){
+    if (float(i) >= n) break;
+    float f = float(i);
+    float a = uTime * rate * (0.6 + hash11(f * 2.3) * 0.9) + f * 1.7;
+    vec2 o = vec2(cos(a), sin(a)) * r * (0.7 + 0.3 * hash11(f * 5.1));
+    float d = length(p - o) - 0.012;
+    c += mix(col, vec3(1.0), 0.3) * fillW(d, px());
+    c += col * glow(max(d, 0.0), 0.03) * 0.6;
+  }
+  return c;
+}
+
+// -- meters -----------------------------------------------------------------------------------
+// Vertical channel tracks: a well, a fill, a knob and a ladder of ticks, n of them side by side.
+vec3 partTracks(vec2 p, vec2 b, float n, float seed, float rate, vec3 col){
+  float u = (p.x + b.x) / (2.0 * b.x) * n;
+  if (u < 0.0 || u > n || abs(p.y) > b.y) return vec3(0.0);
+  float idx = floor(u), f = fract(u);
+  float inT = smoothstep(0.22, 0.32, f) * smoothstep(0.78, 0.68, f);
+  float y = clamp((p.y + b.y) / (2.0 * b.y), 0.0, 1.0);
+  float v = 0.12 + 0.82 * vnoise(vec2(idx * 1.7 + seed, uTime * rate));
+  vec3 c = col * inT * 0.14;
+  c += col * inT * smoothstep(v + 0.004, v - 0.004, y) * 0.55;
+  c += mix(col, vec3(1.0), 0.7) * inT * smoothstep(0.028, 0.0, abs(y - v));
+  c += col * inT * smoothstep(0.42, 0.5, abs(fract(y * 12.0) - 0.5)) * 0.14;
+  return c;
+}
+// A horizontal rail with a scan head, for a value that has a direction.
+vec3 partRail(vec2 p, vec2 b, float v, float rate, vec3 col){
+  vec3 c = col * stroke(sdBox(p, b), 0.005) * 0.55;
+  float body = fill(sdBox(p, vec2(b.x - 0.008, b.y * 0.6)));
+  float u = (p.x + b.x) / (2.0 * b.x);
+  c += col * body * smoothstep(v + 0.002, v - 0.002, u) * 0.8
+       * smoothstep(0.12, 0.26, fract(u * 20.0));
+  c += vec3(1.0) * body * smoothstep(0.06, 0.0, abs(u - fract(uTime * rate))) * 0.7;
+  return c;
+}
+// A numeric readout without a font: seven-segment-ish blocks that change. Nobody reads these in
+// the references either - they are there to say the panel is counting something.
+vec3 partReadout(vec2 p, vec2 b, float digits, float seed, vec3 col){
+  if (abs(p.x) > b.x || abs(p.y) > b.y) return vec3(0.0);
+  float u = (p.x + b.x) / (2.0 * b.x) * digits;
+  float idx = floor(u), f = fract(u);
+  float v = hash21(vec2(idx + seed, floor(uTime * 3.0)));
+  vec2 q = vec2(f - 0.5, p.y / b.y) * vec2(2.0 * b.x / digits, b.y);
+  float seg = 0.0;
+  for (int i = 0; i < 5; i++){
+    float fi = float(i);
+    float on = step(0.35, hash11(v * 31.0 + fi * 7.0));
+    float yy = (fi / 4.0 - 0.5) * b.y * 1.5;
+    seg = max(seg, on * fillW(sdBox(q - vec2(0.0, yy), vec2(b.x / digits * 0.55, b.y * 0.11)), px()));
+  }
+  return col * seg * 0.9;
+}
+
+// -- texture and badges -------------------------------------------------------------------------
+// The icon-sheet badge: a hex plate, a glyph picked by kind, and a dot running its rim.
+vec3 partBadge(vec2 p, float r, float kind, float spin, vec3 col){
+  vec3 c = vec3(0.0);
+  float hx = sdHexagon(p, r);
+  c += col * strokeW(hx, r * 0.10, px()) * 0.9;
+  c += col * glow(abs(hx), r * 0.22) * 0.22;
+  vec2 q = p * rot(spin);
+  float g;
+  if (kind < 1.0) g = abs(length(p) - r * 0.44) - r * 0.09;
+  // the cross has to be cut back to the plate, or its arms run out across the neighbours
+  else if (kind < 2.0) g = max(min(abs(q.x), abs(q.y)) - r * 0.07, length(p) - r * 0.55);
+  else if (kind < 3.0) g = sdBox(q, vec2(r * 0.44, r * 0.10));
+  else if (kind < 4.0) g = max(sdBox(p, vec2(r * 0.44, r * 0.34)), -sdBox(p, vec2(r * 0.44, r * 0.34) - r * 0.13));
+  else g = length(p) - r * 0.3;
+  c += col * fillW(g, px()) * 0.95;
+  vec2 o = vec2(cos(spin * 1.6), sin(spin * 1.6)) * r * 1.12;
+  c += mix(col, vec3(1.0), 0.55) * fillW(length(p - o) - r * 0.10, px());
+  return c;
+}
+// A dot-matrix cell block, the readout that is deliberately unreadable.
+vec3 partDots(vec2 p, float rad, float n, float seed, float rate, vec3 col){
+  vec2 u = (p / rad * 0.5 + 0.5) * n;
+  if (u.x < 0.0 || u.y < 0.0 || u.x > n || u.y > n) return vec3(0.0);
+  vec2 id = floor(u), f = fract(u) - 0.5;
+  float lit = step(0.42, hash21(id + floor(uTime * rate) * 0.37 + seed));
+  float w = n * px() / (2.0 * rad);
+  return col * fillW(length(f) - 0.24, w) * (0.16 + 0.84 * lit);
+}
+// A short trace in a box: the smallest thing that can still say "a signal is alive here".
+vec3 partBlip(vec2 p, vec2 b, float freq, float rate, vec3 col){
+  if (abs(p.x) > b.x || abs(p.y) > b.y) return vec3(0.0);
+  float y = sin(p.x * freq + uTime * rate) * b.y * 0.5 * (0.35 + 0.65 * vnoise(vec2(p.x * 4.0, uTime * rate * 0.4)));
+  return col * fillW(abs(p.y - y) - 0.004, px());
+}
+// The measured ground the instrument reference sits on: a fine grid with a bold every few cells.
+vec3 partGrid(vec2 p, float n, float bold, vec3 col){
+  vec2 g = abs(fract(p * n) - 0.5) / n;
+  vec2 G = abs(fract(p * n / bold) - 0.5) * bold / n;
+  float fine = min(g.x, g.y), coarse = min(G.x, G.y);
+  return col * (smoothstep(px(), 0.0, fine - 0.0004) * 0.14 + smoothstep(px() * 1.5, 0.0, coarse - 0.001) * 0.3);
+}
+// A callout: a leader from a point out to a plate with rows of pseudo-text on it.
+vec3 partCallout(vec2 p, vec2 from, vec2 to, float w, float rows, vec3 col){
+  vec2 knee = vec2(mix(from.x, to.x, 0.55), from.y);
+  float d = min(min(sdSeg(p, from, knee), sdSeg(p, knee, vec2(knee.x, to.y))), sdSeg(p, vec2(knee.x, to.y), to)) - 0.0035;
+  vec3 c = col * fill(d) * 0.9;
+  c += mix(col, vec3(1.0), 0.5) * fill(length(p - from) - 0.013);
+  vec2 plate = to + vec2(w, 0.0);
+  float box = sdBox(p - plate, vec2(w, rows * 0.032 + 0.02));
+  c += col * stroke(box, 0.005) * 0.85;
+  c += col * fill(box) * 0.06;
+  vec2 q = p - plate;
+  float row = floor((q.y + rows * 0.032) / 0.032);
+  float len = 0.25 + 0.7 * hash11(row * 3.1 + floor(uTime * 0.7));
+  float inRow = smoothstep(0.4, 0.28, abs(fract((q.y + rows * 0.032) / 0.032) - 0.5));
+  c += col * inRow * step(abs(box), 1.0) * fill(sdBox(q - vec2(-w + w * len + 0.012, 0.0), vec2(w * len, 0.4))) * 0.55
+       * step(abs(q.y), rows * 0.032);
+  return c;
+}
 `
 
 const MAIN = `
@@ -246,12 +580,15 @@ const VISUALS = [
   id: 'chamfer-frame', title: 'Chamfered panel frame', family: 'frame',
   tags: ['line-art', 'reveal', 'cheap', 'portal'],
   bio: "The workhorse: a cut-corner border with a hazard bar that grows, a highlight sliding along a rail, and marker rings. Wrap it around a portal opening, an info card, or a scanned object.",
+  params: [{key: 'cut', label: 'Corner cut', min: 0.02, max: 0.5, step: 0.01, value: 0.26},
+    {key: 'weight', label: 'Line weight', min: 0.003, max: 0.03, step: 0.001, value: 0.012},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
   vec2 b = vec2(uAspect * 0.80, 0.74);
-  float frame = sdChamfer(p, b, 0.26);
-  c += uAccent * stroke(frame, 0.012);
+  float frame = sdChamfer(p, b, P_cut);
+  c += uAccent * stroke(frame, P_weight);
   c += uAccent * glow(abs(frame), 0.05) * 0.30;
 
   float grow = 0.12 + 0.88 * cycle(6.0, 0.74);
@@ -263,7 +600,7 @@ vec3 hud(vec2 p){
   vec2 rp = p - vec2(b.x * 0.16, -b.y + 0.085);
   float rail = sdBox(rp, vec2(b.x * 0.5, 0.022));
   c += uAccent * stroke(rail, 0.008) * 0.8;
-  float head = smoothstep(0.14, 0.0, abs(rp.x - (fract(uTime * 0.22) * 2.0 - 1.0) * b.x * 0.5));
+  float head = smoothstep(0.14, 0.0, abs(rp.x - (fract(uTime * 0.22 * P_rate) * 2.0 - 1.0) * b.x * 0.5));
   c += uAccent * fill(sdBox(rp, vec2(b.x * 0.5 - 0.008, 0.014))) * head;
 
   for (int i = 0; i < 3; i++){
@@ -285,11 +622,14 @@ vec3 hud(vec2 p){
   id: 'bracket-lock', title: 'Target brackets', family: 'frame',
   tags: ['line-art', 'reveal', 'tracking', 'cheap'],
   bio: "Four corner brackets that fly inward and settle, with a lock ring. The standard way to say 'this is selected' - put it on a deep-sky marker or a tapped star.",
+  params: [{key: 'size', label: 'Size', min: 0.4, max: 1.4, step: 0.01, value: 1},
+    {key: 'ring', label: 'Lock ring', min: 0.3, max: 0.95, step: 0.01, value: 0.66},
+    {key: 'period', label: 'Lock cycle', min: 1.5, max: 12, step: 0.5, value: 4}],
   frag: `
 vec3 hud(vec2 p){
   vec3 col = vec3(0.0);
-  float k = cycle(4.0, 0.78);
-  vec2 b = vec2(uAspect * 0.56, 0.54) + mix(0.26, 0.0, smoothstep(0.0, 1.0, k));
+  float k = cycle(P_period, 0.78);
+  vec2 b = vec2(uAspect * 0.56, 0.54) * P_size + mix(0.26, 0.0, smoothstep(0.0, 1.0, k));
   float s = 0.22, w = 0.008;
   vec2 q = abs(p);                                  // one corner, mirrored into four
   float d = min(sdSeg(q, vec2(b.x - s, b.y), b), sdSeg(q, vec2(b.x, b.y - s), b)) - w;
@@ -297,7 +637,7 @@ vec3 hud(vec2 p){
   col += uAccent * glow(max(d, 0.0), 0.045) * 0.55 * k;
   float t = min(sdSeg(p, vec2(-0.07, 0.0), vec2(0.07, 0.0)), sdSeg(p, vec2(0.0, -0.07), vec2(0.0, 0.07))) - 0.004;
   col += uAccent * fill(t) * k * 0.85;
-  float ring = sdRing(p, 0.66 - 0.12 * k);
+  float ring = sdRing(p, P_ring - 0.12 * k);
   col += uAccent * stroke(ring, 0.006) * dashes(p * rot(uTime * 1.1), 12.0, 0.35) * k * 0.75;
   return col;
 }`,
@@ -306,15 +646,19 @@ vec3 hud(vec2 p){
   id: 'dashed-rings', title: 'Concentric dashed rings', family: 'radial',
   tags: ['line-art', 'loop', 'cheap', 'idle'],
   bio: "Rings with different dash counts turning at different speeds. Reads as 'working' without claiming a number. Good as a loading state, or as a halo around a point of interest.",
+  params: [{key: 'rings', label: 'Rings', min: 1, max: 6, step: 1, value: 4},
+    {key: 'dash', label: 'Dash spread', min: 0, max: 10, step: 0.5, value: 4},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  for (int i = 0; i < 4; i++){
+  for (int i = 0; i < 6; i++){
+    if (float(i) >= P_rings) break;
     float f = float(i);
     float r = 0.22 + f * 0.155;
     float dir = mod(f, 2.0) < 0.5 ? 1.0 : -1.0;
     float ring = sdRing(p, r);
-    float d = dashes(p * rot(uTime * (0.55 - f * 0.09) * dir), 5.0 + f * 4.0, 0.2 + f * 0.05);
+    float d = dashes(p * rot(uTime * (0.55 - f * 0.09) * dir * P_rate), 5.0 + f * P_dash, 0.2 + f * 0.05);
     c += uAccent * stroke(ring, 0.016 - f * 0.002) * d;
     c += uAccent * glow(ring, 0.022) * 0.45 * d;
   }
@@ -328,22 +672,25 @@ vec3 hud(vec2 p){
   id: 'radar-sweep', title: 'Radar sweep', family: 'radial',
   tags: ['loop', 'data-driven', 'spatial', 'medium'],
   bio: "A rotating sweep with a decaying trail and contacts that light as it passes. Feed it real bearings and it becomes a live 'what is around me' display.",
+  params: [{key: 'rate', label: 'Sweep rate', min: 0, max: 3, step: 0.05, value: 1.1},
+    {key: 'contacts', label: 'Contacts', min: 0, max: 8, step: 1, value: 5}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
   float r = length(p);
   float edge = smoothstep(0.92, 0.90, r);
-  float sweep = mod(atan(p.y, p.x) - uTime * 1.1, TAU) / TAU;
+  float sweep = mod(atan(p.y, p.x) - uTime * P_rate, TAU) / TAU;
   c += uAccent * pow(1.0 - sweep, 6.0) * edge * 0.5;
   for (int i = 1; i <= 4; i++){
     c += uAccent * stroke(sdRing(p, float(i) * 0.215), 0.004) * 0.45;
   }
   c += uAccent * fill(min(abs(p.x), abs(p.y)) - 0.0025) * edge * 0.3;
-  for (int i = 0; i < 5; i++){
+  for (int i = 0; i < 8; i++){
+    if (float(i) >= P_contacts) break;
     float f = float(i);
     float ba = hash11(f * 3.7) * TAU;
     vec2 bp = vec2(cos(ba), sin(ba)) * (0.2 + hash11(f * 9.1) * 0.6);
-    float lit = pow(1.0 - mod(ba - uTime * 1.1, TAU) / TAU, 3.0);
+    float lit = pow(1.0 - mod(ba - uTime * P_rate, TAU) / TAU, 3.0);
     float d = length(p - bp);
     c += uAccent * (glow(d - 0.012, 0.022) * 1.2 + fill(d - 0.013)) * lit;
   }
@@ -354,15 +701,19 @@ vec3 hud(vec2 p){
   id: 'orbit-dials', title: 'Orbit dials', family: 'radial',
   tags: ['loop', 'data-driven', 'cheap', 'gauge'],
   bio: "Arc segments orbiting a centre, each one a value between 0 and 1. Drive the arc lengths from real numbers and it becomes a compact multi-gauge.",
+  params: [{key: 'arcs', label: 'Arcs', min: 1, max: 5, step: 1, value: 3},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+    {key: 'weight', label: 'Arc weight', min: 0.004, max: 0.05, step: 0.002, value: 0.014}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  for (int i = 0; i < 3; i++){
+  for (int i = 0; i < 5; i++){
+    if (float(i) >= P_arcs) break;
     float f = float(i);
     float r = 0.28 + f * 0.185;
-    float len = mix(0.5, 2.3, 0.5 + 0.5 * sin(uTime * (0.4 + f * 0.22) + f));
-    float mid = uTime * (0.5 + f * 0.33) + f * 2.0;
-    float d = sdArc(p * rot(-mid + PI * 0.5), len, r, 0.014);
+    float len = mix(0.5, 2.3, 0.5 + 0.5 * sin(uTime * (0.4 + f * 0.22) * P_rate + f));
+    float mid = uTime * (0.5 + f * 0.33) * P_rate + f * 2.0;
+    float d = sdArc(p * rot(-mid + PI * 0.5), len, r, P_weight);
     c += uAccent * fill(d);
     c += uAccent * glow(max(d, 0.0), 0.03) * 0.5;
     vec2 head = vec2(cos(mid + len), sin(mid + len)) * r;
@@ -376,18 +727,21 @@ vec3 hud(vec2 p){
   id: 'scan-rail', title: 'Segmented rail', family: 'meter',
   tags: ['data-driven', 'reveal', 'cheap', 'label'],
   bio: "A segmented bar filling to a value, with a scan head running ahead of the fill. The honest way to show progress: loading, charge, distance, completion.",
+  params: [{key: 'rows', label: 'Rows', min: 1, max: 5, step: 1, value: 3},
+    {key: 'segs', label: 'Segments', min: 6, max: 44, step: 1, value: 22}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
   float value = 0.5 + 0.5 * sin(uTime * 0.5);
   float w = uAspect * 0.80;
-  for (int row = 0; row < 3; row++){
+  for (int row = 0; row < 5; row++){
+    if (float(row) >= P_rows) break;
     float fr = float(row);
     vec2 q = p - vec2(0.0, 0.40 - fr * 0.40);
     float v = clamp(value - fr * 0.17, 0.02, 1.0);
     c += uAccent * stroke(sdBox(q, vec2(w, 0.06)), 0.006) * 0.5;
     float u = (q.x + w) / (2.0 * w);
-    float seg = fract(u * 22.0);
+    float seg = fract(u * P_segs);
     float segMask = smoothstep(0.1, 0.22, seg) * smoothstep(0.98, 0.86, seg);
     float body = fill(sdBox(q, vec2(w - 0.014, 0.044)));
     c += uAccent * body * segMask * step(u, v) * 0.85;
@@ -400,15 +754,17 @@ vec3 hud(vec2 p){
   id: 'spectrum-bars', title: 'Spectrum bars', family: 'meter',
   tags: ['data-driven', 'loop', 'audio', 'medium'],
   bio: "A bar per band with peak markers. Wire it to audio, to a star's spectrum, or to any array of values that changes over time.",
+  params: [{key: 'bands', label: 'Bands', min: 6, max: 64, step: 2, value: 26},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 0.8}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  float n = 26.0;
+  float n = floor(P_bands);
   float x = (p.x / uAspect * 0.5 + 0.5) * n;
   float idx = floor(x);
   float inBar = smoothstep(0.06, 0.2, fract(x)) * smoothstep(0.94, 0.8, fract(x));
-  float h = 0.12 + 0.8 * fbm(vec2(idx * 0.35, uTime * 0.8));
-  float peak = max(h, 0.12 + 0.8 * fbm(vec2(idx * 0.35, uTime * 0.8 - 0.35)));
+  float h = 0.12 + 0.8 * fbm(vec2(idx * 0.35, uTime * P_rate));
+  float peak = max(h, 0.12 + 0.8 * fbm(vec2(idx * 0.35, uTime * P_rate - 0.35)));
   float y = clamp(p.y * 0.62 + 0.5, 0.0, 1.0);
   float bar = smoothstep(0.004, 0.0, y - h) * step(0.001, y);
   c += mix(uAccent, vec3(1.0), smoothstep(0.35, 1.0, y)) * bar * inBar * (0.3 + 0.7 * y);
@@ -421,16 +777,20 @@ vec3 hud(vec2 p){
   id: 'waveform-burst', title: 'Waveform burst', family: 'signal',
   tags: ['loop', 'glow', 'centrepiece', 'medium'],
   bio: "Layered traces pinched at the centre with a blown-out core: the 'energy signature' look. Use it as the hero of a panel, or as the voice of something speaking.",
+  params: [{key: 'layers', label: 'Layers', min: 1, max: 7, step: 1, value: 5},
+    {key: 'amp', label: 'Amplitude', min: 0.08, max: 0.8, step: 0.01, value: 0.42},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
   float x = p.x / uAspect;
   float env = exp(-x * x * 5.0);
-  for (int i = 0; i < 5; i++){
+  for (int i = 0; i < 7; i++){
+    if (float(i) >= P_layers) break;
     float f = float(i);
-    float amp = (0.42 - f * 0.065) * env;
-    float y = sin(x * (7.0 + f * 3.1) + uTime * (1.4 + f * 0.5)) * amp
-            + sin(x * (17.0 + f * 5.0) - uTime * (2.1 + f * 0.3)) * amp * 0.34;
+    float amp = (P_amp - f * 0.065) * env;
+    float y = sin(x * (7.0 + f * 3.1) + uTime * (1.4 + f * 0.5) * P_rate) * amp
+            + sin(x * (17.0 + f * 5.0) - uTime * (2.1 + f * 0.3) * P_rate) * amp * 0.34;
     float d = abs(p.y - y) - 0.004;
     float a = 1.0 - f * 0.16;
     c += uAccent * fill(d) * a;
@@ -447,15 +807,18 @@ vec3 hud(vec2 p){
   id: 'oscilloscope', title: 'Phosphor trace', family: 'signal',
   tags: ['loop', 'grid', 'instrument', 'cheap'],
   bio: "A single trace on a measured grid, brightest just behind the writing head. Reads as an instrument rather than decoration, for a readout that should feel measured.",
+  params: [{key: 'freq', label: 'Frequency', min: 2, max: 20, step: 0.5, value: 6},
+    {key: 'grid', label: 'Grid', min: 2, max: 12, step: 1, value: 4},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  vec2 g = abs(fract(p * 4.0) - 0.5);
+  vec2 g = abs(fract(p * P_grid) - 0.5);
   c += uAccent * smoothstep(0.035, 0.0, min(g.x, g.y)) * 0.15;
   c += uAccent * smoothstep(0.006, 0.0, min(abs(p.x), abs(p.y))) * 0.35;
   float x = p.x / uAspect;
-  float head = fract(uTime * 0.35) * 2.0 - 1.0;
-  float y = sin(x * 6.0 + uTime * 2.0) * 0.4 * exp(-abs(x) * 0.4) + sin(x * 21.0 - uTime * 3.0) * 0.07;
+  float head = fract(uTime * 0.35 * P_rate) * 2.0 - 1.0;
+  float y = sin(x * P_freq + uTime * 2.0 * P_rate) * 0.4 * exp(-abs(x) * 0.4) + sin(x * P_freq * 3.5 - uTime * 3.0 * P_rate) * 0.07;
   float d = abs(p.y - y) - 0.005;
   float bright = pow(1.0 - mod(head - x, 2.0) / 2.0, 3.0);
   c += uAccent * fill(d) * (0.22 + bright);
@@ -468,13 +831,15 @@ vec3 hud(vec2 p){
   id: 'greeble-columns', title: 'Data greeble', family: 'texture',
   tags: ['loop', 'texture', 'cheap', 'background'],
   bio: "Columns of unreadable rows scrolling at different speeds: the texture that makes a panel feel dense with information. Deliberately not text, because nobody reads it, so it should cost nothing.",
+  params: [{key: 'cols', label: 'Columns', min: 2, max: 12, step: 1, value: 5},
+    {key: 'rate', label: 'Scroll rate', min: 0, max: 3, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  float cols = 5.0;
+  float cols = floor(P_cols);
   float u = p.x / uAspect * 0.5 + 0.5;
   float cx = floor(u * cols), fx = fract(u * cols);
-  float y = p.y * 3.4 + uTime * (0.1 + hash11(cx) * 0.22) * 6.0;
+  float y = p.y * 3.4 + uTime * (0.1 + hash11(cx) * 0.22) * 6.0 * P_rate;
   float row = floor(y), fy = fract(y);
   float seed = hash21(vec2(cx, row));
   float words = floor(2.0 + seed * 5.0);
@@ -490,17 +855,19 @@ vec3 hud(vec2 p){
   id: 'hex-field', title: 'Hex field pulse', family: 'field',
   tags: ['loop', 'shield', 'fill-heavy', 'surface'],
   bio: "A honeycomb with a ripple running out through it. Made for surfaces rather than frames: a shield, a scanned wall, the skin of something being analysed.",
+  params: [{key: 'scale', label: 'Cell density', min: 3, max: 16, step: 0.5, value: 7},
+    {key: 'rate', label: 'Ripple rate', min: 0, max: 2.5, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  vec2 q = p * 7.0;
+  vec2 q = p * P_scale;
   vec2 r = vec2(1.0, 1.73205), h = r * 0.5;
   vec2 a = mod(q, r) - h, b = mod(q - h, r) - h;
   vec2 gv = dot(a, a) < dot(b, b) ? a : b;
   vec2 id = q - gv;
   float d = sdHexagon(gv, 0.46);
-  float w = 7.0 * 2.0 / uRes.y;                       // one pixel, in the scaled cell space
-  float lit = smoothstep(0.2, 1.0, sin(length(id) * 0.6 - uTime * 2.2));
+  float w = P_scale * 2.0 / uRes.y;                       // one pixel, in the scaled cell space
+  float lit = smoothstep(0.2, 1.0, sin(length(id) * 0.6 - uTime * 2.2 * P_rate));
   c += uAccent * strokeW(d, 0.05, w) * (0.22 + 0.78 * lit);
   c += uAccent * fillW(d + 0.1, w) * lit * 0.1;
   // a whole cell lighting up now and then, in the theme colour rather than a grey dot
@@ -513,14 +880,16 @@ vec3 hud(vec2 p){
   id: 'horizon-grid', title: 'Horizon grid', family: 'field',
   tags: ['loop', 'depth', 'background', 'cheap'],
   bio: "A ground plane running to a horizon, drawn flat. Sets a stage behind other elements, or suggests travel without moving the camera, which matters in AR where the camera is the user's head.",
+  params: [{key: 'horizon', label: 'Horizon', min: -0.3, max: 0.6, step: 0.01, value: 0.18},
+    {key: 'speed', label: 'Travel', min: 0, max: 3, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  float horizon = 0.18;
+  float horizon = P_horizon;
   float y = p.y - horizon;
   if (y < -0.004){
     float z = -1.0 / y;
-    vec2 g = vec2(p.x * z * 0.5, z * 0.5 + uTime * 0.6);
+    vec2 g = vec2(p.x * z * 0.5, z * 0.5 + uTime * 0.6 * P_speed);
     vec2 f = abs(fract(g) - 0.5);
     c += uAccent * smoothstep(0.07, 0.0, min(f.x, f.y)) * smoothstep(0.0, 0.5, -y) * 0.85;
   }
@@ -535,13 +904,16 @@ vec3 hud(vec2 p){
   id: 'warp-streaks', title: 'Warp streaks', family: 'particle',
   tags: ['loop', 'background', 'motion', 'medium'],
   bio: "Streaks flying out from a vanishing point, the background of the data-viz reference. Keep it slow and dim in a headset, where fast radial motion is a comfort risk.",
+  params: [{key: 'count', label: 'Streaks', min: 4, max: 48, step: 1, value: 26},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  for (int i = 0; i < 26; i++){
+  for (int i = 0; i < 48; i++){
+    if (float(i) >= P_count) break;
     float f = float(i);
     float sa = hash11(f * 1.7) * TAU;
-    float t = fract(uTime * (0.35 + hash11(f * 5.3) * 0.5) + hash11(f * 9.9));
+    float t = fract(uTime * (0.35 + hash11(f * 5.3) * 0.5) * P_rate + hash11(f * 9.9));
     float head = t * 1.7;
     float len = 0.12 + hash11(f * 3.3) * 0.3;
     vec2 dir = vec2(cos(sa), sin(sa));
@@ -558,6 +930,9 @@ vec3 hud(vec2 p){
   id: 'helix-assembly', title: 'Helix assembly', family: 'particle',
   tags: ['reveal', 'points', 'data-driven', 'medium'],
   bio: "Points scattered at random gather into a double helix, hold, then scatter again. The general technique for anything assembling itself: swap the target positions for any shape.",
+  params: [{key: 'turns', label: 'Turns', min: 1, max: 8, step: 0.1, value: 3.2},
+    {key: 'radius', label: 'Radius', min: 0.1, max: 0.7, step: 0.01, value: 0.42},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1}],
   points: {
     count: 1600,
     // Return a position for point t (0..1) with its own seed. The morph between the scattered
@@ -565,11 +940,11 @@ vec3 hud(vec2 p){
     body: `
 vec3 place(float t, float seed){
   float strand = step(0.5, fract(seed * 7.0));
-  float a = t * TAU * 3.2 + strand * PI + uTime * 0.7;
-  vec3 target = vec3(cos(a) * 0.42, (t * 2.0 - 1.0) * 0.8, sin(a) * 0.42);
+  float a = t * TAU * P_turns + strand * PI + uTime * 0.7 * P_rate;
+  vec3 target = vec3(cos(a) * P_radius, (t * 2.0 - 1.0) * 0.8, sin(a) * P_radius);
   if (fract(seed * 13.0) > 0.86) target.xz *= 2.0 * fract(seed * 29.0) - 1.0;   // rungs between strands
   vec3 scattered = (vec3(hash11(seed * 3.1), hash11(seed * 5.7), hash11(seed * 9.3)) * 2.0 - 1.0) * 1.1;
-  float phase = mod(uTime * 0.16, 1.0);
+  float phase = mod(uTime * 0.16 * P_rate, 1.0);
   float stagger = fract(seed * 17.0) * 0.3;
   float k = smoothstep(stagger, 0.5 + stagger, phase) * (1.0 - smoothstep(0.84, 0.99, phase));
   return mix(scattered, target, k);
@@ -580,15 +955,18 @@ vec3 place(float t, float seed){
   id: 'scanline-glitch', title: 'Scanline break-up', family: 'noise',
   tags: ['loop', 'transition', 'texture', 'cheap'],
   bio: "Scanlines, a rolling band and occasional tearing. Use it briefly: as a transition when a panel changes state, or to say a signal is degraded.",
+  params: [{key: 'bands', label: 'Tear bands', min: 8, max: 60, step: 2, value: 26},
+    {key: 'tear', label: 'Tear amount', min: 0, max: 0.6, step: 0.01, value: 0.14},
+    {key: 'lines', label: 'Scanlines', min: 60, max: 400, step: 10, value: 220}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  float band = floor(p.y * 26.0);
-  float jump = step(0.86, hash21(vec2(band, floor(uTime * 6.0)))) * (hash21(vec2(band, floor(uTime * 6.0) + 3.0)) - 0.5) * 0.3;
+  float band = floor(p.y * P_bands);
+  float jump = step(1.0 - P_tear, hash21(vec2(band, floor(uTime * 6.0)))) * (hash21(vec2(band, floor(uTime * 6.0) + 3.0)) - 0.5) * 0.3;
   vec2 q = p + vec2(jump, 0.0);
   vec2 box = vec2(uAspect * 0.66, 0.56);
   float body = fill(sdRound(q, box, 0.06));
-  float lines = 0.55 + 0.45 * sin(q.y * 220.0);
+  float lines = 0.55 + 0.45 * sin(q.y * P_lines);
   float rr = fill(sdRound(q + vec2(0.01, 0.0), box, 0.06));
   float bb = fill(sdRound(q - vec2(0.01, 0.0), box, 0.06));
   c += vec3(rr, body, bb) * uAccent * lines * 0.45;
@@ -602,11 +980,13 @@ vec3 hud(vec2 p){
   id: 'console-panel', title: 'Console panel', family: 'composite',
   tags: ['composite', 'reveal', 'label', 'medium'],
   bio: "Frame, title bar, waveform, greeble and a rail composed into one panel: how the pieces are meant to work together. The closest thing here to a finished info card.",
+  params: [{key: 'cut', label: 'Corner cut', min: 0.02, max: 0.5, step: 0.01, value: 0.22},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
   vec2 b = vec2(uAspect * 0.84, 0.78);
-  float frame = sdChamfer(p, b, 0.22);
+  float frame = sdChamfer(p, b, P_cut);
   c += uAccent * stroke(frame, 0.009);
   c += uAccent * glow(abs(frame), 0.04) * 0.22;
   c += uAccent * fill(frame) * 0.045;            // faint backing, so glow survives a bright room
@@ -619,7 +999,7 @@ vec3 hud(vec2 p){
     c += uAccent * fill(sdBox(gp, vec2(0.022, 0.012))) * (0.22 + 0.78 * step(0.5, hash11(f + floor(uTime * 1.5))));
   }
   float x = p.x / uAspect;
-  float y = (sin(x * 9.0 + uTime * 1.6) * 0.5 + sin(x * 19.0 - uTime * 2.2) * 0.2) * 0.2 * exp(-x * x * 6.0) + 0.14;
+  float y = (sin(x * 9.0 + uTime * 1.6 * P_rate) * 0.5 + sin(x * 19.0 - uTime * 2.2 * P_rate) * 0.2) * 0.2 * exp(-x * x * 6.0) + 0.14;
   float d = abs(p.y - y) - 0.004;
   c += uAccent * fill(d);
   c += uAccent * glow(max(d, 0.0), 0.05) * 0.38;
@@ -649,12 +1029,14 @@ vec3 hud(vec2 p){
   id: 'reticle-stack', title: 'Reticle stack', family: 'composite',
   tags: ['composite', 'tracking', 'centre-screen', 'cheap'],
   bio: "Brackets, a dashed ring, compass ticks and a range bar stacked into one aiming reticle. Built for the centre of the screen, where it has to stay legible and never block the view.",
+  params: [{key: 'ring', label: 'Inner ring', min: 0.15, max: 0.5, step: 0.01, value: 0.3},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1}],
   frag: `
 vec3 hud(vec2 p){
   vec3 c = vec3(0.0);
-  float breathe = 0.5 + 0.5 * sin(uTime * 1.6);
-  c += uAccent * stroke(sdRing(p, 0.30 + breathe * 0.012), 0.006) * dashes(p * rot(-uTime * 0.5), 3.0, 0.45);
-  c += uAccent * stroke(sdRing(p, 0.46), 0.003) * dashes(p * rot(uTime * 0.9), 24.0, 0.5) * 0.65;
+  float breathe = 0.5 + 0.5 * sin(uTime * 1.6 * P_rate);
+  c += uAccent * stroke(sdRing(p, P_ring + breathe * 0.012), 0.006) * dashes(p * rot(-uTime * 0.5), 3.0, 0.45);
+  c += uAccent * stroke(sdRing(p, P_ring * 1.53), 0.003) * dashes(p * rot(uTime * 0.9), 24.0, 0.5) * 0.65;
   for (int i = 0; i < 4; i++){
     float a = float(i) * PI * 0.5 + PI * 0.25;
     vec2 dir = vec2(cos(a), sin(a));
@@ -669,6 +1051,352 @@ vec3 hud(vec2 p){
   c += uAccent * stroke(sdBox(rp, vec2(0.34, 0.012)), 0.004) * 0.5;
   c += uAccent * fill(sdBox(rp - vec2(-0.34 * (1.0 - v), 0.0), vec2(0.34 * v, 0.007)));
   return c;
+}`,
+},
+
+// --- built from the parts kit ------------------------------------------------------------------
+// Everything below is a list of part calls rather than shapes written out longhand. Open the
+// source on any of them and you can read exactly which groups it is made of, in order.
+{
+  id: 'tick-dial', title: 'Instrument dial', family: 'radial',
+  tags: ['gauge', 'instrument', 'loop', 'centrepiece'],
+  parts: ['partTickRing', 'partIndex', 'partSweep', 'partIris'],
+  bio: "A graduated dial seen at an angle: ticks, index triangles, a sweeping sector and an aperture at the hub. The tilt is one divide, not a camera - in AR the element still faces the user.",
+  params: [
+    {key: 'tilt', label: 'Tilt', min: 0.25, max: 1, step: 0.01, value: 0.62},
+    {key: 'ticks', label: 'Ticks', min: 24, max: 180, step: 6, value: 96},
+    {key: 'sweep', label: 'Sweep width', min: 0.05, max: 1.4, step: 0.01, value: 0.42},
+    {key: 'open', label: 'Aperture', min: 0, max: 1, step: 0.01, value: 0.55},
+    {key: 'spin', label: 'Rate', min: 0, max: 3, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec2 q = vec2(p.x, p.y / clamp(P_tilt, 0.2, 1.0));
+  vec3 c = vec3(0.0);
+  float r = 0.78;
+  c += partTickRing(q, r, P_ticks, 8.0, 0.10, uAccent) * 0.95;
+  c += partIndex(q, r * 1.10, 4.0, 0.055, uTime * 0.12 * P_spin, uAccent);
+  c += partSweep(q, r * 0.30, r * 0.97, uTime * 0.6 * P_spin, P_sweep, uAccent) * 0.4;
+  c += uAccent * stroke(sdRing(q, r * 0.70), 0.006) * 0.55;
+  c += uAccent * stroke(sdRing(q, r * 0.32), 0.004) * dashes(q * rot(-uTime * 0.35 * P_spin), 18.0, 0.42) * 0.8;
+  c += partIris(q, r * 0.22, P_open, 6.0, uAccent);
+  return c;
+}`,
+},
+{
+  id: 'iris-aperture', title: 'Aperture', family: 'radial',
+  tags: ['reveal', 'loop', 'cheap', 'transition'],
+  parts: ['partIris', 'partTickRing', 'partOrbit'],
+  bio: "Straight blades opening and closing. The honest way to open a portal or reveal a panel - the same shape a real lens makes, so it reads as mechanical rather than magical.",
+  params: [
+    {key: 'blades', label: 'Blades', min: 3, max: 12, step: 1, value: 6},
+    {key: 'rate', label: 'Rate', min: 0, max: 2, step: 0.05, value: 0.6},
+    {key: 'hold', label: 'Hold open', min: 0, max: 1, step: 0.01, value: 0.4},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float t = 0.5 - 0.5 * cos(uTime * P_rate);
+  float open = clamp(t * (1.0 + P_hold), 0.0, 1.0);
+  c += partIris(p, 0.62, open, floor(P_blades), uAccent);
+  c += partTickRing(p, 0.74, 60.0, 5.0, 0.06, uAccent) * 0.7;
+  c += partOrbit(p, 0.86, 3.0, 0.5, uAccent) * 0.8;
+  c += mix(uAccent, vec3(1.0), 0.5) * glow(length(p) - 0.02, 0.10) * (1.0 - open) * 0.5;
+  return c;
+}`,
+},
+{
+  id: 'radial-bars', title: 'Polar histogram', family: 'meter',
+  tags: ['data-driven', 'gauge', 'loop', 'centrepiece'],
+  parts: ['partRadialBars', 'partTickRing', 'partIndex'],
+  bio: "One bar per slice around a hub, tips picked out in white. The command-centre centrepiece: it holds a whole array of values in a shape that stays readable at a glance.",
+  params: [
+    {key: 'bars', label: 'Slices', min: 8, max: 96, step: 2, value: 44},
+    {key: 'len', label: 'Bar length', min: 0.05, max: 0.6, step: 0.01, value: 0.34},
+    {key: 'rate', label: 'Rate', min: 0, max: 2, step: 0.05, value: 0.5},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partRadialBars(p, 0.24, P_len, floor(P_bars), 1.0, P_rate, uAccent);
+  c += partTickRing(p, 0.24 + P_len + 0.07, 72.0, 6.0, 0.045, uAccent) * 0.5;
+  c += partIndex(p, 0.24 + P_len + 0.14, 3.0, 0.05, uTime * 0.15, uAccent) * 0.8;
+  c += uAccent * stroke(sdRing(p, 0.215), 0.004) * 0.6;
+  c += mix(uAccent, vec3(1.0), 0.4) * glow(length(p) - 0.03, 0.06) * 0.6;
+  return c;
+}`,
+},
+{
+  id: 'channel-tracks', title: 'Channel faders', family: 'meter',
+  tags: ['data-driven', 'audio', 'label', 'cheap'],
+  parts: ['partTracks', 'partTicksFrame', 'partReadout'],
+  bio: "Vertical faders with knobs and a ladder of ticks, over a readout. What to reach for when several values move together and you want to compare them, not just watch one.",
+  params: [
+    {key: 'channels', label: 'Channels', min: 2, max: 16, step: 1, value: 7},
+    {key: 'rate', label: 'Rate', min: 0, max: 2, step: 0.05, value: 0.5},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.72, 0.52);
+  c += partTracks(p - vec2(0.0, 0.08), b, floor(P_channels), 3.0, P_rate, uAccent);
+  c += partTicksFrame(p - vec2(0.0, 0.08), b * 1.06, 0.1, 0.007, uAccent) * 0.8;
+  c += partReadout(p - vec2(-b.x * 0.55, -0.72), vec2(0.24, 0.06), 4.0, 2.0, uAccent) * 0.9;
+  c += partReadout(p - vec2(b.x * 0.55, -0.72), vec2(0.24, 0.06), 4.0, 9.0, uAccent) * 0.9;
+  c += uAccent * fill(sdBox(p - vec2(0.0, -0.58), vec2(b.x, 0.002))) * 0.4;
+  return c;
+}`,
+},
+{
+  id: 'vortex-well', title: 'Vortex well', family: 'radial',
+  tags: ['loop', 'glow', 'centrepiece', 'medium'],
+  parts: ['partVortex', 'partTickRing'],
+  bio: "Rings falling inward with a swirl behind them. Depth without any depth: useful over a portal mouth, a download, or anything being drawn in.",
+  params: [
+    {key: 'rate', label: 'Fall rate', min: 0.02, max: 1, step: 0.01, value: 0.22},
+    {key: 'twist', label: 'Twist', min: 0, max: 14, step: 0.2, value: 6},
+    {key: 'ring', label: 'Outer ring', min: 0.4, max: 1, step: 0.01, value: 0.82},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partVortex(p, P_ring, P_rate, P_twist, uAccent);
+  c += partTickRing(p, P_ring + 0.08, 90.0, 6.0, 0.05, uAccent) * 0.55;
+  return c;
+}`,
+},
+{
+  id: 'marquee-select', title: 'Marching marquee', family: 'frame',
+  tags: ['tracking', 'line-art', 'loop', 'cheap'],
+  parts: ['partMarquee', 'partHandles'],
+  bio: "A dashed border that runs, with grab handles at the corners. The most direct 'this object is selected' there is, and the cheapest - two distance fields and a fract().",
+  params: [
+    {key: 'size', label: 'Size', min: 0.3, max: 1, step: 0.01, value: 0.66},
+    {key: 'dashes', label: 'Dash count', min: 4, max: 40, step: 1, value: 16},
+    {key: 'rate', label: 'Rate', min: -1.5, max: 1.5, step: 0.05, value: 0.4},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.72, 0.72) * P_size;
+  c += partMarquee(p, b, P_dashes, P_rate, 0.008, uAccent);
+  c += partHandles(p, b * 1.06, 0.1, 0.009, step(0.5, fract(uTime * 1.4)), uAccent);
+  c += uAccent * fill(min(sdSeg(p, vec2(-0.05, 0.0), vec2(0.05, 0.0)), sdSeg(p, vec2(0.0, -0.05), vec2(0.0, 0.05))) - 0.003) * 0.8;
+  return c;
+}`,
+},
+{
+  id: 'frame-kit', title: 'Selection frame kit', family: 'frame',
+  tags: ['tracking', 'line-art', 'kit', 'cheap'],
+  parts: ['partHandles', 'partMarquee', 'partTicksFrame', 'partIndex', 'partOrbit'],
+  bio: "Four selection treatments in one window, so they can be compared side by side before one is picked. Same box, same clock - only the parts differ.",
+  params: [
+    {key: 'size', label: 'Size', min: 0.4, max: 1.3, step: 0.01, value: 0.9},
+    {key: 'dashes', label: 'Dash count', min: 4, max: 40, step: 1, value: 14},
+    {key: 'rate', label: 'Rate', min: 0, max: 3, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float sx = uAspect * 0.5, sy = 0.48;
+  vec2 id = vec2(p.x > 0.0 ? 1.0 : -1.0, p.y > 0.0 ? 1.0 : -1.0);
+  vec2 q = p - vec2(id.x * sx, id.y * sy);
+  vec2 b = vec2(0.30, 0.30) * P_size;
+  float k = 0.5 + 0.5 * sin(uTime * P_rate + id.x * 1.3 + id.y * 2.1);
+  float which = (id.x > 0.0 ? 1.0 : 0.0) + (id.y > 0.0 ? 2.0 : 0.0);
+  if (which < 0.5){
+    c += partHandles(q, b, 0.11, 0.009, step(0.5, k), uAccent);
+  } else if (which < 1.5){
+    c += partMarquee(q, b, P_dashes, P_rate * 0.4, 0.007, uAccent);
+    c += partHandles(q, b * 1.2, 0.05, 0.007, 1.0, uAccent) * 0.6;
+  } else if (which < 2.5){
+    c += partTicksFrame(q, b, 0.09, 0.008, uAccent);
+    c += uAccent * strokeW(sdBox(q * rot(uTime * 0.4 * P_rate), vec2(b.x * 0.42)), 0.007, px()) * 0.9;
+  } else {
+    c += uAccent * strokeW(sdBox(q, b), 0.006, px()) * 0.7;
+    c += partIndex(q, b.x * 1.3, 4.0, 0.045, PI * 0.25, uAccent) * 0.9;
+    c += partOrbit(q, b.x * 0.75, 2.0, P_rate * 0.6, uAccent);
+  }
+  return c;
+}`,
+},
+{
+  id: 'badge-sheet', title: 'Badge sheet', family: 'texture',
+  tags: ['kit', 'icon', 'loop', 'medium'],
+  parts: ['partBadge', 'partDots', 'partBlip', 'partRadialBars', 'partTicksFrame'],
+  bio: "A sheet of small live badges, each one picked at random from the kit. This is how a set of status icons is produced without drawing forty sprites - and every one of them is still live.",
+  params: [
+    {key: 'cols', label: 'Columns', min: 3, max: 14, step: 1, value: 7},
+    {key: 'spin', label: 'Rate', min: 0, max: 2, step: 0.05, value: 0.7},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float n = floor(P_cols);
+  float s = 2.0 * uAspect / n;                 // one square cell
+  vec2 u = p / s;
+  vec2 id = floor(u + 0.5);
+  vec2 q = (u - id) * s;
+  float seed = hash21(id * 1.3 + 4.0);
+  float pick = hash21(id + 9.0);
+  float spin = uTime * P_spin * (0.4 + seed);
+  if (pick < 0.5){
+    c += partBadge(q, s * 0.30, floor(seed * 5.0), spin, uAccent);
+  } else if (pick < 0.68){
+    c += partDots(q, s * 0.30, 5.0, seed * 20.0, 3.0 * P_spin + 0.2, uAccent);
+    c += partTicksFrame(q, vec2(s * 0.32), 0.03, 0.005, uAccent) * 0.7;
+  } else if (pick < 0.84){
+    c += partBlip(q, vec2(s * 0.32, s * 0.2), 34.0, 3.0 * P_spin, uAccent);
+    c += partTicksFrame(q, vec2(s * 0.34, s * 0.24), 0.03, 0.005, uAccent) * 0.7;
+  } else {
+    c += partRadialBars(q, s * 0.12, s * 0.17, 12.0, seed * 30.0, P_spin * 0.8 + 0.1, uAccent);
+    c += uAccent * strokeW(sdRing(q, s * 0.34), 0.005, px()) * dashes(q * rot(spin), 8.0, 0.3) * 0.7;
+  }
+  return c;
+}`,
+},
+{
+  id: 'dot-matrix', title: 'Dot matrix block', family: 'texture',
+  tags: ['texture', 'loop', 'cheap', 'background'],
+  parts: ['partDots', 'partTicksFrame', 'partRail'],
+  bio: "A block of cells flickering on and off behind a frame. Fills the corner of a panel with something that looks like it is counting, for nothing.",
+  params: [
+    {key: 'cells', label: 'Cells', min: 4, max: 24, step: 1, value: 11},
+    {key: 'rate', label: 'Rate', min: 0.2, max: 12, step: 0.1, value: 4},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 o = vec2(0.0, 0.1);
+  c += partDots(p - o, 0.62, floor(P_cells), 2.0, P_rate, uAccent);
+  c += partTicksFrame(p - o, vec2(0.68), 0.12, 0.008, uAccent) * 0.85;
+  c += partRail(p - vec2(0.0, -0.76), vec2(0.66, 0.03), 0.5 + 0.5 * sin(uTime * 0.6), 0.25, uAccent);
+  return c;
+}`,
+},
+
+// --- fusions: several groups on one screen, running off one clock ------------------------------
+{
+  id: 'scanner-disc', title: 'Scanner disc', family: 'composite',
+  tags: ['composite', 'gauge', 'tracking', 'centrepiece'],
+  parts: ['partTickRing', 'partRadialBars', 'partIris', 'partIndex', 'partSweep', 'partMarquee'],
+  bio: "Dial, histogram and aperture stacked on one hub inside a running marquee. The fusion to put over a scanned object: the ring says where, the bars say what, the aperture says how far along.",
+  params: [
+    {key: 'tilt', label: 'Tilt', min: 0.3, max: 1, step: 0.01, value: 1},
+    {key: 'bars', label: 'Slices', min: 8, max: 80, step: 2, value: 36},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec2 q = vec2(p.x, p.y / clamp(P_tilt, 0.25, 1.0));
+  vec3 c = vec3(0.0);
+  float t = uTime * P_rate;
+  c += partMarquee(p, vec2(uAspect * 0.9, 0.9), 22.0, 0.35 * P_rate, 0.006, uAccent) * 0.55;
+  c += partTickRing(q, 0.86, 120.0, 8.0, 0.06, uAccent) * 0.7;
+  c += partIndex(q, 0.94, 4.0, 0.05, t * 0.1, uAccent) * 0.85;
+  c += partSweep(q, 0.2, 0.84, t * 0.7, 0.5, uAccent) * 0.3;
+  c += partRadialBars(q, 0.34, 0.3, floor(P_bars), 5.0, P_rate * 0.5, uAccent);
+  c += partIris(q, 0.28, 0.5 + 0.45 * sin(t * 0.5), 6.0, uAccent);
+  c += uAccent * stroke(sdRing(q, 0.31), 0.004) * 0.6;
+  return c;
+}`,
+},
+{
+  id: 'command-console', title: 'Command console', family: 'composite', wide: true,
+  tags: ['composite', 'label', 'data-driven', 'heavy'],
+  parts: ['partPanel', 'partTracks', 'partRadialBars', 'partTickRing', 'partReadout', 'partRail', 'partDots', 'partBlip', 'partTicksFrame'],
+  bio: "The full screen from the command-centre reference, assembled from nine parts: faders on the left, the fan gauge in the middle, readouts and rails on the right, a ticker along the bottom.",
+  params: [
+    {key: 'channels', label: 'Channels', min: 3, max: 14, step: 1, value: 8},
+    {key: 'bars', label: 'Gauge slices', min: 12, max: 80, step: 2, value: 40},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.94, 0.9);
+  c += partPanel(p, b, 0.3, 0.008, uAccent) * 0.85;
+
+  vec2 lp = p - vec2(-b.x * 0.60, 0.02);
+  c += partTracks(lp, vec2(b.x * 0.22, 0.42), floor(P_channels), 3.0, P_rate * 0.5, uAccent);
+  c += partTicksFrame(lp, vec2(b.x * 0.24, 0.5), 0.08, 0.006, uAccent) * 0.7;
+  c += partReadout(lp - vec2(0.0, -0.62), vec2(b.x * 0.2, 0.05), 4.0, 1.0, uAccent) * 0.85;
+
+  vec2 g = p - vec2(0.0, 0.0);
+  c += partRadialBars(g, 0.2, 0.32, floor(P_bars), 1.0, P_rate * 0.5, uAccent);
+  c += partTickRing(g, 0.62, 96.0, 8.0, 0.05, uAccent) * 0.55;
+  c += mix(uAccent, vec3(1.0), 0.4) * glow(length(g) - 0.025, 0.05) * 0.6;
+
+  for (int i = 0; i < 3; i++){
+    float f = float(i);
+    vec2 rp = p - vec2(b.x * 0.62, 0.42 - f * 0.34);
+    c += partReadout(rp, vec2(b.x * 0.16, 0.055), 3.0, f * 5.0 + 2.0, uAccent);
+    c += partRail(rp - vec2(0.0, -0.11), vec2(b.x * 0.18, 0.026),
+                  0.25 + 0.7 * vnoise(vec2(f * 3.0, uTime * P_rate * 0.4)), P_rate * 0.3, uAccent) * 0.85;
+  }
+
+  c += partDots(p - vec2(-b.x * 0.16, -0.72), 0.12, 6.0, 4.0, 5.0 * P_rate + 0.2, uAccent) * 0.8;
+  c += partBlip(p - vec2(b.x * 0.16, -0.72), vec2(0.3, 0.07), 42.0, 4.0 * P_rate, uAccent);
+  c += uAccent * fill(sdBox(p - vec2(0.0, -0.58), vec2(b.x - 0.06, 0.002))) * 0.35;
+  return c;
+}`,
+},
+{
+  id: 'target-callout', title: 'Target callout', family: 'composite',
+  tags: ['composite', 'tracking', 'label', 'medium'],
+  parts: ['partHandles', 'partMarquee', 'partOrbit', 'partCallout', 'partBadge'],
+  bio: "A selection frame that locks on, then throws a leader line out to a label plate. This is the shape a tapped star wants in the AR build: the frame stays on the object, the text stays readable.",
+  params: [
+    {key: 'dashes', label: 'Dash count', min: 4, max: 40, step: 1, value: 18},
+    {key: 'rate', label: 'Rate', min: -1.5, max: 1.5, step: 0.05, value: 0.4},
+    {key: 'period', label: 'Lock cycle', min: 2, max: 12, step: 0.5, value: 6},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float k = cycle(P_period, 0.8);
+  vec2 tgt = vec2(-uAspect * 0.42, -0.06);
+  vec2 b = vec2(0.26, 0.26) * (1.0 + 0.6 * (1.0 - k));
+  vec2 q = p - tgt;
+  c += partHandles(q, b, 0.1, 0.009, step(0.5, fract(uTime * 1.6)), uAccent) * k;
+  c += partMarquee(q, b * 1.16, P_dashes, P_rate, 0.006, uAccent) * k * 0.8;
+  c += partOrbit(q, b.x * 1.6, 3.0, 0.6, uAccent) * k;
+  c += partCallout(p, tgt + vec2(b.x * 0.8, b.y * 0.8), vec2(uAspect * 0.05, 0.4), 0.3, 3.0, uAccent) * k;
+  c += partBadge(p - vec2(uAspect * 0.62, -0.52), 0.13, 2.0, uTime * 0.6, uAccent) * k;
+  return c;
+}`,
+},
+{
+  id: 'blueprint-rig', title: 'Blueprint rig', family: 'composite',
+  tags: ['composite', 'instrument', 'light', 'centrepiece'],
+  parts: ['partGrid', 'partTickRing', 'partIndex', 'partSweep', 'partIris', 'partRadialBars'],
+  bio: "The same dial drawn as ink on paper instead of light on black. One slider takes it between the two, which is worth keeping in mind for AR: a dark HUD disappears against a bright wall.",
+  params: [
+    {key: 'paper', label: 'Paper ← → screen', min: 0, max: 1, step: 0.01, value: 1},
+    {key: 'tilt', label: 'Tilt', min: 0.25, max: 1, step: 0.01, value: 0.55},
+    {key: 'grid', label: 'Grid', min: 2, max: 20, step: 1, value: 7},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  // The parts are gathered as ink first - how much line is at this pixel - and only turned into
+  // colour at the end. That is what lets one slider swap the whole rig between paper and screen.
+  vec3 ink = vec3(0.0);
+  vec2 q = vec2(p.x, p.y / clamp(P_tilt, 0.2, 1.0));
+  float t = uTime * P_rate;
+  ink += partGrid(p, floor(P_grid), 4.0, vec3(1.0)) * 0.9;
+  ink += partTickRing(q, 0.80, 120.0, 10.0, 0.10, vec3(1.0));
+  ink += partTickRing(q, 0.56, 48.0, 6.0, 0.05, vec3(1.0)) * 0.7;
+  ink += partIndex(q, 0.90, 6.0, 0.05, t * 0.08, vec3(1.0)) * 0.9;
+  ink += partSweep(q, 0.30, 0.78, t * 0.5, 0.35, vec3(1.0)) * 0.35;
+  ink += partRadialBars(q, 0.32, 0.18, 30.0, 7.0, P_rate * 0.4, vec3(1.0)) * 0.55;
+  ink += partIris(q, 0.26, 0.5 + 0.4 * sin(t * 0.4), 8.0, vec3(1.0));
+  ink += vec3(1.0) * strokeW(sdRing(q, 0.68), 0.005, px()) * 0.6;
+
+  float k = clamp(P_paper, 0.0, 1.0);
+  vec3 bg = mix(vec3(0.015, 0.021, 0.032), vec3(0.90, 0.93, 0.97), k);
+  vec3 lit = clamp(ink, 0.0, 1.4);
+  return mix(bg + lit * uAccent, bg - lit * vec3(0.72, 0.60, 0.26), k);
 }`,
 },
 ]
@@ -687,7 +1415,10 @@ const ACCENTS = [
   ['Magenta', [1.0, 0.35, 0.78]],
   ['Bone', [0.86, 0.9, 1.0]],
 ]
-const state = {playing: true, speed: 1, accent: ACCENTS[0][1], clock: 0, last: performance.now(), filter: null}
+const state = {
+  playing: true, speed: 1, accent: ACCENTS[0][1], clock: 0, last: performance.now(),
+  filter: null, filterKind: 'tag', selected: null,
+}
 
 if (!gl) {
   grid.innerHTML = '<p style="color:#ff9b8f">This browser has no WebGL2, so the lab cannot draw. Try a current Chrome, Safari or Firefox.</p>'
@@ -770,27 +1501,44 @@ if (gl) {
   gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA)   // premultiplied: glow adds, nothing fringes
 }
 
+// A visual's parameters become uniforms, declared from the same list the sliders are built from.
+// One list, so a slider can never point at a uniform that does not exist - or miss one that does.
+function decls(v) {
+  return (v.params || []).map(p => 'uniform float P_' + p.key + ';\n').join('')
+}
+// What Copy shader hands over: the parameter block with the values currently on the sliders
+// baked in as defaults, then the body. Paste it somewhere and it looks like what you tuned.
+function shaderText(entry) {
+  const v = entry.v
+  const head = (v.params || []).map(p =>
+    'uniform float P_' + p.key + ';   // ' + p.label + ' - currently ' + fmt(entry.values[p.key])).join('\n')
+  return (head ? head + '\n' : '') + (v.points ? v.points.body : v.frag).trim()
+}
+function fmt(n) {
+  return Math.abs(n) >= 100 || Number.isInteger(n) ? String(n) : n.toFixed(Math.abs(n) < 0.02 ? 3 : 2)
+}
+
 // Build one card per visual. A shader that will not compile shows its error in its own window
 // rather than taking the page down - which is what you want while writing a new one.
 const cards = []
 for (const v of VISUALS) {
   const card = document.createElement('article')
-  card.className = 'card'
+  card.className = 'card' + (v.wide ? ' wide' : '')
   card.dataset.id = v.id
-  const src = v.points ? v.points.body : v.frag
   card.innerHTML =
     '<div class="screen"><span class="err" hidden></span></div>' +
     '<div class="meta">' +
       '<div class="meta-top"><span class="name"></span><span class="family"></span></div>' +
       '<p class="bio"></p>' +
       '<div class="tags"></div>' +
-      '<div class="row"><button class="expand">Expand</button><button class="srcbtn">Source</button><button class="copy">Copy shader</button></div>' +
+      '<div class="parts"></div>' +
+      '<div class="row"><button class="setbtn">Settings</button><button class="expand">Expand</button>' +
+        '<button class="srcbtn">Source</button><button class="copy">Copy shader</button></div>' +
     '</div>' +
     '<pre class="src"></pre>'
   card.querySelector('.name').textContent = v.title
   card.querySelector('.family').textContent = (FAMILIES[v.family] || {label: v.family}).label
   card.querySelector('.bio').textContent = v.bio
-  card.querySelector('.src').textContent = src.trim()
   const tagWrap = card.querySelector('.tags')
   for (const t of v.tags) {
     const el = document.createElement('span')
@@ -798,14 +1546,33 @@ for (const v of VISUALS) {
     el.textContent = t
     tagWrap.appendChild(el)
   }
+  const partWrap = card.querySelector('.parts')
+  for (const name of v.parts || []) {
+    const b = document.createElement('button')
+    b.className = 'part'
+    b.type = 'button'
+    b.textContent = name.replace(/^part/, '')
+    b.title = (PARTS[name] || name) + ' - press to see every visual using it'
+    b.addEventListener('click', (e) => { e.stopPropagation(); filterByPart(name) })
+    partWrap.appendChild(b)
+  }
   const screen = card.querySelector('.screen')
-  const toggleWide = () => card.classList.toggle('wide')
-  screen.addEventListener('click', toggleWide)
-  card.querySelector('.expand').addEventListener('click', toggleWide)
+  grid.appendChild(card)
+
+  const entry = {
+    v, card, screen, program: null, uniforms: null, error: null, visible: true,
+    values: Object.fromEntries((v.params || []).map(p => [p.key, p.value])),
+  }
+  card.querySelector('.src').textContent = shaderText(entry)
+
+  // Clicking into the window is what opens its settings - the request that started this.
+  screen.addEventListener('click', () => select(entry))
+  card.querySelector('.setbtn').addEventListener('click', () => select(entry))
+  card.querySelector('.expand').addEventListener('click', () => card.classList.toggle('wide'))
   card.querySelector('.srcbtn').addEventListener('click', () => card.classList.toggle('showsrc'))
   card.querySelector('.copy').addEventListener('click', async (e) => {
     try {
-      await navigator.clipboard.writeText(src.trim())
+      await navigator.clipboard.writeText(shaderText(entry))
       e.target.textContent = 'Copied'
     } catch (err) {
       card.classList.add('showsrc')
@@ -813,13 +1580,11 @@ for (const v of VISUALS) {
     }
     setTimeout(() => { e.target.textContent = 'Copy shader' }, 1600)
   })
-  grid.appendChild(card)
 
-  const entry = {v, card, screen, program: null, uniforms: null, error: null, visible: true}
   if (gl) {
     try {
       if (v.points) {
-        entry.program = link(POINT_VS_HEAD + v.points.body + POINT_VS_TAIL, POINT_FS)
+        entry.program = link(POINT_VS_HEAD + decls(v) + v.points.body + POINT_VS_TAIL, POINT_FS)
         if (!pointBuffers[v.points.count]) {
           const idx = new Float32Array(v.points.count)
           for (let i = 0; i < v.points.count; i++) idx[i] = i
@@ -834,9 +1599,10 @@ for (const v of VISUALS) {
           pointBuffers[v.points.count] = vao
         }
       } else {
-        entry.program = link(QUAD_VS, PRELUDE + v.frag + MAIN)
+        entry.program = link(QUAD_VS, PRELUDE + decls(v) + v.frag + MAIN)
       }
       const names = ['uRes', 'uOrigin', 'uTime', 'uAccent', 'uAspect', 'uCount', 'uDpr']
+        .concat((v.params || []).map(p => 'P_' + p.key))
       entry.uniforms = {}
       for (const n of names) entry.uniforms[n] = gl.getUniformLocation(entry.program, n)
     } catch (err) {
@@ -891,14 +1657,127 @@ document.getElementById('labels').addEventListener('change', (e) => {
   document.querySelectorAll('.meta').forEach(m => { m.style.display = e.target.checked ? '' : 'none' })
 })
 
-// Tag filter, built from whatever tags the library happens to use.
+// ---- the settings window ----
+//
+// One drawer, re-filled for whichever window was clicked. A slider writes straight into that
+// card's own values, which the draw loop pushes to its uniforms on the next frame - so the
+// visual answers while the slider is moving, with nothing recompiled and no page state to keep
+// in step. Every visual carries its own parameter list, so this code never knows what a
+// parameter means: only its range.
+const drawer = document.getElementById('drawer')
+const dFields = drawer.querySelector('.dfields')
+const dParts = drawer.querySelector('.dparts')
+
+function select(entry, keepOpen) {
+  // Clicking the window that is already open closes it again, unless the caller says otherwise -
+  // Reset rebuilds the same controls in place rather than toggling the drawer shut.
+  if (!keepOpen && state.selected === entry && drawer.classList.contains('open')) return closeDrawer()
+  state.selected = entry
+  cards.forEach(c => c.card.classList.toggle('selected', c === entry))
+  drawer.querySelector('.dname').textContent = entry.v.title
+  drawer.querySelector('.dsub').textContent = (FAMILIES[entry.v.family] || {label: entry.v.family}).label
+
+  dFields.textContent = ''
+  const params = entry.v.params || []
+  if (!params.length) {
+    const p = document.createElement('p')
+    p.className = 'dnote'
+    p.textContent = 'This one has no parameters yet. Add a params list to its entry and the controls appear here.'
+    dFields.appendChild(p)
+  }
+  for (const p of params) {
+    const wrap = document.createElement('div')
+    wrap.className = 'field'
+    wrap.innerHTML = '<span class="lab"><span></span><b></b></span>' +
+      '<input type="range" id="p-' + entry.v.id + '-' + p.key + '">'
+    wrap.querySelector('.lab span').textContent = p.label
+    const out = wrap.querySelector('b')
+    const input = wrap.querySelector('input')
+    input.min = p.min; input.max = p.max; input.step = p.step; input.value = entry.values[p.key]
+    out.textContent = fmt(entry.values[p.key])
+    input.addEventListener('input', () => {
+      entry.values[p.key] = parseFloat(input.value)
+      out.textContent = fmt(entry.values[p.key])
+      entry.card.querySelector('.src').textContent = shaderText(entry)
+    })
+    dFields.appendChild(wrap)
+  }
+
+  dParts.textContent = ''
+  if (entry.v.parts && entry.v.parts.length) {
+    const h = document.createElement('p')
+    h.className = 'dnote'
+    h.textContent = 'Built from:'
+    dParts.appendChild(h)
+    for (const name of entry.v.parts) {
+      const row = document.createElement('div')
+      row.className = 'p'
+      row.innerHTML = '<b></b> '
+      row.querySelector('b').textContent = name
+      row.append(PARTS[name] || '')
+      dParts.appendChild(row)
+    }
+  }
+
+  drawer.hidden = false
+  drawer.classList.add('open')
+  document.body.classList.add('drawer-open')
+  // Put the window at the top of what is left of the screen: on a phone the settings take the
+  // bottom of it, and a card scrolled to "nearest" ends up behind them.
+  entry.card.scrollIntoView({block: 'start', behavior: 'smooth'})
+}
+function closeDrawer() {
+  drawer.classList.remove('open')
+  document.body.classList.remove('drawer-open')
+  cards.forEach(c => c.card.classList.remove('selected'))
+  state.selected = null
+}
+document.getElementById('drawer-close').addEventListener('click', closeDrawer)
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeDrawer() })
+document.getElementById('drawer-reset').addEventListener('click', () => {
+  const entry = state.selected
+  if (!entry) return
+  for (const p of entry.v.params || []) entry.values[p.key] = p.value
+  entry.card.querySelector('.src').textContent = shaderText(entry)
+  select(entry, true)
+})
+document.getElementById('drawer-copy').addEventListener('click', async (e) => {
+  const entry = state.selected
+  if (!entry) return
+  const text = JSON.stringify({id: entry.v.id, params: entry.values}, null, 2)
+  try { await navigator.clipboard.writeText(text) ; e.target.textContent = 'Copied' }
+  catch (err) { e.target.textContent = 'Clipboard blocked' }
+  setTimeout(() => { e.target.textContent = 'Copy settings' }, 1600)
+})
+document.getElementById('drawer-src').addEventListener('click', () => {
+  const entry = state.selected
+  if (!entry) return
+  entry.card.classList.add('showsrc')
+  entry.card.querySelector('.src').scrollIntoView({block: 'nearest', behavior: 'smooth'})
+})
+
+// Tag filter, built from whatever tags the library happens to use, plus the parts kit.
 const allTags = [...new Set(VISUALS.flatMap(v => v.tags))].sort()
 const tagsBar = document.getElementById('tags')
 function applyFilter() {
   for (const c of cards) {
-    const show = !state.filter || c.v.tags.includes(state.filter)
+    const show = !state.filter
+      || (state.filterKind === 'part' ? (c.v.parts || []).includes(state.filter) : c.v.tags.includes(state.filter))
     c.card.style.display = show ? '' : 'none'
   }
+}
+// Pressing a part chip under a window asks the grid: what else is made of this?
+function filterByPart(name) {
+  state.filter = state.filter === name ? null : name
+  state.filterKind = 'part'
+  chips.forEach(c => c.setAttribute('aria-pressed', String(state.filter === null && c === allChip)))
+  partsBar.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', String(c.dataset.part === state.filter)))
+  applyFilter()
+  window.scrollTo({top: 0, behavior: 'smooth'})
+}
+const partsBar = document.getElementById('parts-bar')
+function clearPartChips() {
+  partsBar.querySelectorAll('.chip').forEach(c => c.setAttribute('aria-pressed', 'false'))
 }
 const allChip = document.createElement('button')
 allChip.className = 'chip'
@@ -908,7 +1787,9 @@ tagsBar.appendChild(allChip)
 const chips = [allChip]
 allChip.addEventListener('click', () => {
   state.filter = null
+  state.filterKind = 'tag'
   chips.forEach(c => c.setAttribute('aria-pressed', String(c === allChip)))
+  clearPartChips()
   applyFilter()
 })
 for (const t of allTags) {
@@ -918,10 +1799,31 @@ for (const t of allTags) {
   tagsBar.appendChild(b)
   chips.push(b)
   b.addEventListener('click', () => {
-    state.filter = state.filter === t ? null : t
+    state.filter = state.filter === t && state.filterKind === 'tag' ? null : t
+    state.filterKind = 'tag'
     chips.forEach(c => c.setAttribute('aria-pressed', String(state.filter === null ? c === allChip : c === b)))
+    clearPartChips()
     applyFilter()
   })
+}
+
+// The same bar again, for the parts kit: which element groups exist, and how many windows use
+// each. A part nobody uses does not appear, so this stays an honest index of the library.
+const partUse = {}
+for (const v of VISUALS) for (const name of v.parts || []) partUse[name] = (partUse[name] || 0) + 1
+const label = document.createElement('span')
+label.className = 'kbd'
+label.textContent = 'parts kit'
+partsBar.appendChild(label)
+for (const name of Object.keys(PARTS)) {
+  if (!partUse[name]) continue
+  const b = document.createElement('button')
+  b.className = 'chip'
+  b.dataset.part = name
+  b.textContent = name.replace(/^part/, '') + ' · ' + partUse[name]
+  b.title = PARTS[name]
+  b.addEventListener('click', () => filterByPart(name))
+  partsBar.appendChild(b)
 }
 
 // ---- the loop ----
@@ -963,6 +1865,12 @@ function frame(now, manual) {
     if (u.uTime) gl.uniform1f(u.uTime, state.clock)
     if (u.uAccent) gl.uniform3fv(u.uAccent, state.accent)
     if (u.uAspect) gl.uniform1f(u.uAspect, rw / rh)
+    // Whatever the settings window last wrote. A parameter the compiler dropped because the
+    // shader never reads it has no location, and is skipped rather than throwing.
+    for (const p of c.v.params || []) {
+      const loc = u['P_' + p.key]
+      if (loc) gl.uniform1f(loc, c.values[p.key])
+    }
     if (c.v.points) {
       if (u.uCount) gl.uniform1f(u.uCount, c.v.points.count)
       if (u.uDpr) gl.uniform1f(u.uDpr, dpr)
@@ -989,8 +1897,12 @@ requestAnimationFrame(frame)
 // A handle for scripting the lab: window.HUDLAB.draw() renders one frame on demand, which is
 // also how to grab a still without waiting for the animation loop.
 window.HUDLAB = {
-  VISUALS, FAMILIES, cards, state, gl,
+  VISUALS, FAMILIES, PARTS, cards, state, gl,
   draw(){ drawn = 0; frame(performance.now(), true); return drawn },
+  // Open a visual's settings, or set one of its parameters, from the console:
+  //   HUDLAB.open('scanner-disc'); HUDLAB.set('scanner-disc', 'bars', 64)
+  open(id){ const c = cards.find(c => c.v.id === id); if (c) select(c); return c },
+  set(id, key, value){ const c = cards.find(c => c.v.id === id); if (c) c.values[key] = value; return c && c.values },
 }
 </script>
 </body>
