@@ -242,6 +242,17 @@ const PARTS = {
   partHalo:       'Soft ring of light, no line - the backing layer',
   partArcLayers:  'Counter-rotating arcs at rising radii',
   partNotchRing:  'Thick ring with notches cut out of it',
+  partNeedle:     'Tapered needle and hub - the part that points',
+  partPie:        'Filled sector: a fraction, bluntly',
+  partComb:       'Comb gauge - uneven ticks lit up to a value',
+  partTextRing:   'Type set around a ring, read as texture',
+  partTrace:      'Orthogonal circuit routing with junction pads',
+  partLoopRail:   'Rail with loops hanging off it',
+  partSquircle:   'Dashed rounded-square track, turning',
+  partNodes:      'Satellites wired to a hub, packets running',
+  partRidge:      'Stacked traces - many series, one picture',
+  partTear:       'Horizontal tearing: the signal-lost state',
+  partLedger:     'Table with rows landing one after another',
   partTickRing:   'Graduated ruler ring, minor and major ticks',
   partIndex:      'Index triangles pointing in at the rim',
   partSweep:      'Sweeping highlight sector',
@@ -564,6 +575,172 @@ vec3 partArcLayers(vec2 p, float r0, float gap, float n, float rate, vec3 col){
 vec3 partNotchRing(vec2 p, float r, float w, float n, float depth, vec3 col){
   float notch = pow(max(0.0, cos(atan(p.y, p.x) * n)), 8.0) * clamp(depth, 0.0, 0.9);
   return col * fillW(abs(length(p) - r) - (w * 0.5 - notch * w), px()) * 0.9;
+}
+
+// -- instruments: the parts that read as a MEASURING device -------------------------------------
+// A ring that turns says "working". A needle against a graduated scale says "this much" - the
+// difference between decoration and an instrument is that an instrument commits to a number.
+
+// A tapered needle and its hub. The one element here that points.
+vec3 partNeedle(vec2 p, float r, float ang, float w, vec3 col){
+  vec2 q = p * rot(-ang);
+  float taper = w * (1.0 - clamp(q.x / max(r, 1e-4), 0.0, 1.0)) * 0.5 + 0.0015;
+  float d = max(max(-q.x, q.x - r), abs(q.y) - taper);
+  vec3 c = col * fillW(d, px());
+  c += col * glow(max(d, 0.0), 0.02) * 0.45;
+  c += mix(col, vec3(1.0), 0.5) * fillW(length(p) - w * 1.1, px());
+  c += col * strokeW(sdRing(p, w * 2.0), 0.005, px()) * 0.8;
+  return c;
+}
+// A filled sector: a pie, which is the bluntest way to show a fraction and the most readable.
+vec3 partPie(vec2 p, float r, float value, float start, vec3 col){
+  float a = mod(atan(p.y, p.x) - start, TAU);
+  float rr = length(p), span = clamp(value, 0.0, 1.0) * TAU;
+  // anti-alias the two radial cuts in arc length, not in angle - an angle is not a distance, and
+  // a wedge AA'd in angle goes soft at the rim and hard at the hub.
+  float m = smoothstep(0.0, px(), a * rr) * smoothstep(0.0, px(), (span - a) * rr)
+          * smoothstep(r + px(), r - px(), rr);
+  vec3 c = col * m * 0.5;
+  c += mix(col, vec3(1.0), 0.3) * fillW(abs(rr - r) - 0.004, px()) * step(a, span);
+  return c;
+}
+// The comb gauge: ticks of uneven length round a scale, lit up to a value. Between a tick ring
+// and a bar chart, and the thing the pack reaches for most.
+vec3 partComb(vec2 p, float r0, float r1, float n, float value, float seed, vec3 col){
+  float a = (atan(p.y, p.x) + PI) / TAU;
+  float k = a * n;
+  float idx = floor(k), f = fract(k);
+  float tick = smoothstep(0.36, 0.2, abs(f - 0.5));
+  float r2 = mix(r0, r1, 0.3 + 0.7 * hash11(idx * 1.7 + seed));
+  float rr = length(p);
+  float band = smoothstep(r0 - px(), r0 + px(), rr) * smoothstep(r2 + px(), r2 - px(), rr);
+  float lit = smoothstep(value + 1.5 / n, value - 1.5 / n, a);
+  return col * band * tick * (0.18 + 0.82 * lit);
+}
+// Type set around a ring. A shader has no font, but curved type at HUD size is read as texture
+// rather than words - so words are blocks, letters are ticks inside them, and the eye is content.
+vec3 partTextRing(vec2 p, float r, float h, float n, float seed, float spin, vec3 col){
+  vec2 q = p * rot(spin);
+  float rr = length(q);
+  float band = smoothstep(r - h - px(), r - h + px(), rr) * smoothstep(r + px(), r - px(), rr);
+  float k = (atan(q.y, q.x) + PI) / TAU * n;
+  float idx = floor(k), f = fract(k);
+  float word = step(0.22, hash11(idx * 1.37 + seed));
+  float inWord = smoothstep(0.02, 0.1, f) * smoothstep(0.98, 0.9, f);
+  float sub = fract(f * 4.0);
+  float letters = smoothstep(0.12, 0.3, sub) * smoothstep(0.88, 0.7, sub);
+  return col * band * word * inWord * letters * 0.8;
+}
+
+// -- diagrams: parts that draw a STRUCTURE rather than a value -----------------------------------
+// Orthogonal routing with junction pads - the circuit-board look. Each cell of a grid carries one
+// piece of track, picked by hash, and the whole thing draws itself in on one ramp.
+vec3 partTrace(vec2 p, float cells, float seed, float build, vec3 col){
+  vec2 u = p * cells;
+  vec2 id = floor(u), f = fract(u) - 0.5;
+  float h = hash21(id + seed);
+  float d;
+  if (h < 0.34) d = abs(f.y);
+  else if (h < 0.68) d = abs(f.x);
+  else d = abs(length(f + (h < 0.84 ? vec2(0.5) : vec2(-0.5, 0.5))) - 0.5);   // right-angle turns
+  d -= 0.022;
+  float w = px() * cells;
+  float drawn = smoothstep(0.0, 0.25, build - hash21(id * 1.7 + seed) * 0.8);
+  vec3 c = col * fillW(d, w) * drawn * 0.8;
+  c += mix(col, vec3(1.0), 0.45) * step(0.9, h) * fillW(length(f) - 0.17, w) * drawn;
+  return c;
+}
+// A rail with loops hanging off it. Reads as routing, cabling, a line map - anything with stops.
+vec3 partLoopRail(vec2 p, float w, float n, float seed, vec3 col){
+  vec3 c = col * fillW(max(abs(p.y) - 0.004, abs(p.x) - w), px());
+  float cell = 2.0 * w / n;
+  float k = (p.x + w) / cell;
+  float idx = floor(k), f = (fract(k) - 0.5) * cell;
+  float R = cell * 0.34;
+  float depth = R + (0.1 + 0.55 * hash11(idx * 2.3 + seed));
+  vec2 q = vec2(f, p.y);
+  float legs = max(abs(abs(q.x) - R) - 0.0035, max(-q.y - (depth - R), q.y));
+  float bowl = max(abs(length(q - vec2(0.0, -(depth - R))) - R) - 0.0035, q.y + (depth - R));
+  c += col * fillW(min(legs, bowl), px()) * step(abs(p.x), w) * 0.85;
+  c += mix(col, vec3(1.0), 0.4) * fillW(sdBox(q - vec2(0.0, 0.012), vec2(R * 0.5, 0.012)), px()) * step(abs(p.x), w);
+  return c;
+}
+// A rounded-square track, dashed, turning. The pack uses it where a circle would be too obvious.
+vec3 partSquircle(vec2 p, float r, float k, float spin, float n, vec3 col){
+  vec2 q = p * rot(spin);
+  float e = max(k, 2.0);
+  float d = pow(pow(abs(q.x), e) + pow(abs(q.y), e), 1.0 / e) - r;
+  float dash = step(0.4, fract((atan(q.y, q.x) + PI) / TAU * n));
+  return col * fillW(abs(d) - 0.004, px()) * dash;
+}
+// Satellites wired back to a hub, with packets running the wires.
+vec3 partNodes(vec2 p, float r, float n, float rate, float seed, vec3 col){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 6; i++){
+    float f = float(i);
+    if (f >= n) break;
+    float a = f / max(n, 1.0) * TAU + seed;
+    vec2 node = vec2(cos(a), sin(a)) * r * (0.55 + 0.45 * hash11(f * 3.1 + seed));
+    c += col * fillW(sdSeg(p, vec2(0.0), node) - 0.0025, px()) * 0.55;
+    c += col * strokeW(sdRing(p - node, r * 0.14), 0.006, px()) * 0.9;
+    float t = fract(uTime * rate * 0.3 + f * 0.23);
+    c += mix(col, vec3(1.0), 0.6) * fillW(length(p - node * t) - 0.011, px());
+  }
+  c += col * strokeW(sdRing(p, r * 0.1), 0.006, px());
+  return c;
+}
+// Stacked traces, the ridge plot: many series at once without a single axis label.
+vec3 partRidge(vec2 p, vec2 b, float lines, float rate, vec3 col){
+  vec3 c = vec3(0.0);
+  if (abs(p.x) > b.x) return c;
+  for (int i = 0; i < 12; i++){
+    float f = float(i);
+    if (f >= lines) break;
+    float y0 = b.y - (f / max(lines - 1.0, 1.0)) * 2.0 * b.y;
+    float amp = b.y * 0.22 * (0.35 + vnoise(vec2(f * 1.7, 0.0)));
+    float x = p.x / b.x;
+    float y = y0 + (sin(x * (5.0 + f * 1.3) + uTime * rate + f) + 0.5 * sin(x * (11.0 + f) - uTime * rate * 0.7))
+              * amp * exp(-x * x * 1.2);
+    c += col * fillW(abs(p.y - y) - 0.0035, px()) * (1.0 - f * 0.045);
+  }
+  return c;
+}
+// Horizontal tearing: the signal-lost state. Rows displace and drop out on their own clock.
+vec3 partTear(vec2 p, vec2 b, float amount, float rate, vec3 col){
+  if (abs(p.x) > b.x || abs(p.y) > b.y) return vec3(0.0);
+  float band = floor(p.y * 70.0);
+  float clk = floor(uTime * rate);
+  float on = step(1.0 - clamp(amount, 0.0, 1.0), hash21(vec2(band, clk)));
+  float len = hash21(vec2(band, clk + 3.0)) * b.x;
+  float x0 = (hash21(vec2(band, clk + 7.0)) - 0.5) * b.x * 1.6;
+  float seg = step(abs(p.x - x0), len);
+  float row = smoothstep(0.5, 0.22, abs(fract(p.y * 70.0) - 0.5));
+  return col * on * seg * row * 0.75;
+}
+// A table: header, columns, rows that land one after another. Structured where greeble is not.
+vec3 partLedger(vec2 p, vec2 b, float rows, float cols, float seed, vec3 col){
+  if (abs(p.x) > b.x || abs(p.y) > b.y) return vec3(0.0);
+  vec3 c = col * strokeW(sdBox(p, b), 0.005, px()) * 0.7;
+  float headY = b.y - 0.08;
+  c += col * fillW(abs(p.y - headY) - 0.0025, px()) * 0.8;
+  c += col * smoothstep(headY - 0.002, headY + 0.002, p.y) * 0.10;
+  // Column rules run the full height, which is what makes the eye read fields rather than bars.
+  float cx = (p.x + b.x) / (2.0 * b.x) * cols;
+  float ci = floor(cx), cf = fract(cx);
+  c += col * fillW(cf * (2.0 * b.x / cols) - 0.0012, px()) * 0.3;
+  float pitch = (headY + b.y) / rows;
+  float ry = (headY - p.y) / pitch;
+  float ri = floor(ry), rf = fract(ry);
+  if (p.y < headY && ri >= 0.0 && ri < rows) {
+    float landed = smoothstep(0.0, 0.5, fract(uTime * 0.1) * (rows + 5.0) - ri);
+    // A LINE of text inside the row, not the whole row: a third of the pitch, or the table reads
+    // as a bar chart - which is exactly what it looked like the first time.
+    float line = smoothstep(0.34, 0.2, abs(rf - 0.5));
+    float w = 0.2 + 0.65 * hash21(vec2(ci, ri + seed));
+    float cell = step(0.1, cf) * step(cf, 0.1 + w * 0.8);
+    c += col * line * cell * landed * 0.7;
+  }
+  return c;
 }
 
 // -- meters -----------------------------------------------------------------------------------
@@ -1505,6 +1682,205 @@ vec3 hud(vec2 p){
 }`,
 },
 
+// --- from the 66-element pack -------------------------------------------------------------------
+// Groups the pack leans on that the kit had no answer for: something that points, something that
+// commits to a fraction, structure rather than value, and a proper broken state.
+{
+  id: 'needle-gauge', title: 'Needle gauge', family: 'radial',
+  tags: ['instrument', 'gauge', 'data-driven', 'centrepiece'],
+  parts: ['partComb', 'partNeedle', 'partTextRing', 'partTickRing'],
+  bio: "A needle against a graduated comb, with type curved round the rim. The difference between decoration and an instrument: a ring that turns says 'working', a needle says 'this much'.",
+  params: [
+    {key: 'value', label: 'Reading', min: 0, max: 1, step: 0.01, value: 0.68},
+    {key: 'ticks', label: 'Comb ticks', min: 12, max: 90, step: 2, value: 44},
+    {key: 'live', label: 'Drift', min: 0, max: 1, step: 1, value: 1},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float v = mix(P_value, fract(P_value + 0.35 * sin(uTime * 0.4 * P_rate)), step(0.5, P_live));
+  c += partComb(p, 0.52, 0.76, floor(P_ticks), v, 3.0, uAccent);
+  c += partTickRing(p, 0.86, 72.0, 6.0, 0.05, uAccent) * 0.55;
+  c += partTextRing(p, 0.46, 0.05, 26.0, 5.0, -uTime * 0.05 * P_rate, uAccent) * 0.8;
+  c += uAccent * strokeW(sdRing(p, 0.40), 0.005, px()) * 0.7;
+  // the needle reads the same value the comb is lit to - one number, two ways to see it
+  c += partNeedle(p, 0.36, (v - 0.5) * TAU, 0.03, uAccent);
+  return c;
+}`,
+},
+{
+  id: 'pie-dial', title: 'Pie dial', family: 'radial',
+  tags: ['gauge', 'data-driven', 'cheap', 'label'],
+  parts: ['partPie', 'partRingStack', 'partTextRing', 'partIndex'],
+  bio: "A solid wedge inside layered rings. The bluntest way to show a fraction and the most readable at a glance - worth remembering when a ring of ticks would be prettier and slower to read.",
+  params: [
+    {key: 'value', label: 'Fraction', min: 0, max: 1, step: 0.01, value: 0.34},
+    {key: 'rings', label: 'Rings', min: 1, max: 6, step: 1, value: 3},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float v = P_value;
+  c += partPie(p, 0.44, v, PI * 0.5, uAccent);
+  c += partRingStack(p, 0.54, 0.08, floor(P_rings), P_rate, uAccent) * 0.85;
+  c += partTextRing(p, 0.93, 0.055, 30.0, 2.0, uTime * 0.04 * P_rate, uAccent) * 0.75;
+  c += partIndex(p, 0.99, 4.0, 0.04, PI * 0.25, uAccent) * 0.7;
+  return c;
+}`,
+},
+{
+  id: 'trace-board', title: 'Circuit routing', family: 'field',
+  tags: ['structure', 'reveal', 'texture', 'background'],
+  parts: ['partTrace', 'partTicksFrame'],
+  bio: "Orthogonal track with junction pads, drawing itself in. Structure rather than value: it says a system has parts and they are connected, without claiming a single number.",
+  params: [
+    {key: 'cells', label: 'Grid', min: 3, max: 18, step: 1, value: 8},
+    {key: 'seed', label: 'Layout', min: 0, max: 20, step: 1, value: 3},
+    {key: 'rate', label: 'Draw rate', min: 0.02, max: 1, step: 0.01, value: 0.15},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  // Ramp in over the first third of the cycle, then hold. A build that restarts from nothing
+  // leaves the panel empty most of the time, which is a worse picture than no animation at all.
+  float build = 0.2 + 1.3 * smoothstep(0.0, 0.35, fract(uTime * P_rate));
+  c += partTrace(p, floor(P_cells), P_seed, build, uAccent);
+  c += partTicksFrame(p, vec2(uAspect * 0.92, 0.92), 0.14, 0.008, uAccent) * 0.8;
+  return c;
+}`,
+},
+{
+  id: 'loop-rail', title: 'Loop rail', family: 'meter',
+  tags: ['structure', 'loop', 'cheap', 'label'],
+  parts: ['partLoopRail', 'partReadout', 'partDots'],
+  bio: "A rail with loops hanging off it, each a different depth. Reads as routing, cabling or a line map - anything that is a sequence of stops rather than a quantity.",
+  params: [
+    {key: 'loops', label: 'Loops', min: 3, max: 16, step: 1, value: 8},
+    {key: 'seed', label: 'Depths', min: 0, max: 20, step: 1, value: 4},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partLoopRail(p - vec2(0.0, 0.42), uAspect * 0.9, floor(P_loops), P_seed, uAccent);
+  c += partReadout(p - vec2(-uAspect * 0.55, -0.72), vec2(0.26, 0.055), 4.0, 1.0, uAccent) * 0.9;
+  c += partDots(p - vec2(uAspect * 0.55, -0.72), 0.12, 5.0, 2.0, 3.0, uAccent) * 0.8;
+  return c;
+}`,
+},
+{
+  id: 'squircle-track', title: 'Squircle track', family: 'radial',
+  tags: ['loop', 'idle', 'line-art', 'cheap'],
+  parts: ['partSquircle', 'partOrbit', 'partTextRing'],
+  bio: "Rounded-square tracks turning inside each other, where a circle would be too obvious. The pack uses this shape wherever it wants motion that does not read as a dial.",
+  params: [
+    {key: 'corner', label: 'Squareness', min: 2, max: 12, step: 0.2, value: 4},
+    {key: 'tracks', label: 'Tracks', min: 1, max: 4, step: 1, value: 3},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 4; i++){
+    float f = float(i);
+    if (f >= P_tracks) break;
+    float dir = mod(f, 2.0) < 0.5 ? 1.0 : -1.0;
+    c += partSquircle(p, 0.42 + f * 0.17, P_corner - f * 0.6,
+                      uTime * 0.12 * P_rate * dir, 26.0 + f * 12.0, uAccent) * (1.0 - f * 0.18);
+  }
+  c += partOrbit(p, 0.3, 3.0, P_rate * 0.5, uAccent) * 0.9;
+  c += partTextRing(p, 0.99, 0.05, 28.0, 7.0, -uTime * 0.03 * P_rate, uAccent) * 0.6;
+  return c;
+}`,
+},
+{
+  id: 'node-web', title: 'Node web', family: 'field',
+  tags: ['structure', 'spatial', 'data-driven', 'medium'],
+  parts: ['partNodes', 'partSquircle', 'partRadialBars'],
+  bio: "Satellites wired back to a hub with packets running the wires, inside a turning track. The pack's way of saying 'these things are talking to each other' - the packets are what sell it.",
+  params: [
+    {key: 'nodes', label: 'Nodes', min: 2, max: 6, step: 1, value: 4},
+    {key: 'rate', label: 'Traffic', min: 0, max: 3, step: 0.05, value: 1},
+    {key: 'seed', label: 'Arrangement', min: 0, max: 6.28, step: 0.05, value: 0.6},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partSquircle(p, 0.78, 4.0, uTime * 0.08 * P_rate, 40.0, uAccent) * 0.6;
+  c += partNodes(p, 0.6, floor(P_nodes), P_rate, P_seed, uAccent);
+  c += partRadialBars(p, 0.86, 0.1, 44.0, 3.0, P_rate * 0.4, uAccent) * 0.55;
+  return c;
+}`,
+},
+{
+  id: 'ridge-plot', title: 'Ridge plot', family: 'signal',
+  tags: ['data-driven', 'loop', 'instrument', 'medium'],
+  parts: ['partRidge', 'partTicksFrame', 'partRail'],
+  bio: "Many series stacked into one picture, each a trace on its own baseline. Shows a whole array changing over time in the space one chart would take.",
+  params: [
+    {key: 'lines', label: 'Series', min: 2, max: 12, step: 1, value: 8},
+    {key: 'rate', label: 'Rate', min: 0, max: 3, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.82, 0.62);
+  c += partRidge(p - vec2(0.0, 0.08), b, floor(P_lines), P_rate, uAccent);
+  c += partTicksFrame(p - vec2(0.0, 0.08), b * 1.06, 0.12, 0.007, uAccent) * 0.8;
+  c += partRail(p - vec2(0.0, -0.78), vec2(b.x, 0.03), 0.5 + 0.5 * sin(uTime * 0.5 * P_rate), 0.25, uAccent);
+  return c;
+}`,
+},
+{
+  id: 'signal-lost', title: 'Signal lost', family: 'noise',
+  tags: ['warning', 'transition', 'texture', 'medium'],
+  parts: ['partTear', 'partPanel', 'partMarquee', 'partReadout'],
+  bio: "The broken state, which most HUD sets forget to design. Rows displace and drop out on their own clock inside a frame that stays intact - it is the frame holding still that makes the tearing read as a fault rather than a style.",
+  params: [
+    {key: 'amount', label: 'Corruption', min: 0, max: 1, step: 0.01, value: 0.35},
+    {key: 'rate', label: 'Tear rate', min: 1, max: 30, step: 1, value: 10},
+    {key: 'warn', label: 'Warning red', min: 0, max: 1, step: 1, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.9, 0.82);
+  vec3 warn = mix(uAccent, vec3(1.0, 0.25, 0.2), P_warn);
+  c += partPanel(p, b, 0.22, 0.008, warn) * 0.9;
+  c += partTear(p, b * 0.94, P_amount, P_rate, uAccent);
+  c += partMarquee(p, b * 0.97, 30.0, 0.5, 0.005, warn) * 0.5;
+  // the banner holds perfectly still while everything inside it comes apart
+  vec2 bp = p - vec2(0.0, 0.0);
+  c += warn * strokeW(sdBox(bp, vec2(0.42, 0.08)), 0.007, px());
+  c += warn * fillW(sdBox(bp, vec2(0.42, 0.08)), px()) * 0.12;
+  c += partReadout(bp, vec2(0.34, 0.045), 5.0, 6.0, warn) * 0.9;
+  return c;
+}`,
+},
+{
+  id: 'ledger-panel', title: 'Ledger', family: 'texture',
+  tags: ['label', 'structure', 'reveal', 'cheap'],
+  parts: ['partLedger', 'partBlip', 'partBadge'],
+  bio: "A table whose rows land one after another. Structured where greeble is a smear: columns line up, so the eye believes there are fields even though nothing is readable.",
+  params: [
+    {key: 'rows', label: 'Rows', min: 3, max: 16, step: 1, value: 9},
+    {key: 'cols', label: 'Columns', min: 2, max: 6, step: 1, value: 4},
+    {key: 'seed', label: 'Contents', min: 0, max: 20, step: 1, value: 2},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partLedger(p - vec2(-uAspect * 0.22, 0.0), vec2(uAspect * 0.52, 0.82), floor(P_rows), floor(P_cols), P_seed, uAccent);
+  c += partBlip(p - vec2(uAspect * 0.62, 0.5), vec2(0.28, 0.12), 26.0, 3.0, uAccent);
+  for (int i = 0; i < 3; i++){
+    float f = float(i);
+    c += partBadge(p - vec2(uAspect * 0.62, 0.05 - f * 0.3), 0.1, f, uTime * 0.5 + f, uAccent) * 0.9;
+  }
+  return c;
+}`,
+},
+
 // --- fusions: several groups on one screen, running off one clock ------------------------------
 {
   id: 'scanner-disc', title: 'Scanner disc', family: 'composite',
@@ -1627,6 +2003,146 @@ vec3 hud(vec2 p){
   vec3 bg = mix(vec3(0.015, 0.021, 0.032), vec3(0.90, 0.93, 0.97), k);
   vec3 lit = clamp(ink, 0.0, 1.4);
   return mix(bg + lit * uAccent, bg - lit * vec3(0.72, 0.60, 0.26), k);
+}`,
+},
+
+// --- mixtures: the pack's elements crossed with the kit that was already here --------------------
+{
+  id: 'instrument-stack', title: 'Layered instrument', family: 'composite',
+  tags: ['instrument', 'layered', 'gauge', 'centrepiece'],
+  parts: ['partHalo', 'partRingStack', 'partGyro', 'partComb', 'partNeedle', 'partTextRing', 'partSegRing'],
+  bio: "The pack's needle-and-comb dropped into the layered ring stack that was already here. The stack gives it depth and the needle gives it a reading - neither half does both, which is exactly why they belong together.",
+  params: [
+    {key: 'value', label: 'Reading', min: 0, max: 1, step: 0.01, value: 0.62},
+    {key: 'rings', label: 'Stack rings', min: 1, max: 6, step: 1, value: 3},
+    {key: 'gyro', label: 'Gyro rings', min: 0, max: 4, step: 1, value: 2},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float v = fract(P_value + 0.28 * sin(uTime * 0.33 * P_rate));
+  c += partHalo(p, 0.5, 0.14, uAccent) * 0.4;
+  c += partGyro(p, 0.34, floor(P_gyro), P_rate * 0.7, uAccent) * 0.55;
+  c += partRingStack(p, 0.62, 0.08, floor(P_rings), P_rate * 0.8, uAccent) * 0.8;
+  c += partComb(p, 0.40, 0.58, 40.0, v, 2.0, uAccent);
+  c += partSegRing(p, 0.90, 0.03, 30.0, 0.7, v, uAccent) * 0.85;
+  c += partTextRing(p, 0.99, 0.05, 30.0, 4.0, -uTime * 0.03 * P_rate, uAccent) * 0.6;
+  c += partNeedle(p, 0.30, (v - 0.5) * TAU, 0.028, uAccent);
+  return c;
+}`,
+},
+{
+  id: 'ops-console', title: 'Operations console', family: 'composite', wide: true,
+  tags: ['composite', 'structure', 'data-driven', 'heavy'],
+  parts: ['partPanel', 'partLedger', 'partRidge', 'partNodes', 'partTracks', 'partComb', 'partNeedle', 'partReadout', 'partBadge'],
+  bio: "A full screen in the pack's grammar: a table on the left, a ridge plot in the middle, a node web and an instrument on the right, badges along the bottom. Structure, series and reading, each doing the job it is best at.",
+  params: [
+    {key: 'rows', label: 'Ledger rows', min: 3, max: 14, step: 1, value: 8},
+    {key: 'series', label: 'Series', min: 2, max: 10, step: 1, value: 6},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.95, 0.92);
+  c += partPanel(p, b, 0.26, 0.007, uAccent) * 0.75;
+
+  c += partLedger(p - vec2(-b.x * 0.66, 0.06), vec2(b.x * 0.26, 0.6), floor(P_rows), 4.0, 3.0, uAccent);
+  c += partRidge(p - vec2(-b.x * 0.05, 0.12), vec2(b.x * 0.3, 0.46), floor(P_series), P_rate, uAccent);
+  c += partTicksFrame(p - vec2(-b.x * 0.05, 0.12), vec2(b.x * 0.32, 0.54), 0.1, 0.006, uAccent) * 0.7;
+
+  vec2 np = p - vec2(b.x * 0.45, 0.16);
+  c += partNodes(np, 0.34, 4.0, P_rate, 0.8, uAccent) * 0.9;
+  c += partSquircle(np, 0.44, 4.0, uTime * 0.08 * P_rate, 30.0, uAccent) * 0.5;
+
+  vec2 gp = p - vec2(b.x * 0.82, 0.16);
+  float v = fract(0.3 + 0.3 * sin(uTime * 0.3 * P_rate));
+  c += partComb(gp, 0.16, 0.26, 30.0, v, 5.0, uAccent);
+  c += partNeedle(gp, 0.13, (v - 0.5) * TAU, 0.016, uAccent);
+
+  c += partTracks(p - vec2(-b.x * 0.05, -0.62), vec2(b.x * 0.3, 0.18), 9.0, 2.0, P_rate * 0.5, uAccent);
+  c += partReadout(p - vec2(-b.x * 0.66, -0.66), vec2(b.x * 0.22, 0.05), 5.0, 1.0, uAccent) * 0.9;
+  for (int i = 0; i < 3; i++){
+    float f = float(i);
+    c += partBadge(p - vec2(b.x * (0.52 + f * 0.19), -0.66), 0.07, f + 1.0, uTime * 0.5 * P_rate + f, uAccent) * 0.9;
+  }
+  return c;
+}`,
+},
+{
+  id: 'breach-alert', title: 'Breach alert', family: 'composite',
+  tags: ['warning', 'tracking', 'transition', 'composite'],
+  parts: ['partTear', 'partHandles', 'partMarquee', 'partIris', 'partSegRing', 'partReadout'],
+  bio: "The selection frame the kit already had, with the pack's tearing running inside it and the aperture slamming shut. A HUD needs a broken state as much as a working one, and it should be the same element in trouble - not a different screen.",
+  params: [
+    {key: 'alarm', label: 'Alarm', min: 0, max: 1, step: 0.01, value: 0.7},
+    {key: 'rate', label: 'Rate', min: 0.5, max: 3, step: 0.05, value: 1},
+    {key: 'red', label: 'Warning red', min: 0, max: 1, step: 0.01, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec3 warn = mix(uAccent, vec3(1.0, 0.25, 0.2), P_red);
+  float pulse = 0.5 + 0.5 * sin(uTime * 4.0 * P_rate);
+  vec2 b = vec2(0.66, 0.62);
+  c += partTear(p, b * 0.96, P_alarm * 0.55, 12.0 * P_rate, uAccent);
+  c += partIris(p, 0.26, 1.0 - P_alarm, 6.0, warn);
+  c += partSegRing(p, 0.34, 0.032, 24.0, 0.7, 1.0 - P_alarm, warn);
+  c += partHandles(p, b, 0.14, 0.011, step(0.5, pulse), warn) * (0.7 + 0.3 * pulse);
+  c += partMarquee(p, b * 1.1, 22.0, 0.6 * P_rate, 0.007, warn) * 0.8;
+  c += partReadout(p - vec2(0.0, -0.84), vec2(0.34, 0.045), 5.0, 9.0, warn) * 0.9;
+  return c;
+}`,
+},
+{
+  id: 'orbit-map', title: 'Orbit map', family: 'composite',
+  tags: ['structure', 'spatial', 'layered', 'label'],
+  parts: ['partSquircle', 'partNodes', 'partGyro', 'partCallout', 'partTickRing', 'partTextRing'],
+  bio: "The node web wrapped in the gyroscope, with a callout naming one of the satellites. Mixing the pack's flat diagram with the kit's tilted rings puts the network in a space instead of on a page.",
+  params: [
+    {key: 'nodes', label: 'Nodes', min: 2, max: 6, step: 1, value: 5},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+    {key: 'tilt', label: 'Gyro rings', min: 0, max: 4, step: 1, value: 2},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 o = vec2(-uAspect * 0.3, 0.0);
+  vec2 q = p - o;
+  c += partGyro(q, 0.5, floor(P_tilt), P_rate * 0.6, uAccent) * 0.5;
+  c += partSquircle(q, 0.62, 4.0, uTime * 0.07 * P_rate, 34.0, uAccent) * 0.7;
+  c += partNodes(q, 0.46, floor(P_nodes), P_rate, 1.2, uAccent);
+  c += partTickRing(q, 0.72, 84.0, 7.0, 0.04, uAccent) * 0.45;
+  c += partTextRing(q, 0.80, 0.045, 26.0, 3.0, -uTime * 0.03 * P_rate, uAccent) * 0.55;
+  c += partCallout(p, o + vec2(0.34, 0.3), vec2(uAspect * 0.12, 0.42), 0.27, 3.0, uAccent) * 0.9;
+  return c;
+}`,
+},
+{
+  id: 'routing-dial', title: 'Routing dial', family: 'composite',
+  tags: ['structure', 'instrument', 'reveal', 'composite'],
+  parts: ['partTrace', 'partPie', 'partNeedle', 'partTickRing', 'partIndex', 'partSweep'],
+  bio: "Circuit routing drawing itself in behind a dial that reads off it. The trace is the system, the dial is the one number you actually watch - the pack's two halves, which it usually keeps on separate screens.",
+  params: [
+    {key: 'cells', label: 'Grid', min: 3, max: 16, step: 1, value: 7},
+    {key: 'value', label: 'Reading', min: 0, max: 1, step: 0.01, value: 0.42},
+    {key: 'rate', label: 'Rate', min: 0.02, max: 1.5, step: 0.02, value: 0.5},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partTrace(p, floor(P_cells), 6.0, 0.2 + 1.3 * smoothstep(0.0, 0.35, fract(uTime * 0.12 * P_rate)), uAccent) * 0.5;
+  // the dial sits in a clearing: knock the trace back where the instrument needs to be read
+  float clear = smoothstep(0.34, 0.52, length(p));
+  c *= clear;
+  float v = fract(P_value + 0.2 * sin(uTime * 0.4 * P_rate));
+  c += partPie(p, 0.3, v, PI * 0.5, uAccent);
+  c += partTickRing(p, 0.46, 60.0, 6.0, 0.05, uAccent) * 0.7;
+  c += partIndex(p, 0.54, 4.0, 0.04, PI * 0.25, uAccent) * 0.8;
+  c += partSweep(p, 0.32, 0.46, uTime * 0.6 * P_rate, 0.35, uAccent) * 0.3;
+  c += partNeedle(p, 0.26, (v - 0.5) * TAU, 0.022, uAccent);
+  return c;
 }`,
 },
 {
