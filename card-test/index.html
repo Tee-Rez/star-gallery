@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Card as a textured quad</title>
+<script src="8frame-1.3.0.min.js"></script>
+<style>
+  :root { --ink:#efe6d6; --muted:#8d8274; --gold:#f0b458; --line:#2a2520; }
+  body { margin:0; background:#08090c; color:var(--ink); font:14px/1.5 system-ui, sans-serif; }
+  a-scene { display:block; height:58svh; }
+  .panel { padding:14px 16px 26px; max-width:760px; margin:0 auto; }
+  .ctl { display:grid; gap:6px; margin:12px 0; font:12px ui-monospace, monospace; color:var(--muted); }
+  .ctl b { color:var(--gold); font-weight:500; }
+  input[type=range]{ width:100%; accent-color:var(--gold); }
+  h1 { font-size:17px; margin:0 0 6px; }
+  p { color:var(--muted); font-size:13.5px; max-width:66ch; }
+  .row { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  button { font:13px system-ui; background:#1c1916; color:var(--ink); border:1px solid var(--line);
+           border-radius:7px; padding:8px 12px; cursor:pointer; }
+  button:hover { border-color:var(--gold); color:var(--gold); }
+</style>
+</head>
+<body>
+<a-scene embedded background="color: #08090c" vr-mode-ui="enabled: false"
+         renderer="colorManagement: true; sortObjects: true">
+  <a-assets>
+    <img id="card" src="card.png" crossorigin="anonymous">
+    <img id="room" src="room.png" crossorigin="anonymous">
+  </a-assets>
+  <a-camera id="cam" position="0 0 0" look-controls-enabled="false" wasd-controls-enabled="false"></a-camera>
+  <!-- stand-in for the camera feed, so the transparent centre has something real behind it -->
+  <a-plane src="#room" width="16" height="9" position="0 0 -8" material="shader: flat"></a-plane>
+  <a-entity id="holder" position="0 0 -3">
+    <a-plane id="quad" src="#card" width="1.9" height="1.65"
+             material="shader: flat; transparent: true; alphaTest: 0.01; side: double"></a-plane>
+  </a-entity>
+</a-scene>
+
+<div class="panel">
+  <h1>The card as a flat textured quad</h1>
+  <p>This is the photoreal render cut out with a transparent glass centre and mapped onto one flat
+     plane - no geometry, no 3D model. Turn it and move it to see where that holds and where it
+     stops holding.</p>
+
+  <label class="ctl">Angle <b id="v-a">0&deg;</b><input id="a" type="range" min="-80" max="80" step="1" value="0"></label>
+  <label class="ctl">Distance <b id="v-d">3.0 m</b><input id="d" type="range" min="1" max="8" step="0.1" value="3"></label>
+  <label class="ctl">Card size <b id="v-s">0.60 m</b><input id="s" type="range" min="0.2" max="1.6" step="0.05" value="0.6"></label>
+
+  <div class="row">
+    <button data-preset="0,3,0.6">As it would appear in AR</button>
+    <button data-preset="0,1.2,0.9">Head-on, close</button>
+    <button data-preset="58,1.2,0.9">Oblique, close (worst case)</button>
+    <button data-preset="45,4,0.5">Oblique, at real size</button>
+  </div>
+
+  <p style="margin-top:16px"><b style="color:var(--ink)">What to look for.</b> Head-on it is
+     indistinguishable from the render. The tells appear only when the card is BOTH close and
+     turned past about 45&deg;: the frame has no thickness, the corner blocks stop overhanging, and
+     the bright edge on the gold stays on the same side instead of moving as the light should.
+     At the size the card actually appears in AR, none of that is visible - which is the whole
+     argument for a quad.</p>
+</div>
+
+<script>
+const holder = document.getElementById('holder');
+const quad = document.getElementById('quad');
+const A = document.getElementById('a'), D = document.getElementById('d'), S = document.getElementById('s');
+function apply() {
+  const ang = +A.value, dist = +D.value, size = +S.value;
+  document.getElementById('v-a').textContent = ang + '°';
+  document.getElementById('v-d').textContent = dist.toFixed(1) + ' m';
+  document.getElementById('v-s').textContent = size.toFixed(2) + ' m';
+  holder.setAttribute('position', '0 0 ' + (-dist));
+  holder.setAttribute('rotation', '0 ' + (-ang) + ' 0');
+  quad.setAttribute('width', size * 1.15);
+  quad.setAttribute('height', size);
+}
+[A, D, S].forEach(el => el.addEventListener('input', apply));
+document.querySelectorAll('button[data-preset]').forEach(b => b.addEventListener('click', () => {
+  const [ang, dist, size] = b.dataset.preset.split(',').map(Number);
+  A.value = ang; D.value = dist; S.value = size; apply();
+}));
+apply();
+
+// 8frame will not start its own loop without the XR system, so drive the render directly.
+const scene = document.querySelector('a-scene');
+function loop(){
+  scene.object3D.updateMatrixWorld(true);
+  if (scene.renderer && scene.camera) scene.renderer.render(scene.object3D, scene.camera);
+  requestAnimationFrame(loop);
+}
+setTimeout(loop, 1200);
+</script>
+</body>
+</html>
