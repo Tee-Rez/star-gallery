@@ -252,6 +252,9 @@ const PARTS = {
   partNodes:      'Satellites wired to a hub, packets running',
   partRidge:      'Stacked traces - many series, one picture',
   partTear:       'Horizontal tearing: the signal-lost state',
+  partRadarPoly:  'Spider chart - a profile, not a number',
+  partArea:       'Filled area under a line',
+  partSpan:       'Selection region with grab edges and a head',
   partLedger:     'Table with rows landing one after another',
   partTickRing:   'Graduated ruler ring, minor and major ticks',
   partIndex:      'Index triangles pointing in at the rim',
@@ -716,6 +719,50 @@ vec3 partTear(vec2 p, vec2 b, float amount, float rate, vec3 col){
   float seg = step(abs(p.x - x0), len);
   float row = smoothstep(0.5, 0.22, abs(fract(p.y * 70.0) - 0.5));
   return col * on * seg * row * 0.75;
+}
+// The spider chart: n axes, a value on each, joined into a polygon. The one chart shape that
+// shows a PROFILE - two of these are compared at a glance, where two bar charts are not.
+vec3 partRadarPoly(vec2 p, float r, float n, float seed, float rate, vec3 col){
+  float k = TAU / max(n, 3.0);
+  float t = (atan(p.y, p.x) + PI) / k;
+  float idx = floor(t), f = fract(t);
+  float v0 = 0.25 + 0.7 * vnoise(vec2(idx + seed, uTime * rate));
+  float v1 = 0.25 + 0.7 * vnoise(vec2(mod(idx + 1.0, n) + seed, uTime * rate));
+  // The edge between two vertices is a STRAIGHT chord, and a straight line in polar coordinates
+  // is not a lerp of the two radii - lerping bulges every edge outward and the chart reads as a
+  // blob instead of a polygon. This is the exact radius of the chord at this angle.
+  float sk = sin(k);
+  float edge = (v0 * v1 * sk) / max(v0 * sin(f * k) + v1 * sin((1.0 - f) * k), 1e-4) * r;
+  float rr = length(p);
+  vec3 c = col * smoothstep(edge + px(), edge - px(), rr) * 0.16;
+  c += col * fillW(abs(rr - edge) - 0.005, px());
+  for (int i = 0; i < 8; i++){
+    if (float(i) >= n) break;
+    float a = float(i) * k - PI;
+    c += col * fillW(sdSeg(p, vec2(0.0), vec2(cos(a), sin(a)) * r) - 0.0015, px()) * 0.22;
+  }
+  c += col * fillW(abs(rr - r) - 0.002, px()) * 0.3;
+  return c;
+}
+// A filled area under a line: a quantity over time, where a trace is a signal in the moment.
+vec3 partArea(vec2 p, vec2 b, float seed, float rate, vec3 col){
+  if (abs(p.x) > b.x || abs(p.y) > b.y) return vec3(0.0);
+  float x = (p.x + b.x) / (2.0 * b.x);
+  float y = -b.y + (0.15 + 0.7 * fbm(vec2(x * 3.0 + seed, uTime * rate * 0.3))) * 2.0 * b.y;
+  vec3 c = col * smoothstep(y + px(), y - px(), p.y) * 0.16;
+  c += col * fillW(abs(p.y - y) - 0.004, px());
+  c += col * fillW(abs(p.y + b.y) - 0.002, px()) * 0.5;
+  return c;
+}
+// A selection over a panel: a lighter region, a grab edge each side, and a head running through.
+vec3 partSpan(vec2 p, vec2 b, float from, float to, float head, vec3 col){
+  if (abs(p.y) > b.y) return vec3(0.0);
+  float x0 = mix(-b.x, b.x, from), x1 = mix(-b.x, b.x, to);
+  vec3 c = col * step(x0, p.x) * step(p.x, x1) * 0.13;
+  c += col * fillW(abs(p.x - x0) - 0.004, px()) * 0.9;
+  c += col * fillW(abs(p.x - x1) - 0.004, px()) * 0.9;
+  c += mix(col, vec3(1.0), 0.6) * fillW(abs(p.x - mix(-b.x, b.x, head)) - 0.0025, px());
+  return c;
 }
 // A table: header, columns, rows that land one after another. Structured where greeble is not.
 vec3 partLedger(vec2 p, vec2 b, float rows, float cols, float seed, vec3 col){
@@ -2006,6 +2053,48 @@ vec3 hud(vec2 p){
 }`,
 },
 
+{
+  id: 'radar-profile', title: 'Profile radar', family: 'meter',
+  tags: ['data-driven', 'instrument', 'gauge', 'cheap'],
+  parts: ['partRadarPoly', 'partTickRing', 'partTextRing'],
+  bio: "A value on each of n axes, joined into a polygon. The one chart shape that shows a profile rather than a number - two of these are compared at a glance, where two bar charts are not.",
+  params: [
+    {key: 'axes', label: 'Axes', min: 3, max: 8, step: 1, value: 6},
+    {key: 'rate', label: 'Drift', min: 0, max: 2, step: 0.05, value: 0.4},
+    {key: 'seed', label: 'Profile', min: 0, max: 20, step: 1, value: 3},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partRadarPoly(p, 0.62, floor(P_axes), P_seed, P_rate, uAccent);
+  c += partTickRing(p, 0.78, 60.0, 6.0, 0.05, uAccent) * 0.5;
+  c += partTextRing(p, 0.9, 0.05, 24.0, 6.0, -uTime * 0.03, uAccent) * 0.6;
+  return c;
+}`,
+},
+{
+  id: 'chart-panel', title: 'Chart panel', family: 'signal',
+  tags: ['data-driven', 'instrument', 'label', 'medium'],
+  parts: ['partArea', 'partSpan', 'partTicksFrame', 'partReadout'],
+  bio: "An area chart with a selection dragged over part of it and a head running through. The span is the part worth stealing: it turns a chart from something you watch into something you can point at.",
+  params: [
+    {key: 'from', label: 'Selection start', min: 0, max: 1, step: 0.01, value: 0.32},
+    {key: 'to', label: 'Selection end', min: 0, max: 1, step: 0.01, value: 0.68},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.82, 0.5);
+  vec2 q = p - vec2(0.0, 0.12);
+  c += partArea(q, b, 4.0, P_rate, uAccent);
+  c += partSpan(q, b, min(P_from, P_to), max(P_from, P_to), fract(uTime * 0.12 * P_rate), uAccent);
+  c += partTicksFrame(q, b * 1.05, 0.12, 0.007, uAccent) * 0.8;
+  c += partReadout(p - vec2(-b.x * 0.6, -0.76), vec2(0.26, 0.05), 4.0, 2.0, uAccent) * 0.9;
+  return c;
+}`,
+},
+
 // --- mixtures: the pack's elements crossed with the kit that was already here --------------------
 {
   id: 'instrument-stack', title: 'Layered instrument', family: 'composite',
@@ -2116,6 +2205,32 @@ vec3 hud(vec2 p){
   c += partTickRing(q, 0.72, 84.0, 7.0, 0.04, uAccent) * 0.45;
   c += partTextRing(q, 0.80, 0.045, 26.0, 3.0, -uTime * 0.03 * P_rate, uAccent) * 0.55;
   c += partCallout(p, o + vec2(0.34, 0.3), vec2(uAspect * 0.12, 0.42), 0.27, 3.0, uAccent) * 0.9;
+  return c;
+}`,
+},
+{
+  id: 'profile-lock', title: 'Profile lock', family: 'composite',
+  tags: ['tracking', 'data-driven', 'composite', 'label'],
+  parts: ['partRadarPoly', 'partHandles', 'partMarquee', 'partCallout', 'partSegRing', 'partOrbit'],
+  bio: "The selection frame with the target's own profile drawn inside it. A lock that tells you what you locked onto - the frame says which thing, the polygon says what kind of thing, and the callout names it.",
+  params: [
+    {key: 'axes', label: 'Axes', min: 3, max: 8, step: 1, value: 5},
+    {key: 'size', label: 'Frame size', min: 0.25, max: 0.7, step: 0.01, value: 0.46},
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float k = cycle(7.0, 0.82);
+  vec2 o = vec2(-uAspect * 0.36, 0.0);
+  vec2 q = p - o;
+  c += partRadarPoly(q, P_size * 0.62, floor(P_axes), 2.0, P_rate * 0.4, uAccent) * smoothstep(0.3, 1.0, k);
+  c += partSegRing(q, P_size * 0.82, 0.026, 22.0, 0.7, 0.5 + 0.5 * sin(uTime * 0.5 * P_rate), uAccent) * k;
+  c += partOrbit(q, P_size * 1.05, 2.0, P_rate * 0.5, uAccent) * k;
+  vec2 b = vec2(P_size) * (1.0 + 0.45 * (1.0 - k));
+  c += partHandles(q, b, 0.12, 0.009, step(0.5, fract(uTime * 1.5)), uAccent) * k;
+  c += partMarquee(q, b * 1.12, 20.0, 0.4 * P_rate, 0.006, uAccent) * 0.7 * k;
+  c += partCallout(p, o + vec2(b.x * 0.8, b.y * 0.8), vec2(uAspect * 0.1, 0.44), 0.28, 3.0, uAccent) * k;
   return c;
 }`,
 },
