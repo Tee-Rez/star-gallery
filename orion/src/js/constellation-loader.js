@@ -1,6 +1,7 @@
 // constellation-loader.js
 import {defaultStore} from './discovery-store'
 import {resolveLayer} from './deep-sky-field'
+import {sigilText} from './sigil-font'
 
 const constellationLoaderComponent = {
   schema: {
@@ -2797,7 +2798,7 @@ const constellationLoaderComponent = {
     label.setAttribute('scale', '1.5 1.5 1.5')
     label.setAttribute('color', '#ffffff')
     label.setAttribute('width', '3')
-    label.setAttribute('font', 'exo2bold')
+    sigilText(label)
     textContainer.appendChild(label)
     starEntity.appendChild(textContainer)
 
@@ -2876,7 +2877,7 @@ const constellationLoaderComponent = {
       text.setAttribute('scale', '1.5 1.5 1.5')
       text.setAttribute('color', '#bfe4ff')
       text.setAttribute('width', '3')
-      text.setAttribute('font', 'exo2bold')
+      sigilText(text)
       label.appendChild(text)
       entity.appendChild(label)
 

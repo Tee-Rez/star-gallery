@@ -21,7 +21,28 @@
 // so a small phone never drops below a 44px tap target and a tablet never gets giant pills.
 
 const STYLE = `
+/* Sigil Inscriptional, the temple face. Two cuts of the same alphabet:
+     Display carries the small alchemical marks, for button labels and headings.
+     Text drops them, because below about 14px the marks turn to mush and cost legibility
+     for detail nobody can resolve.
+   Both are caps-only by design - lowercase maps to small caps - so they go on SHORT strings:
+   labels, names, readouts. Sentences and lore paragraphs stay on the system sans, because an
+   all-caps paragraph at 13px is work to read and this HUD already asks enough of the user.
+   Paths are relative to index.html; webpack copies src/assets to dist/assets. */
+@font-face {
+  font-family: 'Sigil Display';
+  src: url('assets/fonts/SigilInscriptional-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Sigil Text';
+  src: url('assets/fonts/SigilText-Regular.woff2') format('woff2');
+  font-display: swap;
+}
+
 #hud {
+  --sigil-display: 'Sigil Display', 'Sigil Text', Arial, sans-serif;
+  --sigil-text: 'Sigil Text', Arial, sans-serif;
   --u: 1vmin;
   --vh: 1vh;
   --accent: #4287f5;
@@ -81,7 +102,10 @@ const STYLE = `
   display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--gap) * 0.8);
   min-height: var(--tap);
   padding: 0 calc(var(--tap) * 0.4);
-  font: var(--fs-ui)/1.1 Arial, sans-serif;
+  /* The letter-spacing is not decoration: inscriptional capitals were cut with air between them,
+     and set solid they close up and stop reading as separate letters. */
+  font: var(--fs-ui)/1.1 var(--sigil-display);
+  letter-spacing: 0.06em;
   color: #fff; background: rgba(0, 0, 0, 0.7);
   border: 1px solid var(--accent); border-radius: calc(var(--tap) / 2);
   backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
@@ -94,7 +118,7 @@ const STYLE = `
   box-sizing: border-box;
   max-width: min(100%, 26em);
   padding: calc(var(--gap) * 1.3) calc(var(--gutter) * 1.6);
-  font: var(--fs-body)/1.35 Arial, sans-serif; text-align: center;
+  font: var(--fs-body)/1.45 var(--sigil-text); letter-spacing: 0.05em; text-align: center;
   color: #fff; background: rgba(0, 0, 0, 0.7);
   border: 1px solid var(--accent); border-radius: calc(var(--tap) / 2.2);
   backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);

@@ -1,4 +1,5 @@
 // js/portal-header.js
+import {FONT} from './sigil-font'
 // The portal's HUD band, laid out to match the Unity build (Portal.prefab -> PortalHUD).
 //
 // Unity draws that HUD on a 4000x800 canvas at 0.001 scale, so its canvas units map 1:1 to
@@ -90,7 +91,7 @@ const portalHeaderComponent = {
     backgroundOpacity: {type: 'number', default: 0.8},   // panel background rgba(0,0,0,0.8)
     cornerRadius: {type: 'number', default: 0.06},       // panel border-radius 10px
     buttonFill: {type: 'color', default: '#000000'},
-    font: {type: 'string', default: 'exo2bold'},     // matches the star labels
+    font: {type: 'string', default: FONT},           // matches the star labels
     z: {type: 'number', default: 0.06},              // Unity's PortalHUD z offset
   },
 
@@ -188,6 +189,9 @@ const portalHeaderComponent = {
     text.setAttribute('value', value)
     text.setAttribute('color', this.data.textColor)
     text.setAttribute('font', this.data.font)
+    // The sigil atlas is not stored inverted the way A-Frame's own Roboto is; left at the
+    // default every glyph renders as its own hole and the band comes up blank.
+    text.setAttribute('negate', 'false')
     text.setAttribute('width', maxWidth)
     // wrapCount sets the glyph size for a given width; ~0.62em average advance per character.
     text.setAttribute('wrap-count', Math.max(8, Math.round(maxWidth / (capHeight * 0.62))))
