@@ -182,6 +182,8 @@
   <div class="grid" id="grid"></div>
   <footer>
     <p><b>The parts kit.</b> Every window below the first seventeen is a short list of calls into one shared set of element groups - a tick ring, a bar fan, a selection frame, a fader bank. Press a part under any window to find everything else built from it, or open the settings on a window and turn its parameters while it runs.</p>
+    <p><b>The motion vocabulary.</b> Breaking down a 66-element commercial pack frame by frame, the shapes turned out to be the easy half: what makes a HUD read as alive is which of about fourteen motions each part is given. <code>rotate</code> (continuous, its own rate per ring) · <code>sweep</code> (a leading edge crossing, one pass every 3-8s) · <code>fill</code> (fixed origin, moving end) · <code>travel</code> (fixed size, moving position) · <code>hop</code> (discrete jumps on a beat - never interpolated) · <code>re-scramble</code> (new values every frame, uncorrelated) · <code>scroll</code> (features persist and move across) · <code>build-in</code> (draws itself once per cycle) · <code>flicker</code> (hard on/off) · <code>pulse</code> (smooth, 1-3s) · <code>count</code> (digits, usually too fast to read) · <code>glitch burst</code> (arrives and leaves instantly) · <code>carried</code> (a fast part riding a slow parent) · and <code>none</code>.</p>
+    <p><b>Why half of it should not move.</b> That last one is load-bearing. In the pack, roughly half of every screen is deliberately dead - the frame, the tick ladders, the luminance ramps, the bell curves, the static peak charts - and the cage is what makes the churn inside it read as data rather than as camera drift. Each screen also has exactly one hero, which is either the only thing rotating or the only thing perfectly still, and never ambiguous. <i>Still cage</i> is that rule built on purpose.</p>
     <p><b>How this is built.</b> Each window is one fragment shader that draws shapes from distance fields: a distance to the nearest edge, turned into a crisp line by the screen-space derivative. That is why every window stays sharp at any size, and why the whole page is smaller than one frame of the reference videos.</p>
     <p><b>Adding a visual.</b> Open this file and append one entry to <code>VISUALS</code>. Write <code>vec3 hud(vec2 p)</code>, where <code>p</code> is centred on the window, <code>y</code> runs -1..1 and <code>x</code> is scaled by the aspect. Give it a family, tags and a line about what it is for. The window, the labels, the filter and the source view are generated for you. A shader that fails to compile shows its error in its own window instead of breaking the page.</p>
     <p><b>Composing from parts.</b> The element groups live in one block in the prelude, named <code>partTickRing</code>, <code>partRadialBars</code>, <code>partHandles</code> and so on. Each takes a local position, returns light to <em>add</em>, and takes its colour and its rate as arguments - so a part never fights the one beside it, and a whole panel can run off one clock. To place one, move the position: <code>partIris(p - vec2(0.4, 0.0), 0.2, open, 6.0, uAccent)</code>. List the parts a visual uses in its <code>parts</code> array and they become the chips under its window.</p>
@@ -252,6 +254,15 @@ const PARTS = {
   partNodes:      'Satellites wired to a hub, packets running',
   partRidge:      'Stacked traces - many series, one picture',
   partTear:       'Horizontal tearing: the signal-lost state',
+  partHop:        'Brackets that JUMP between targets, never glide',
+  partScroll:     'Waveform that scrolls - features persist',
+  partPing:       'Rings leaving a point: something happened HERE',
+  partHairCross:  'Hairlines sweeping at their own rates',
+  partRotor:      'Swept-back blades, the one fast-turning thing',
+  partSpiral:     'One spiral line - depth, vortex or whorl',
+  partSonar:      'Bands travelling out inside a wedge',
+  partMosaic:     'Blocks flickering on a grid',
+  partBarcode:    'Barcode ladder with a crawling index bar',
   partRadarPoly:  'Spider chart - a profile, not a number',
   partArea:       'Filled area under a line',
   partSpan:       'Selection region with grab edges and a head',
@@ -787,6 +798,123 @@ vec3 partLedger(vec2 p, vec2 b, float rows, float cols, float seed, vec3 col){
     float cell = step(0.1, cf) * step(cf, 0.1 + w * 0.8);
     c += col * line * cell * landed * 0.7;
   }
+  return c;
+}
+
+// -- the motions the kit could not do ------------------------------------------------------------
+// Breaking the pack down, the shapes turned out to be the easy half. Its fourteen kinds of motion
+// are what make it read as alive, and four of them had no part here at all: hopping, scrolling,
+// pinging outward, and being carried by something else. These are those.
+
+// HOP: discrete jumps between targets, never a glide. A selection that interpolates reads as a
+// hand dragging it; one that snaps reads as a machine deciding. Quantise the time, not the place.
+vec3 partHop(vec2 p, float r, float n, float beat, float seed, vec3 col){
+  float stepN = floor(uTime * beat);
+  float k = mod(stepN, max(n, 1.0));
+  vec2 t = vec2(hash11(k * 3.17 + seed) - 0.5, hash11(k * 7.31 + seed) - 0.5) * 1.25;
+  vec2 q = p - t;
+  vec3 c = partHandles(q, vec2(r), r * 0.55, 0.008, 1.0, col);
+  // the ring that lands with it and settles - the only part allowed to be continuous
+  float age = fract(uTime * beat);
+  c += col * strokeW(sdRing(q, r * (1.3 + 0.6 * (1.0 - smoothstep(0.0, 0.35, age)))), 0.005, px())
+       * (1.0 - age) * 0.9;
+  return c;
+}
+// SCROLL: features persist and move across, so the eye can follow one bump out of frame. This is
+// the opposite of re-scrambling every frame, which looks busy where this looks recorded.
+vec3 partScroll(vec2 p, vec2 b, float n, float rate, float seed, vec3 col){
+  if (abs(p.x) > b.x || abs(p.y) > b.y) return vec3(0.0);
+  float u = (p.x / b.x * 0.5 + 0.5) * n + uTime * rate * n * 0.1;
+  float idx = floor(u), f = fract(u);
+  float h = b.y * (0.08 + 0.88 * pow(hash11(idx * 1.73 + seed), 1.6));
+  float bar = smoothstep(h, h - px() * 2.0, abs(p.y));
+  float gap = smoothstep(0.08, 0.22, f) * smoothstep(0.92, 0.78, f);
+  vec3 c = col * bar * gap * 0.8;
+  c += col * fillW(abs(p.y) - 0.0015, px()) * 0.45;
+  return c;
+}
+// A ping leaving a point: rings expanding outward and dying. The cheapest way to say something
+// just happened HERE, as opposed to something is happening somewhere.
+vec3 partPing(vec2 p, vec2 at, float r, float rate, float seed, vec3 col){
+  vec3 c = vec3(0.0);
+  float rr = length(p - at);
+  for (int i = 0; i < 3; i++){
+    float t = fract(uTime * rate + float(i) / 3.0 + seed);
+    c += col * fillW(abs(rr - r * t) - 0.003, px()) * (1.0 - t) * 0.9;
+  }
+  c += mix(col, vec3(1.0), 0.5) * fillW(rr - 0.012, px());
+  return c;
+}
+// Sweeping hairlines that cross. Each axis runs at its own rate, so the intersection wanders the
+// whole panel instead of tracing a diagonal - which is what makes it read as a search.
+vec3 partHairCross(vec2 p, vec2 b, float rateX, float rateY, vec3 col){
+  float x = mix(-b.x, b.x, fract(uTime * rateX));
+  float y = mix(b.y, -b.y, fract(uTime * rateY));
+  vec3 c = col * fillW(abs(p.x - x) - 0.0015, px()) * step(abs(p.y), b.y) * 0.75;
+  c += col * fillW(abs(p.y - y) - 0.0015, px()) * step(abs(p.x), b.x) * 0.75;
+  vec2 q = p - vec2(x, y);
+  c += mix(col, vec3(1.0), 0.5) * strokeW(sdRing(q, 0.032), 0.005, px());
+  c += col * fillW(min(abs(q.x), abs(q.y)) - 0.0015, px()) * step(length(q), 0.055);
+  return c;
+}
+// A rotor: blades swept back, turning fast. The pack's fast-rotate element - everything else
+// turns slowly, so one thing spinning properly gives the whole screen a sense of machinery.
+vec3 partRotor(vec2 p, float r, float blades, float rate, vec3 col){
+  vec2 q = p * rot(uTime * rate);
+  float rr = length(q);
+  float k = TAU / max(blades, 2.0);
+  float ang = mod(atan(q.y, q.x) + k * 0.5, k) - k * 0.5;
+  float blade = abs(ang * rr + rr * rr * 0.9) - 0.018;   // the r-squared term is the sweep-back
+  vec3 c = col * fillW(max(blade, rr - r), px()) * 0.75;
+  c += col * strokeW(sdRing(p, r), 0.006, px());
+  c += col * strokeW(sdRing(p, r * 0.2), 0.005, px()) * dashes(p * rot(-uTime * rate * 0.25), 10.0, 0.3);
+  return c;
+}
+// A spiral whorl. One line, and it reads as depth, a vortex, a fingerprint or a galaxy depending
+// entirely on how many turns you give it.
+vec3 partSpiral(vec2 p, float r, float turns, float rate, vec3 col){
+  float rr = length(p);
+  if (rr > r) return vec3(0.0);
+  float a = atan(p.y, p.x) + uTime * rate;
+  float t = rr / r;
+  float phase = fract(a / TAU - t * turns);
+  float d = min(phase, 1.0 - phase) * TAU * rr / max(turns, 0.5);
+  return col * fillW(d - 0.004, px()) * smoothstep(r, r * 0.06, rr) * 0.9;
+}
+// A sonar fan from an apex: bands travelling outward inside a wedge, with rays behind them.
+vec3 partSonar(vec2 p, float r, float spread, float rate, vec3 col){
+  float a = atan(p.y, p.x) - PI * 0.5;
+  a = mod(a + PI, TAU) - PI;
+  float rr = length(p);
+  float inFan = smoothstep(spread, spread * 0.75, abs(a));
+  vec3 c = vec3(0.0);
+  for (int i = 0; i < 4; i++){
+    float t = fract(uTime * rate + float(i) / 4.0);
+    c += col * fillW(abs(rr - r * t) - 0.004, px()) * inFan * (1.0 - t) * 0.9;
+  }
+  c += col * pow(max(0.0, cos(a * 10.0)), 60.0) * inFan * smoothstep(r, 0.0, rr) * 0.35;
+  c += col * fillW(rr - 0.012, px());
+  return c;
+}
+// Blocks flickering on a grid: the reveal texture, and the cheapest "processing" surface there is.
+vec3 partMosaic(vec2 p, vec2 b, float cells, float density, float rate, vec3 col){
+  if (abs(p.x) > b.x || abs(p.y) > b.y) return vec3(0.0);
+  vec2 u = (p + b) / (2.0 * b) * cells;
+  vec2 id = floor(u), f = fract(u);
+  float on = step(1.0 - clamp(density, 0.0, 1.0), hash21(id + floor(uTime * rate) * 0.31));
+  float w = cells * px() / (2.0 * b.y);
+  return col * fillW(max(abs(f.x - 0.5) - 0.4, abs(f.y - 0.5) - 0.4), w) * on * 0.45;
+}
+// A barcode ladder with an index bar crawling along it. Deliberately unreadable, and one of the
+// pack's favourite ways to fill a strip that must not compete with anything.
+vec3 partBarcode(vec2 p, vec2 b, float n, float rate, float seed, vec3 col){
+  if (abs(p.x) > b.x || abs(p.y) > b.y) return vec3(0.0);
+  float x = (p.x + b.x) / (2.0 * b.x);
+  float u = x * n;
+  float w = 0.15 + 0.7 * hash11(floor(u) * 1.73 + seed);
+  vec3 c = col * step(fract(u), w) * 0.7;
+  float head = fract(uTime * rate);
+  c += mix(col, vec3(1.0), 0.6) * step(abs(x - head), 0.035 + 0.02 * sin(uTime * 0.7)) * 0.4;
   return c;
 }
 
@@ -2095,6 +2223,91 @@ vec3 hud(vec2 p){
 }`,
 },
 
+{
+  id: 'hop-lock', title: 'Hop lock', family: 'frame',
+  tags: ['tracking', 'motion', 'cheap', 'kit'],
+  parts: ['partHop', 'partHandles', 'partMosaic'],
+  bio: "A bracket that jumps between targets on a beat and never glides. The whole difference between a machine deciding and a hand dragging is in that hard cut - interpolate it and the illusion is gone.",
+  params: [
+    {key: 'targets', label: 'Targets', min: 2, max: 9, step: 1, value: 5},
+    {key: 'beat', label: 'Jumps per second', min: 0.2, max: 3, step: 0.1, value: 0.8},
+    {key: 'size', label: 'Bracket size', min: 0.08, max: 0.4, step: 0.01, value: 0.17},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partMosaic(p, vec2(uAspect * 0.9, 0.9), 22.0, 0.05, 3.0, uAccent) * 0.7;
+  c += partHop(p, P_size, floor(P_targets), P_beat, 2.0, uAccent);
+  // the cage never moves: it is what proves the bracket jumped rather than the camera
+  c += partTicksFrame(p, vec2(uAspect * 0.92, 0.92), 0.14, 0.008, uAccent) * 0.7;
+  return c;
+}`,
+},
+{
+  id: 'scroll-trace', title: 'Scrolling trace', family: 'signal',
+  tags: ['motion', 'data-driven', 'audio', 'cheap'],
+  parts: ['partScroll', 'partTicksFrame', 'partBarcode'],
+  bio: "A waveform whose features travel across and leave, instead of re-scrambling in place. You can follow one bump out of frame - which is the difference between a recording and a busy screen.",
+  params: [
+    {key: 'bars', label: 'Resolution', min: 20, max: 160, step: 4, value: 70},
+    {key: 'rate', label: 'Scroll rate', min: 0, max: 3, step: 0.05, value: 1},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.84, 0.46);
+  c += partScroll(p - vec2(0.0, 0.16), b, floor(P_bars), P_rate, 3.0, uAccent);
+  c += partTicksFrame(p - vec2(0.0, 0.16), b * 1.06, 0.12, 0.007, uAccent) * 0.75;
+  c += partBarcode(p - vec2(0.0, -0.62), vec2(b.x, 0.07), 60.0, 0.1 * P_rate, 5.0, uAccent) * 0.8;
+  return c;
+}`,
+},
+{
+  id: 'sonar-fan', title: 'Sonar fan', family: 'radial',
+  tags: ['spatial', 'loop', 'motion', 'cheap'],
+  parts: ['partSonar', 'partPing', 'partTickRing'],
+  bio: "Bands travelling outward inside a wedge, with contacts pinging where they land. A radar sweep says 'I am looking'; this says 'I am listening in that direction'.",
+  params: [
+    {key: 'spread', label: 'Spread', min: 0.15, max: 1.4, step: 0.02, value: 0.6},
+    {key: 'rate', label: 'Ping rate', min: 0.05, max: 1.5, step: 0.05, value: 0.35},
+    {key: 'contacts', label: 'Contacts', min: 0, max: 3, step: 1, value: 2},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 q = p - vec2(0.0, -0.72);
+  c += partSonar(q, 1.5, P_spread, P_rate, uAccent);
+  for (int i = 0; i < 3; i++){
+    float f = float(i);
+    if (f >= P_contacts) break;
+    vec2 at = vec2((hash11(f * 3.3) - 0.5) * 1.1, 0.3 + hash11(f * 7.7) * 0.9);
+    c += partPing(q, at, 0.3, 0.5, f * 0.37, uAccent) * 0.9;
+  }
+  c += partTickRing(q, 1.42, 80.0, 8.0, 0.06, uAccent) * 0.4;
+  return c;
+}`,
+},
+{
+  id: 'rotor-hub', title: 'Rotor hub', family: 'radial',
+  tags: ['motion', 'instrument', 'loop', 'medium'],
+  parts: ['partRotor', 'partSpiral', 'partTickRing', 'partTextRing'],
+  bio: "Swept-back blades turning fast inside rings that barely move. The pack keeps exactly one thing spinning properly per screen - give two things this speed and the whole composition starts to vibrate.",
+  params: [
+    {key: 'blades', label: 'Blades', min: 3, max: 14, step: 1, value: 8},
+    {key: 'rate', label: 'Rotor speed', min: 0, max: 6, step: 0.1, value: 2.2},
+    {key: 'whorl', label: 'Whorl turns', min: 0, max: 8, step: 0.5, value: 3},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  c += partSpiral(p, 0.86, P_whorl, -uTime * 0.04, uAccent) * 0.3;
+  c += partRotor(p, 0.52, floor(P_blades), P_rate, uAccent);
+  c += partTickRing(p, 0.72, 90.0, 9.0, 0.05, uAccent) * 0.5;
+  c += partTextRing(p, 0.86, 0.05, 28.0, 8.0, uTime * 0.02, uAccent) * 0.6;
+  return c;
+}`,
+},
+
 // --- mixtures: the pack's elements crossed with the kit that was already here --------------------
 {
   id: 'instrument-stack', title: 'Layered instrument', family: 'composite',
@@ -2231,6 +2444,67 @@ vec3 hud(vec2 p){
   c += partHandles(q, b, 0.12, 0.009, step(0.5, fract(uTime * 1.5)), uAccent) * k;
   c += partMarquee(q, b * 1.12, 20.0, 0.4 * P_rate, 0.006, uAccent) * 0.7 * k;
   c += partCallout(p, o + vec2(b.x * 0.8, b.y * 0.8), vec2(uAspect * 0.1, 0.44), 0.28, 3.0, uAccent) * k;
+  return c;
+}`,
+},
+{
+  id: 'search-overlay', title: 'Search overlay', family: 'composite',
+  tags: ['tracking', 'motion', 'composite', 'centre-screen'],
+  parts: ['partHairCross', 'partMosaic', 'partHop', 'partPing', 'partTicksFrame', 'partReadout'],
+  bio: "Hairlines quartering the frame while a bracket hops between finds and each one pings. Built to sit over a camera feed: nothing fills, everything is a line, and the still frame is what makes the motion read as searching rather than drifting.",
+  params: [
+    {key: 'beat', label: 'Finds per second', min: 0.2, max: 3, step: 0.1, value: 0.7},
+    {key: 'rate', label: 'Sweep rate', min: 0.02, max: 0.6, step: 0.01, value: 0.13},
+    {key: 'noise', label: 'Mosaic', min: 0, max: 0.3, step: 0.01, value: 0.06},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.9, 0.88);
+  c += partMosaic(p, b, 26.0, P_noise, 4.0, uAccent) * 0.8;
+  c += partHairCross(p, b, P_rate, P_rate * 1.63, uAccent);     // deliberately not a nice ratio
+  float stepN = floor(uTime * P_beat);
+  vec2 at = vec2(hash11(mod(stepN, 5.0) * 3.17 + 2.0) - 0.5, hash11(mod(stepN, 5.0) * 7.31 + 2.0) - 0.5) * 1.25;
+  c += partPing(p, at, 0.22, 0.9, 0.0, uAccent) * 0.8;
+  c += partHop(p, 0.15, 5.0, P_beat, 2.0, uAccent);
+  c += partTicksFrame(p, b, 0.16, 0.008, uAccent) * 0.8;
+  c += partReadout(p - vec2(0.0, -0.94), vec2(0.3, 0.04), 5.0, 3.0, uAccent) * 0.8;
+  return c;
+}`,
+},
+{
+  id: 'still-cage', title: 'Still cage', family: 'composite', wide: true,
+  tags: ['composite', 'kit', 'label', 'heavy'],
+  parts: ['partPanel', 'partTicksFrame', 'partScroll', 'partRotor', 'partLedger', 'partBarcode', 'partRadarPoly', 'partHop', 'partReadout'],
+  bio: "The pack's central rule, built on purpose: a dead-still cage with a churning interior. Half of what you see here never moves - the frame, the ladders, the rules, the profile - and that is exactly what lets the rotor, the scroll and the hopping bracket read as data rather than decoration.",
+  params: [
+    {key: 'rate', label: 'Rate', min: 0, max: 2.5, step: 0.05, value: 1},
+    {key: 'beat', label: 'Hop beat', min: 0.2, max: 2, step: 0.1, value: 0.6},
+    {key: 'rows', label: 'Ledger rows', min: 3, max: 12, step: 1, value: 7},
+  ],
+  frag: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  vec2 b = vec2(uAspect * 0.95, 0.9);
+  // --- the cage: none of this moves, ever ---
+  c += partPanel(p, b, 0.26, 0.007, uAccent) * 0.8;
+  c += partTicksFrame(p, b * 0.97, 0.2, 0.006, uAccent) * 0.5;
+  c += uAccent * fillW(abs(p.y - 0.62) - 0.0015, px()) * step(abs(p.x), b.x - 0.05) * 0.4;
+  c += uAccent * fillW(abs(p.y + 0.56) - 0.0015, px()) * step(abs(p.x), b.x - 0.05) * 0.4;
+  // a graduated ladder that is pure reference - the thing the motion is measured against
+  for (int i = 0; i < 12; i++){
+    float f = float(i);
+    float y = 0.56 - f * 0.1;
+    c += uAccent * fillW(sdBox(p - vec2(-b.x + 0.06, y), vec2(mod(f, 4.0) < 0.5 ? 0.05 : 0.026, 0.0016)), px()) * 0.45;
+  }
+  // --- the interior: everything here moves, each on its own verb ---
+  c += partScroll(p - vec2(-b.x * 0.34, 0.24), vec2(b.x * 0.3, 0.26), 60.0, P_rate, 2.0, uAccent);
+  c += partRotor(p - vec2(b.x * 0.62, 0.22), 0.22, 8.0, P_rate * 2.0, uAccent) * 0.9;
+  c += partRadarPoly(p - vec2(b.x * 0.22, 0.24), 0.24, 6.0, 4.0, 0.0, uAccent) * 0.9;   // still: a fixed profile
+  c += partLedger(p - vec2(-b.x * 0.36, -0.28), vec2(b.x * 0.28, 0.24), floor(P_rows), 4.0, 3.0, uAccent);
+  c += partBarcode(p - vec2(b.x * 0.4, -0.3), vec2(b.x * 0.3, 0.06), 50.0, 0.08 * P_rate, 7.0, uAccent) * 0.8;
+  c += partHop(p - vec2(b.x * 0.4, -0.05), 0.07, 4.0, P_beat, 5.0, uAccent) * 0.9;
+  c += partReadout(p - vec2(0.0, -0.76), vec2(0.4, 0.05), 6.0, 2.0, uAccent) * 0.85;
   return c;
 }`,
 },
