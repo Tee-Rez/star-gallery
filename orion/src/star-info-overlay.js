@@ -42,6 +42,10 @@ const starInfoOverlayComponent = {
 
     const scrollbarStyle = document.createElement('style')
     scrollbarStyle.textContent = `
+      /* Chromium ignores this width while the standard scrollbar-width is also set on the
+         element, so the thin metric is the UA's, not 8px. Kept for the colours below and for
+         engines without scrollbar-width. On a phone scrollbars are overlay anyway and reserve
+         no width at all, which is the case the panel's widths are budgeted against. */
       #star-info-content::-webkit-scrollbar {
         width: 8px;
       }
@@ -71,16 +75,22 @@ const starInfoOverlayComponent = {
       flex: 0 0 auto;
       padding-bottom: 8px;
       margin-bottom: 10px;
-      padding-right: calc(var(--tap) - 8px);
+      padding-right: var(--orb-hit);
     `
     this.overlay.appendChild(this.header)
 
     // Content fills the rest and scrolls on its own, so the header never scrolls away.
     this.content = document.createElement('div')
     this.content.id = 'star-info-content'
+    // "hidden auto", not "overflow-y: auto". Declaring only one axis is a trap: per CSS
+    // Overflow 3, when one axis is not visible the other's `visible` computes to `auto`, so
+    // the div was a scroll container SIDEWAYS too and any single stray pixel painted a
+    // horizontal bar across the panel. One did - the volume slider's 2px UA margins, which
+    // width:100% does not account for. That is fixed at the slider, but naming both axes here
+    // is what stops the next mistuned control bringing the bar back.
     this.content.style.cssText = `
       flex: 1 1 auto;
-      overflow-y: auto;
+      overflow: hidden auto;
       line-height: 1.4;
       font-size: var(--fs-body);
       box-sizing: border-box;
@@ -113,26 +123,28 @@ const starInfoOverlayComponent = {
   },
 
   createCloseButton() {
-    const closeButton = document.createElement('div')
-    // A full tap target - it was 28px, under the 44px a finger needs.
+    // A real button, not a div with a click listener: the div had no accessible name, could
+    // not be reached by keyboard, and did not fire on Enter or Space. The glyph is decorative
+    // - it is the aria-label that says what this does.
+    const closeButton = document.createElement('button')
+    closeButton.type = 'button'
+    closeButton.setAttribute('aria-label', 'Close')
+    // .hud-orb draws a small marble disc in the middle of a full-size box: the disc is 28px so
+    // it tucks into the card's corner, the box stays var(--tap) so the tap target is still the
+    // 44px it was raised to from 28. Shrinking what you see is not the same as shrinking what
+    // you can hit, and only the first was asked for.
+    //
+    // top/right are 0 because the box is bigger than the disc - the disc's own margin inside
+    // the box already insets it from the corner by (tap - orb) / 2.
+    closeButton.className = 'hud-orb'
     closeButton.style.cssText = `
       position: absolute;
-      top: 6px;
-      right: 6px;
-      width: var(--tap);
-      height: var(--tap);
-      font-size: var(--fs-ui);
-      background: rgba(0,0,0,0.35);
-      border: 1px solid rgba(201,162,74,0.45);
-      border-radius: 50%;
-      box-sizing: border-box;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
+      top: 0;
+      right: 0;
+      --orb: 28px;
       z-index: 1001;
     `
-    closeButton.innerHTML = '✕'
+    closeButton.innerHTML = '<span aria-hidden="true">✕</span>'
     closeButton.addEventListener('click', (event) => {
       this.hideInfo()
       event.stopPropagation()
@@ -230,8 +242,8 @@ const starInfoOverlayComponent = {
     }
 
     const d = audio.describe(rec)
-    const btn = 'width:100%;padding:10px;border:1px solid ' + this.data.borderColor +
-      ';border-radius:8px;color:#f2ece0;font-size:14px;cursor:pointer;'
+    const btn = 'width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid ' + this.data.borderColor +
+      ';border-radius:8px;color:#f2ece0;font-size:13px;cursor:pointer;'
 
     return `
       <p style="margin:0 0 10px 0;font-size:12px;line-height:1.5;">
@@ -260,7 +272,7 @@ const starInfoOverlayComponent = {
         </div>
         <input data-volume type="range" min="0" max="100" step="1"
           value="${Math.round(audio.getVolume() * 100)}"
-          style="width:100%;accent-color:${this.data.borderColor};">
+          style="width:100%;margin:0;accent-color:${this.data.borderColor};">
       </div>`
   },
 
@@ -350,10 +362,10 @@ const starInfoOverlayComponent = {
     this.content.innerHTML = `
       <div style="display:flex;gap:6px;margin:0 0 10px 0;">
         <button data-tab="info" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
-          border:1px solid ${this.data.borderColor};border-radius:6px;
+          border:1px solid ${this.data.borderColor};border-radius:6px;min-width:0;
           background:rgba(201,162,74,.22);color:#f2ece0;">Info</button>
         <button data-tab="starsong" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
-          border:1px solid ${this.data.borderColor};border-radius:6px;
+          border:1px solid ${this.data.borderColor};border-radius:6px;min-width:0;
           background:rgba(0,0,0,.3);color:#f2ece0;">Starsong</button>
       </div>
       <div data-pane="info">${this.formatStarInfo(info)}</div>

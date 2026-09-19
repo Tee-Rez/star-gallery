@@ -46,6 +46,7 @@
 
 <div class="col"><b>OVER A BRIGHT ROOM</b><div class="phone bright" data-variant="full"><div class="feed"></div></div></div>
 <div class="col"><b>OVER A DARK ROOM</b><div class="phone dark" data-variant="lore"><div class="feed"></div></div></div>
+<div class="col"><b>STARSONG PANE</b><div class="phone bright" data-variant="starsong"><div class="feed"></div></div></div>
 <div id="notes">loading...</div>
 
 <script type="module">
@@ -73,21 +74,44 @@ document.head.appendChild(style)
 const pill = (label, id) =>
   `<button class="hud-pill" data-hud-id="${id}" style="pointer-events:auto">${label}</button>`
 
-const CARD_BODY = `
+const TABS = `
   <div style="display:flex;gap:6px;margin:0 0 10px 0;">
     <button data-tab="info" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
-      border:1px solid #c9a24a;border-radius:6px;
+      border:1px solid #c9a24a;border-radius:6px;min-width:0;
       background:rgba(201,162,74,.22);color:#f2ece0;">Info</button>
     <button data-tab="starsong" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
-      border:1px solid #c9a24a;border-radius:6px;
+      border:1px solid #c9a24a;border-radius:6px;min-width:0;
       background:rgba(0,0,0,.3);color:#f2ece0;">Starsong</button>
-  </div>
+  </div>`
+
+// Verbatim from buildStarsongPane() - the widest thing the panel ever holds.
+const BTN = 'width:100%;padding:8px 10px;border:1px solid #c9a24a;' +
+  'border-radius:8px;color:#f2ece0;font-size:13px;cursor:pointer;'
+
+const CARD_BODY = TABS + `
   <p style="margin:0 0 10px 0;">Betelgeuse is a red supergiant roughly 700 times the width of
   the Sun. It sits at Orion's shoulder, and its brightness wanders on a cycle of about 400 days.</p>
   <p style="margin:0;">Its surface is cool for a star - near 3,600 K - which is why it reads
   orange against the blue-white of Rigel across the figure.</p>`
 
-function starCard() {
+const STARSONG_BODY = TABS + `
+  <p style="margin:0 0 10px 0;font-size:12px;line-height:1.5;">This tone comes from the star
+  itself. Its size sets the pitch, and its surface temperature of about <b>3600 K</b> sets how
+  bright the overtones are.</p>
+  <div style="font-size:12px;margin-bottom:12px;line-height:1.6;">
+    <div>Pitch: <b>146.8 Hz</b></div><div>True frequency: <b>0.0004 Hz</b></div>
+  </div>
+  <button data-starsong="musical" style="${BTN}background:rgba(201,162,74,.22);margin-bottom:8px;">
+    Play</button>
+  <button data-starsong="true" style="${BTN}background:rgba(0,0,0,.3);">True sound</button>
+  <div style="margin-top:14px;padding-top:12px;border-top:1px solid rgba(201,162,74,0.3);">
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:6px;
+      opacity:.85;"><span>Volume</span><span>70%</span></div>
+    <input type="range" min="0" max="100" value="70"
+      style="width:100%;margin:0;accent-color:#c9a24a;">
+  </div>`
+
+function starCard(variant) {
   const el = document.createElement('div')
   el.className = 'hud-card'
   el.dataset.hudId = 'star-card'
@@ -95,16 +119,15 @@ function starCard() {
     'display:flex;flex-direction:column;pointer-events:auto;position:relative;'
   el.innerHTML =
     `<div class="hud-rule" style="flex:0 0 auto;padding-bottom:8px;margin-bottom:10px;
-       padding-right:calc(var(--tap) - 8px);">
+       padding-right:var(--orb-hit);">
        <h2 style="margin:0;color:#c9a24a;font-size:18px;">Betelgeuse</h2>
        <div style="margin:2px 0 0 0;font-size:12px;opacity:0.75;">Alpha Orionis</div>
      </div>
      <div id="star-info-content" style="flex:1 1 auto;overflow-y:auto;line-height:1.4;
-       font-size:var(--fs-body);">${CARD_BODY}</div>
-     <div style="position:absolute;top:6px;right:6px;width:var(--tap);height:var(--tap);
-       font-size:var(--fs-ui);background:rgba(0,0,0,0.35);border:1px solid rgba(201,162,74,0.45);
-       border-radius:50%;box-sizing:border-box;display:flex;align-items:center;
-       justify-content:center;cursor:pointer;">&#10005;</div>`
+       font-size:var(--fs-body);">${variant === 'starsong' ? STARSONG_BODY : CARD_BODY}</div>
+     <button type="button" class="hud-orb" aria-label="Close"
+       style="position:absolute;top:0;right:0;--orb:28px;z-index:1001;"
+       ><span aria-hidden="true">&#10005;</span></button>`
   return el
 }
 
@@ -144,7 +167,7 @@ function buildHud(phone, variant) {
      <div data-region="actions">
        ${pill('Back to the constellation', 'back')}${pill('Next Star', 'next')}
      </div>`
-  hud.querySelector('[data-region="sheet"]').appendChild(variant === 'lore' ? loreCard() : starCard())
+  hud.querySelector('[data-region="sheet"]').appendChild(variant === 'lore' ? loreCard() : starCard(variant))
   phone.appendChild(hud)
   return hud
 }
@@ -179,6 +202,38 @@ for (const src of ['assets/ui/pill.png', 'assets/ui/card-glass.png']) {
     say('asset ' + src + '  FAILED TO LOAD')
   }
 }
+
+// The close button. A stylesheet that fails to parse a rule drops it SILENTLY - the button
+// still renders, just shrink-wrapped to its glyph with no artwork - so assert the numbers
+// rather than trusting a screenshot to make an 11px box obvious.
+document.querySelectorAll('.hud-orb').forEach((o) => {
+  const box = o.getBoundingClientRect()
+  if (!box.width) return                       // a hidden variant
+  const cs = getComputedStyle(o)
+  const disc = parseFloat(cs.backgroundSize)
+  const card = o.closest('.hud-card').getBoundingClientRect()
+  const scroller = o.closest('.hud-card').querySelector('#star-info-content')
+  const ok = (v, want, what) => (Math.abs(v - want) < 1.5 ? '' : '  <-- WANT ' + want + ' ' + what)
+  say('orb   hit box ' + Math.round(box.width) + 'px' + ok(box.width, 44, 'WCAG 2.5.5'))
+  say('orb   disc    ' + disc + 'px' + (cs.backgroundImage.includes('orb.png') ? '' : '  <-- NO ARTWORK'))
+  say('orb   inset from card corner  ' +
+      Math.round(box.top + (box.height - disc) / 2 - card.top) + ' top, ' +
+      Math.round(card.right - (box.right - (box.width - disc) / 2)) + ' right')
+  if (scroller) {
+    const sc = scroller.getBoundingClientRect()
+    say('orb   clears the scroller: ' + (box.bottom <= sc.top ? 'yes' :
+        'NO - overhangs by ' + Math.round(box.bottom - sc.top) + 'px, will eat a flick'))
+  }
+})
+
+// The reported defect: a horizontal scrollbar inside the card's scrolling region.
+document.querySelectorAll('#star-info-content').forEach((el, i) => {
+  const over = el.scrollWidth - el.clientWidth
+  say('content ' + i + '  scrollWidth-clientWidth ' + over + 'px (want 0)' +
+      '   widest child ' + Math.max(0, ...[...el.querySelectorAll('*')]
+        .map(c => Math.round(c.getBoundingClientRect().width))) +
+      ' in ' + Math.round(el.clientWidth))
+})
 
 // Nothing may overflow the phone sideways.
 document.querySelectorAll('.phone').forEach((p, i) => {

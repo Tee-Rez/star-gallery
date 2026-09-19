@@ -159,12 +159,75 @@ def flatten_band(im, y0, y1, blend=3):
     return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
 
 
+
+def derim(im, edges, glass):
+    """Erase the gold hairline the artwork draws a few pixels inside the glass.
+
+    It is a lovely detail and it cannot stay. The line sits at a FIXED inset from the edge of
+    the source image, but a nine-slice does not scale - it slices. Wherever the slice boundary
+    happens to fall relative to that inset, the line is either duplicated into the corner
+    pieces or handed to the middle slice and stretched into a wash. Rendered, it reads as a
+    faint yellow border floating over the transparent part of the panel, which is exactly what
+    it turned out to look like.
+
+    Each edge is erased by interpolating across the spike rather than flooding the band flat,
+    because the glass carries a soft inner shadow from the bevel and flooding it would remove
+    the depth along with the line.
+
+    edges - (side, start, stop) per edge; start/stop bracket the spike with a pixel of margin.
+    glass - (top, bottom, left, right) bounds of the glass, so the marble is never touched.
+    """
+    a = np.asarray(im).astype(np.float32)
+    gt, gb, gl, gr = glass
+
+    for side, i0, i1 in edges:
+        n = i1 - i0
+        t = np.linspace(0.0, 1.0, n, endpoint=False) + (0.5 / n)
+        if side in ('top', 'bottom'):
+            lo, hi = a[i0 - 1, gl:gr], a[i1, gl:gr]
+            a[i0:i1, gl:gr] = lo[None] * (1 - t[:, None, None]) + hi[None] * t[:, None, None]
+        else:
+            lo, hi = a[gt:gb, i0 - 1], a[gt:gb, i1]
+            a[gt:gb, i0:i1] = lo[:, None] * (1 - t[None, :, None]) + hi[:, None] * t[None, :, None]
+
+    return Image.fromarray(np.clip(a, 0, 255).astype(np.uint8), 'RGBA')
+
+
+def orb_from_pill(im):
+    """A round button, cut from the pill's own two caps.
+
+    The pill's ends are exact semicircles of radius = height / 2, so the left cap and the right
+    cap ARE the two halves of a circle - butted together at their widest columns, where both
+    arcs run horizontally, they close into one. Deriving the round button this way rather than
+    generating a new image means the marble, the gold ring and the edge softness are literally
+    the same pixels as the pills it sits beside, so the two can never drift apart.
+    """
+    h = im.size[1]
+    r = h // 2                      # cap width == radius == half the pill's height
+    left = im.crop((0, 0, r + 1, h))
+    right = im.crop((im.size[0] - r, 0, im.size[0], h))
+    out = Image.new('RGBA', (left.size[0] + right.size[0], h), (0, 0, 0, 0))
+    out.paste(left, (0, 0))
+    out.paste(right, (left.size[0], 0))
+    return out
+
+
 print('cutting frames...')
 cut('pill.png', '01-pill-small-2to1.jpg', bg_thresh=0.16)
 card = cut('card-glass.png', '05-card-glass.jpg', bg_thresh=0.10, glass_base=0.78)
 card = mirror_bottom_edge(card, band=74, feather=12)
 # Measured on the 936x806 cut: the diamond spans rows 167-184 and the rule 175-176.
 card = flatten_band(card, 165, 188)
+# The gold hairline just inside the glass, measured per edge on the 936x806 cut: the
+# warm spike runs rows 72-75 / 726-733 and cols 68-72 / 862-867. The glass itself spans
+# rows 66-740 and cols 62-874.
+card = derim(card,
+             [('top', 70, 78), ('bottom', 723, 737), ('left', 67, 75), ('right', 859, 870)],
+             glass=(66, 740, 62, 874))
 card.save(os.path.join(OUT, 'card-glass.png'))
-print('%-22s meander + title rule removed; bottom rail mirrored from the top' % 'card-glass.png')
+print('%-22s meander, title rule and glass hairline removed; bottom rail mirrored' % 'card-glass.png')
+
+orb = orb_from_pill(Image.open(os.path.join(OUT, 'pill.png')).convert('RGBA'))
+orb.save(os.path.join(OUT, 'orb.png'))
+print('%-22s %s  round button, cut from the pill caps' % ('orb.png', orb.size))
 print('done - alpha is real; shadows are NOT baked in, add them in CSS')

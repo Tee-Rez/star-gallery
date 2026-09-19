@@ -64,6 +64,10 @@ const STYLE = `
   --gutter: clamp(8px, calc(3 * var(--u)), 16px);
   --gap: clamp(6px, calc(2 * var(--u)), 12px);
   --tap: clamp(44px, calc(12 * var(--u)), 52px);
+  /* A round button's hit box, and the disc drawn inside it. Two numbers, because what you see
+     and what you can hit are not the same thing here - see .hud-orb. */
+  --orb-hit: 44px;
+  --orb: 30px;
   --fs-ui: clamp(14px, calc(4 * var(--u)), 17px);
   --fs-body: clamp(13px, calc(3.6 * var(--u)), 15px);
   --fs-caption: clamp(11px, calc(3.1 * var(--u)), 13px);
@@ -204,6 +208,45 @@ const STYLE = `
 /* A button does not inherit its font, so the tabs inside a card were the one thing on the
    screen still set in Arial. */
 #hud .hud-card button { font-family: var(--hud-display); letter-spacing: 0.03em; }
+/* Every control inside a card measures its width the way the card does. Without this a
+   "width: 100%" button adds its padding and border ON TOP of the full width and pushes a
+   horizontal scrollbar into the panel. */
+#hud .hud-card button,
+#hud .hud-card input,
+#hud .hud-card select { box-sizing: border-box; max-width: 100%; }
+
+/* ---- the round button ----
+   orb.png is the pill's own two caps butted together - the ends are exact semicircles, so
+   they close into a circle carrying the same marble, the same gold ring and the same edge
+   softness as the pills beside it (see concepts/hud-frames/cutout.py).
+
+   It is a BACKGROUND rather than a nine-slice, drawn at a fixed size in the middle of a
+   larger box. That split is the point: the visible button is small enough to tuck into a
+   card's corner, while the box it sits in stays a full finger-sized tap target. Shrinking
+   both would have put the target back under 44px, which is what it was raised from.
+
+   Marble is pale, so the glyph is cut dark into it, like a pill's lettering.
+
+   The box is --orb-hit rather than --tap, and that is deliberate rather than lazy. --tap
+   climbs to 52px on a big screen, and a 52px box in the card's corner reaches past the bottom
+   of the header band into the scrolling region below it - where it would quietly eat the first
+   touch of a flick begun in that corner. 44px is the figure the target has to clear (WCAG
+   2.5.5 AAA; the AA floor in 2.5.8 is only 24px), and pinning it there keeps the whole box
+   inside the header. */
+#hud .hud-orb {
+  box-sizing: border-box;
+  width: var(--orb-hit); height: var(--orb-hit);
+  display: flex; align-items: center; justify-content: center;
+  font: calc(var(--fs-ui) * 0.78)/1 var(--hud-display);
+  color: var(--ink);
+  background: url('assets/ui/orb.png') center / var(--orb, 30px) var(--orb, 30px) no-repeat;
+  border: 0; padding: 0;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+  cursor: pointer; touch-action: manipulation;
+  user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
+  transition: filter 200ms ease, transform 120ms ease;
+}
+#hud .hud-orb:active { transform: scale(0.94); filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)) brightness(0.93); }
 
 /* ---- what each mode shows ----
    Modes: placement, constellation, lore, deep-sky. The panel state (a star or object card open)
