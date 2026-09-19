@@ -302,11 +302,20 @@ const portalHeaderComponent = {
     const offset = ((U.groupH - stackH) / 2) + (index * (U.btnH + U.btnGap))
 
     const button = document.createElement('a-entity')
-    // Invisible hit plane: the visible face is drawn behind it.
+    // Invisible hit plane. depthWrite false is not an optimisation: material's schema defaults
+    // it to true, so this plane - which paints nothing - was stamping a w x h depth wall at the
+    // button's z, rejecting anything transparent drawn later behind it, its own marble face
+    // included. That the face renders today is luck of the traversal, not design.
     button.setAttribute('geometry', {primitive: 'plane', width: w, height: h})
-    button.setAttribute('material', {shader: 'flat', opacity: 0, transparent: true, side: 'double'})
+    button.setAttribute('material', {
+      shader: 'flat', opacity: 0, transparent: true, side: 'double', depthWrite: false,
+    })
     button.setAttribute('position', `0 ${top - ((offset + (U.btnH / 2)) * s)} 0.01`)
-    // Behind the entity origin, because the button label renders at local z 0.
+    // Behind the entity origin, because the button label renders at local z 0. The face has to
+    // be a child ENTITY rather than this button's own mesh: A-Frame loads an entity's children
+    // before it runs the parent's own components, and that is what puts the face ahead of the
+    // hit plane in the traversal the renderer draws in. Folding it into the button's own mesh
+    // looks like an obvious simplification and silently inverts the order.
     this.addButtonFace(button, w, h, -0.002)
     // The label goes through the text COMPONENT, every property of it. This entity is not an
     // <a-text>, so it has none of that primitive's attribute mappings - which is why these
@@ -339,12 +348,20 @@ const portalHeaderComponent = {
     const face = document.createElement('a-entity')
     face.setAttribute('geometry', {primitive: 'hud-pill-plane', width: w, height: h})
     face.setAttribute('material', {
+      // Flat, so the marble and its gold rim keep the values they were painted with. Lit, they
+      // would drift away from the screen pills as the user turned.
       shader: 'flat',
       src: PILL.src,
       transparent: true,
-      // Low, not the 0.5 default: the pill's edge is a soft antialiased ramp and a high cut
-      // would saw the caps' curve into steps at the size these are drawn.
+      // Low, not the 0.5 default, for two reasons. The pill's edge is a soft antialiased ramp
+      // and a high cut saws the caps' curve into steps at the size these are drawn - and with
+      // depth writing on, the cut is also what stops the quad's fully transparent corners
+      // stamping a RECTANGLE of depth around each pill.
       alphaTest: 0.02,
+      // Kept on, deliberately. The usual advice for a blended surface is to turn depth writing
+      // off; here it is the only thing making the pill read as solid marble rather than marble
+      // seen through the panel's smoked glass, because the glass itself never writes depth.
+      depthWrite: true,
       side: 'double',
     })
     face.setAttribute('position', `0 0 ${z}`)
