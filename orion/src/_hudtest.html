@@ -54,7 +54,7 @@ const notes = document.getElementById('notes')
 const say = t => { notes.textContent += t + '\n' }
 
 // ---- lift the real stylesheet out of the real module ----
-const srcText = await (await fetch('js/hud-shell.js')).text()
+const srcText = await (await fetch('js/hud-shell.js?t=' + Date.now(), {cache: 'no-store'})).text()
 const open = srcText.indexOf('`', srcText.indexOf('const STYLE'))
 const close = srcText.indexOf('\n`', open)
 const STYLE = srcText.slice(open + 1, close)
@@ -115,7 +115,7 @@ function starCard(variant) {
   const el = document.createElement('div')
   el.className = 'hud-card'
   el.dataset.hudId = 'star-card'
-  el.style.cssText = 'padding:4px 2px;font-family:var(--hud-text,Arial,sans-serif);' +
+  el.style.cssText = 'font-family:var(--hud-text,Arial,sans-serif);' +
     'display:flex;flex-direction:column;pointer-events:auto;position:relative;'
   el.innerHTML =
     `<div class="hud-rule" style="flex:0 0 auto;padding-bottom:8px;margin-bottom:10px;
@@ -134,7 +134,7 @@ function starCard(variant) {
 function loreCard() {
   const el = document.createElement('div')
   el.className = 'hud-card'
-  el.style.cssText = 'padding:4px 2px;font-family:var(--hud-text,Arial,sans-serif);' +
+  el.style.cssText = 'font-family:var(--hud-text,Arial,sans-serif);' +
     'overflow-y:auto;pointer-events:auto;'
   el.innerHTML =
     `<h2 class="hud-rule" style="margin:0 0 10px 0;padding-bottom:7px;color:var(--gold);

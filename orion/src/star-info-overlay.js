@@ -29,7 +29,6 @@ const starInfoOverlayComponent = {
     // border IS the frame; setting a border here would draw a second one on top of it. Only
     // layout and the fade are set locally.
     this.overlay.style.cssText = `
-      padding: 4px 2px;
       font-family: var(--hud-text, Arial, sans-serif);
       display: flex;
       flex-direction: column;

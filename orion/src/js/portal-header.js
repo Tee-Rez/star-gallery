@@ -326,10 +326,13 @@ const portalHeaderComponent = {
       align: 'center',
       // Pale marble takes dark lettering, exactly as the screen pills do.
       color: this.data.stone ? this.data.buttonTextColor : this.data.color,
-      // Origin Tech is a wide face, so the label needs more room inside the caps than the old
-      // one did or a long word touches the stone.
-      width: w * 2.5,
-      wrapCount: 18,
+      // wrapCount is what sets the glyph size here, not width: a-text scales the face so that
+      // wrapCount characters span `width`, so a LOWER count means BIGGER letters. At 18 the
+      // label measured 0.967 wide inside a 0.96 pill - it was running out over the caps. 32
+      // puts "3D View" at about 0.48, roughly half the pill, which is the proportion the
+      // on-screen pills have; no label here comes near 32 characters, so nothing ever wraps.
+      width: w * 2.2,
+      wrapCount: 32,
     }))
     button.classList.add('cantap', 'clickable')
     button.addEventListener('click', onClick)

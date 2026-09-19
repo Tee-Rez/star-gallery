@@ -49,8 +49,9 @@ const ATLAS = 'assets/fonts/origintech-atlas.json'
 // and run verbatim here. Copying them would let this page and the app drift apart silently,
 // which is the one thing a test page must not do.
 let PILL
+let LABEL
 await (async () => {
-  const src = await fetch('js/portal-header.js').then(r => r.text())
+  const src = await fetch('js/portal-header.js?t=' + Date.now(), {cache: 'no-store'}).then(r => r.text())
   const NL = String.fromCharCode(10)
   const cut = (from, to) => {
     const a = src.indexOf(from)
@@ -62,10 +63,17 @@ await (async () => {
   const geoBlock = cut("if (AFRAME.geometries && !AFRAME.geometries['hud-pill-plane'])", NL + '}')
   // eslint-disable-next-line no-eval
   PILL = (0, eval)(pillConst + ';' + NL + geoBlock + ';' + NL + 'PILL')
+  // The label's size is the thing being tuned, so read it from addButton rather than
+  // keeping a second copy here that quietly disagrees.
+  const wm = src.match(/width:\s*w\s*\*\s*([\d.]+)/)
+  const cm = src.match(/wrapCount:\s*(\d+)/)
+  if (!wm || !cm) throw new Error('could not read the label sizing out of addButton')
+  LABEL = {widthFactor: parseFloat(wm[1]), wrapCount: parseInt(cm[1], 10)}
   say('<b>lifted from js/portal-header.js</b>')
   say('    PILL.src   = ' + PILL.src)
   say('    PILL.capUV = ' + PILL.capUV.toFixed(4))
   say('    geometry registered = ' + !!AFRAME.geometries['hud-pill-plane'])
+  say('    label  width = w * ' + LABEL.widthFactor + ', wrapCount ' + LABEL.wrapCount)
   say('')
 })()
 
@@ -109,7 +117,8 @@ function pillButton(x, y, value) {
   b.appendChild(face)
 
   b.setAttribute('text', {
-    value, align: 'center', width: BTN_W * 2.2, color: '#2b2318',
+    value, align: 'center', color: '#2b2318',
+    width: BTN_W * LABEL.widthFactor, wrapCount: LABEL.wrapCount,
     font: ATLAS, shader: 'msdf', negate: false, letterSpacing: 1.5,
   })
   return b
@@ -183,6 +192,20 @@ await (async () => {
       ((Math.abs((xs[1] - xs[0]) / BTN_H - srcCap) < 0.002) ? '   MATCH' : '   <-- SQUASHED'))
   say('    triangles ' + (geo.index.count / 3) + ', vertices ' + p.count)
 
+  const t = right.children[0].getObject3D('text')
+  if (t && t.geometry) {
+    t.geometry.computeBoundingBox()
+    const bb = t.geometry.boundingBox
+    const tw = (bb.max.x - bb.min.x) * Math.abs(t.scale.x)
+    const th = (bb.max.y - bb.min.y) * Math.abs(t.scale.y)
+    const flat = BTN_W - BTN_H   // the pill minus its two caps
+    say('')
+    say('<b>the label inside the pill</b>')
+    say('    label ' + tw.toFixed(3) + ' x ' + th.toFixed(3) +
+        '   pill ' + BTN_W + ' x ' + BTN_H + '   flat middle ' + flat.toFixed(3))
+    say('    clears the caps: ' + (tw <= flat ? 'yes, by ' +
+        ((flat - tw) / 2).toFixed(3) + ' each side' : '<b>NO - runs over them</b>'))
+  }
   const mat = faceEl.getObject3D('mesh').material
   // The texture arrives on its own schedule; reporting 'map loaded = false' because the
   // check outran the fetch would be a lie about the thing this page exists to prove.

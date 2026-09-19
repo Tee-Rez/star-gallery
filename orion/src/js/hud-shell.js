@@ -190,6 +190,12 @@ const STYLE = `
   max-height: var(--card-h);
   color: #f2ece0;
   background: none;
+  /* Air between the frame and the words. The marble rail is the card's border, so without this
+     the text starts on the very first pixel of glass and reads as cramped against the stone.
+     It belongs here rather than inline on each panel: it is a consequence of the frame, so the
+     rule that draws the frame should own it. An absolutely positioned child - the close orb -
+     measures from the padding box and so is not pushed inwards by it. */
+  padding: 10px 12px;
   border-style: solid;
   border-width: 24px 20px;
   border-image-source: url('assets/ui/card-glass.png');

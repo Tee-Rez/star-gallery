@@ -74,7 +74,7 @@ const loreJourneyComponent = {
     // to set its own black box and blue border, which is exactly the kind of local look that
     // drifted out of step with everything else. Only behaviour is set here.
     this.panel.style.cssText = `
-      padding: 4px 2px; font-family: var(--hud-text, Arial, sans-serif);
+      font-family: var(--hud-text, Arial, sans-serif);
       overflow-y: auto; pointer-events: auto;
       transform: translateX(calc(-100% - 60px)); transition: transform 500ms ease-out;`
     HUD.mount(this.panel, 'sheet', 'lore-card')
