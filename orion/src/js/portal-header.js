@@ -1,5 +1,5 @@
 // js/portal-header.js
-import {FONT, faceText} from './hud-face'
+import {FONT, faceText, faceProps} from './hud-face'
 // The portal's HUD band, laid out to match the Unity build (Portal.prefab -> PortalHUD).
 //
 // Unity draws that HUD on a 4000x800 canvas at 0.001 scale, so its canvas units map 1:1 to
@@ -82,6 +82,66 @@ if (AFRAME.geometries && !AFRAME.geometries['hud-rounded-rect']) {
   })
 }
 
+// The screen HUD's stone pill, in world space.
+//
+// The on-screen buttons are a CSS nine-slice of assets/ui/pill.png. CSS does the slicing for
+// free; in three.js there is no such thing, and a plane with the texture simply stretched
+// across it pulls the semicircular end caps into ovals - worse the longer the label, so "Lore"
+// and "Back to the constellation" would not even be wrong in the same way.
+//
+// So the slicing is built into the geometry: three columns of quads sharing one texture. The
+// outer two are the caps and are given exactly the width they are drawn at; only the middle
+// column stretches. The cap is half the pill's HEIGHT because the ends are semicircles, which
+// is the same reason the CSS rule renders its cap at calc(--tap / 2) - and it is what makes
+// the cap's world aspect (cap / height) equal the source's (143.5 / 287 = 0.5) at any width.
+//
+// One row, not three: pill.png's slice is '0 144', so nothing is sliced vertically.
+const PILL = {
+  src: 'assets/ui/pill.png',
+  capUV: 144 / 624,   // 624 px wide, caps of radius 287 / 2 rounded up to a whole pixel
+}
+
+if (AFRAME.geometries && !AFRAME.geometries['hud-pill-plane']) {
+  AFRAME.registerGeometry('hud-pill-plane', {
+    schema: {
+      width: {default: 1, min: 0},
+      height: {default: 0.25, min: 0},
+      capUV: {default: PILL.capUV},
+    },
+    init(data) {
+      const w = data.width
+      const h = data.height
+      // A pill narrower than two caps has no middle left. Clamping keeps the columns in order
+      // rather than letting them cross over and flip a triangle's winding.
+      const cap = Math.min(h / 2, w / 2)
+      const xs = [-w / 2, -w / 2 + cap, w / 2 - cap, w / 2]
+      const us = [0, data.capUV, 1 - data.capUV, 1]
+
+      const pos = []
+      const uv = []
+      for (let i = 0; i < 4; i++) {
+        pos.push(xs[i], -h / 2, 0, xs[i], h / 2, 0)
+        uv.push(us[i], 0, us[i], 1)
+      }
+      const idx = []
+      for (let c = 0; c < 3; c++) {
+        const bl = c * 2
+        const tl = bl + 1
+        const br = bl + 2
+        const tr = bl + 3
+        idx.push(bl, br, tl, tl, br, tr)   // counter-clockwise seen from +z, so it faces the user
+      }
+
+      const g = new THREE.BufferGeometry()
+      g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+      g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2))
+      g.setIndex(idx)
+      g.computeVertexNormals()
+      this.geometry = g
+    },
+  })
+}
+
 const portalHeaderComponent = {
   schema: {
     label: {type: 'string', default: 'Orion'},      // constellation name, or the object you are in
@@ -102,6 +162,8 @@ const portalHeaderComponent = {
     cornerRadius: {type: 'number', default: 0.06},       // panel border-radius 10px
     stone: {type: 'boolean', default: true},             // carved stone groups; false = flat panels
     buttonFill: {type: 'color', default: '#000000'},
+    // The screen HUD's --ink. Marble is pale, so its lettering is cut dark into it.
+    buttonTextColor: {type: 'color', default: '#2b2318'},
     font: {type: 'string', default: FONT},           // matches the star labels
     z: {type: 'number', default: 0.06},              // Unity's PortalHUD z offset
   },
@@ -240,24 +302,54 @@ const portalHeaderComponent = {
     const offset = ((U.groupH - stackH) / 2) + (index * (U.btnH + U.btnGap))
 
     const button = document.createElement('a-entity')
-    // Invisible hit plane: the visible panel is drawn by addPanel in front of it.
+    // Invisible hit plane: the visible face is drawn behind it.
     button.setAttribute('geometry', {primitive: 'plane', width: w, height: h})
     button.setAttribute('material', {shader: 'flat', opacity: 0, transparent: true, side: 'double'})
     button.setAttribute('position', `0 ${top - ((offset + (U.btnH / 2)) * s)} 0.01`)
     // Behind the entity origin, because the button label renders at local z 0.
-    this.addPanel(button, w, h, -0.002)
-    button.setAttribute('text', {
+    this.addButtonFace(button, w, h, -0.002)
+    // The label goes through the text COMPONENT, every property of it. This entity is not an
+    // <a-text>, so it has none of that primitive's attribute mappings - which is why these
+    // labels had been rendering in Roboto while the read-out lines beside them, built as real
+    // <a-text> primitives, were in the HUD face. See faceProps in js/hud-face.js.
+    button.setAttribute('text', faceProps({
       value,
       align: 'center',
-      color: this.data.color,
-      width: w * 2.2,
-    })
+      // Pale marble takes dark lettering, exactly as the screen pills do.
+      color: this.data.stone ? this.data.buttonTextColor : this.data.color,
+      // Origin Tech is a wide face, so the label needs more room inside the caps than the old
+      // one did or a long word touches the stone.
+      width: w * 2.5,
+      wrapCount: 18,
+    }))
     button.classList.add('cantap', 'clickable')
     button.addEventListener('click', onClick)
 
     this.buttons.push({el: button, onClick})
     group.appendChild(button)
     return button
+  },
+
+  // The button's visible face. In stone mode it is the screen HUD's own pill, sliced so the
+  // caps hold their shape; the flat-panel fallback keeps the bordered box it always had, since
+  // a marble pill inside a blue wireframe box would read as a mistake rather than a fallback.
+  addButtonFace(parent, w, h, z) {
+    if (!this.data.stone) return this.addPanel(parent, w, h, z)
+
+    const face = document.createElement('a-entity')
+    face.setAttribute('geometry', {primitive: 'hud-pill-plane', width: w, height: h})
+    face.setAttribute('material', {
+      shader: 'flat',
+      src: PILL.src,
+      transparent: true,
+      // Low, not the 0.5 default: the pill's edge is a soft antialiased ramp and a high cut
+      // would saw the caps' curve into steps at the size these are drawn.
+      alphaTest: 0.02,
+      side: 'double',
+    })
+    face.setAttribute('position', `0 0 ${z}`)
+    parent.appendChild(face)
+    return face
   },
 
   setButtonLabel(button, value) {

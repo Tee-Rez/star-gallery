@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Portal buttons - stone pill test</title>
+<!--
+  The in-world 3D View / Lore buttons, on their own.
+
+  8th Wall needs a camera, so the app cannot be loaded headlessly. This page loads the SAME
+  vendored A-Frame the app does and builds the buttons with the same numbers, so the geometry,
+  the texture and the typeface can be checked before any of it goes into portal-header.js.
+
+  Left column is what the buttons look like today; right column is the marble pill. Both sit on
+  the real temple-panel GLB, because the thing being judged is how they read against it.
+-->
+<script src="../../external/scripts/8frame-1.3.0.min.js"></script>
+<style>
+  body { margin:0; background:#0c0d10; color:#cfc6b4; font:12px ui-monospace, monospace; }
+  a-scene { display:block; height:72vh; }
+  #log { padding:10px 14px; white-space:pre-wrap; line-height:1.6; color:#8d8274; }
+  b { color:#c9a24a; font-weight:500; }
+</style>
+</head>
+<body>
+<a-scene embedded background="color: #0c0d10" vr-mode-ui="enabled: false"
+         renderer="colorManagement: true">
+  <a-assets></a-assets>
+  <a-light type="directional" intensity="0.5" position="1 1 1"></a-light>
+  <a-light type="ambient" intensity="0.7"></a-light>
+  <a-camera id="cam" position="0 0 0" look-controls-enabled="false" wasd-controls-enabled="false"></a-camera>
+  <a-entity id="stage" position="0 0 -2.2"></a-entity>
+</a-scene>
+<div id="log">building...</div>
+
+<script type="module">
+const log = document.getElementById('log')
+const say = t => { log.innerHTML += t + '\n' }
+log.innerHTML = ''
+
+// ---- the app's own numbers, from portal-header.js U{} at the default bandWidth 4 ----
+const s = 4 / 4000
+const BTN_W = 960 * s      // 0.96
+const BTN_H = 250 * s      // 0.25
+const ATLAS = 'assets/fonts/origintech-atlas.json'
+
+// ---- the sliced pill geometry, LIFTED from the app rather than copied ----
+// js/portal-header.js is an ES module, but the PILL constant and the registerGeometry call
+// are plain top-level JavaScript with no imports, so they can be pulled out of the source
+// and run verbatim here. Copying them would let this page and the app drift apart silently,
+// which is the one thing a test page must not do.
+let PILL
+await (async () => {
+  const src = await fetch('js/portal-header.js').then(r => r.text())
+  const NL = String.fromCharCode(10)
+  const cut = (from, to) => {
+    const a = src.indexOf(from)
+    const b = src.indexOf(to, a)
+    if (a < 0 || b < 0) throw new Error('could not find ' + from + ' in portal-header.js')
+    return src.slice(a, b + to.length)
+  }
+  const pillConst = cut('const PILL = {', '}')
+  const geoBlock = cut("if (AFRAME.geometries && !AFRAME.geometries['hud-pill-plane'])", NL + '}')
+  // eslint-disable-next-line no-eval
+  PILL = (0, eval)(pillConst + ';' + NL + geoBlock + ';' + NL + 'PILL')
+  say('<b>lifted from js/portal-header.js</b>')
+  say('    PILL.src   = ' + PILL.src)
+  say('    PILL.capUV = ' + PILL.capUV.toFixed(4))
+  say('    geometry registered = ' + !!AFRAME.geometries['hud-pill-plane'])
+  say('')
+})()
+
+function oldButton(x, y, value) {
+  const b = document.createElement('a-entity')
+  b.setAttribute('position', `${x} ${y} 0`)
+  b.setAttribute('geometry', {primitive: 'plane', width: BTN_W, height: BTN_H})
+  b.setAttribute('material', {shader: 'flat', opacity: 0, transparent: true, side: 'double'})
+  const ring = document.createElement('a-entity')
+  ring.setAttribute('geometry', {primitive: 'plane', width: BTN_W, height: BTN_H})
+  ring.setAttribute('material', {color: '#4287f5', shader: 'flat', side: 'double'})
+  b.appendChild(ring)
+  const fill = document.createElement('a-entity')
+  fill.setAttribute('geometry', {primitive: 'plane', width: BTN_W - 0.02, height: BTN_H - 0.02})
+  fill.setAttribute('material', {color: '#000', shader: 'flat', side: 'double',
+    opacity: 0.8, transparent: true})
+  fill.setAttribute('position', '0 0 0.001')
+  b.appendChild(fill)
+  b.setAttribute('text', {value, align: 'center', width: BTN_W * 2.2, color: '#ffffff'})
+  return b
+}
+
+// Built exactly the way portal-header.js addButton() builds one, structure included: the
+// button entity IS the invisible hit plane, the visible face is a child BEHIND it, and the
+// label is the entity's own text component. Getting the structure right matters as much as
+// the look - the hit plane is drawn first and, if it writes depth, it sits in front of the
+// face and can reject it.
+function pillButton(x, y, value) {
+  const b = document.createElement('a-entity')
+  b.setAttribute('position', `${x} ${y} 0`)
+  b.setAttribute('geometry', {primitive: 'plane', width: BTN_W, height: BTN_H})
+  b.setAttribute('material', {shader: 'flat', opacity: 0, transparent: true, side: 'double'})
+
+  const face = document.createElement('a-entity')
+  face.setAttribute('geometry', {primitive: 'hud-pill-plane', width: BTN_W, height: BTN_H})
+  face.setAttribute('material', {
+    shader: 'flat', src: 'assets/ui/pill.png',
+    transparent: true, alphaTest: 0.02, side: 'double',
+  })
+  face.setAttribute('position', '0 0 -0.002')
+  b.appendChild(face)
+
+  b.setAttribute('text', {
+    value, align: 'center', width: BTN_W * 2.2, color: '#2b2318',
+    font: ATLAS, shader: 'msdf', negate: false, letterSpacing: 1.5,
+  })
+  return b
+}
+
+const stage = document.getElementById('stage')
+const left = document.createElement('a-entity')
+left.setAttribute('position', '-0.75 0 0')
+left.appendChild(oldButton(0, 0.17, '3D View'))
+left.appendChild(oldButton(0, -0.17, 'Lore'))
+stage.appendChild(left)
+
+const right = document.createElement('a-entity')
+right.setAttribute('position', '0.75 0 0')
+right.appendChild(pillButton(0, 0.17, '3D View'))
+right.appendChild(pillButton(0, -0.17, 'Lore'))
+stage.appendChild(right)
+
+// ---- what the app does today, measured rather than assumed ----
+// In the app 8th Wall starts the scene. Loaded bare in a pane it can sit at hasLoaded false
+// with the render loop never started, so kick it - this is a harness quirk, not the app's.
+function kick() {
+  const sc = document.querySelector('a-scene')
+  if (!sc.hasLoaded) { try { sc.load() } catch (e) { /* already loading */ } }
+  if (!sc.isPlaying) sc.play()
+}
+
+await new Promise(r => setTimeout(r, 2000))
+await (async () => {
+  kick()
+  // The question that decides most of this: does setAttribute('font') reach a text COMPONENT?
+  const probe = document.createElement('a-entity')
+  stage.appendChild(probe)
+  // A component only exists once A-Frame has attached and initialised the entity, which it
+  // does a tick after appendChild - reading probe.components.text any sooner gets undefined.
+  await new Promise(r => probe.addEventListener('loaded', r, {once: true}))
+  probe.setAttribute('text', {value: 'probe'})
+  probe.setAttribute('font', ATLAS)
+  const comp = probe.components.text
+  say('<b>the face question</b>')
+  say('  a-entity + text, then setAttribute("font", atlas)')
+  say('    text.data.font      = ' + (comp && comp.data.font))
+  say('    HTML attribute font = ' + probe.getAttribute('font'))
+  say('    => the mapping only exists on the &lt;a-text&gt; PRIMITIVE, so the app\'s in-world')
+  say('       buttons have been setting nothing and rendering in ' +
+      ((comp && comp.data.font) === ATLAS ? 'the atlas' : '<b>Roboto</b>'))
+
+  const pb = right.children[0]
+  say('')
+  say('<b>the pill button label</b>')
+  say('    text.data.font   = ' + pb.components.text.data.font)
+  say('    text.data.shader = ' + pb.components.text.data.shader)
+  say('    text.data.negate = ' + pb.components.text.data.negate)
+  say('    text.data.color  = ' + pb.components.text.data.color)
+
+  const faceEl = right.children[0].children[0]
+  const geo = faceEl.getObject3D('mesh').geometry
+  const p = geo.attributes.position, u = geo.attributes.uv
+  const xs = [], us = []
+  for (let i = 0; i < p.count; i += 2) { xs.push(+p.getX(i).toFixed(4)); us.push(+u.getX(i).toFixed(4)) }
+  say('')
+  say('<b>the sliced geometry</b>')
+  say('    columns at x = ' + xs.join(', ') + '   (width ' + BTN_W + ', cap ' + (BTN_H / 2) + ')')
+  say('    mapped to u  = ' + us.join(', '))
+  // The cap is undistorted when its world aspect equals the source cap's pixel aspect.
+  // Comparing its SHARE of the quad to its share of the image is the wrong test - those
+  // only agree when the quad happens to have the texture's aspect ratio.
+  const srcCap = 143.5 / 287
+  say('    cap aspect  world ' + ((xs[1] - xs[0]) / BTN_H).toFixed(4) +
+      '   source ' + srcCap.toFixed(4) +
+      ((Math.abs((xs[1] - xs[0]) / BTN_H - srcCap) < 0.002) ? '   MATCH' : '   <-- SQUASHED'))
+  say('    triangles ' + (geo.index.count / 3) + ', vertices ' + p.count)
+
+  const mat = faceEl.getObject3D('mesh').material
+  // The texture arrives on its own schedule; reporting 'map loaded = false' because the
+  // check outran the fetch would be a lie about the thing this page exists to prove.
+  for (let i = 0; i < 60 && !mat.map; i++) await new Promise(r => setTimeout(r, 100))
+  say('')
+  say('<b>the material</b>')
+  say('    map loaded    = ' + !!mat.map + (mat.map ? '  ' + mat.map.image.width + 'x' + mat.map.image.height : ''))
+  say('    transparent   = ' + mat.transparent + '   alphaTest ' + mat.alphaTest +
+      '   depthWrite ' + mat.depthWrite)
+  say('    type          = ' + mat.type)
+  say('')
+  say('    renderer.sortObjects = ' + document.querySelector('a-scene').renderer.sortObjects)
+})()
+</script>
+</body>
+</html>

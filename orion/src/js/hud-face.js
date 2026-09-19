@@ -57,5 +57,26 @@ function faceText(el) {
   return el
 }
 
-export {FACES, FACE, ACTIVE, FONT, faceText}
+// THE SAME FACE, FOR A text COMPONENT RATHER THAN AN <a-text>.
+//
+// faceText() above works only because <a-text> is a PRIMITIVE, and a primitive maps a handful
+// of attributes - font, shader, negate, letter-spacing - onto the component behind it. A plain
+// <a-entity> carrying a text component has no such mapping, so setAttribute('font', atlas)
+// there sets an inert HTML attribute, the component keeps its default, and the label renders
+// in Roboto with nothing in the console to say so. Measured rather than assumed: on an
+// a-entity, text.data.font reads 'roboto' while getAttribute('font') reads the atlas path
+// (orion/src/_btntest.html).
+//
+// Note the case change. The attribute is letter-spacing; the component property is
+// letterSpacing, and passing the hyphenated form in an object is silently ignored.
+function faceProps(extra) {
+  return Object.assign({
+    font: FACE.atlas,
+    shader: FACE.shader,
+    negate: FACE.negate,
+    letterSpacing: FACE.letterSpacing,
+  }, extra)
+}
+
+export {FACES, FACE, ACTIVE, FONT, faceText, faceProps}
 export default faceText
