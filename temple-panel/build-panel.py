@@ -58,6 +58,23 @@ PROFILE = [
 ]
 
 # ---- mesh accumulator ----------------------------------------------------------------------------
+def face_uvs(n, pts):
+    """Texture coordinates measured IN the face's own plane, so every face gets the stone at the
+    same scale whichever way it points.
+
+    Projecting the whole model from the front is fine for the front, and wrong for everything
+    else: a side wall has no extent in XY, so it samples a single column of texels and smears
+    them down its length. Here each face builds a tangent pair from its normal and measures its
+    corners against that instead - a wall, a chamfer at 45 degrees and the front face all come
+    out at TILE metres per repeat with no stretch. Granite has no grain direction, so which way
+    the tangents happen to point does not matter.
+    """
+    n = np.round(n, 6)                       # both triangles of a quad must pick the same basis
+    ref = np.zeros(3); ref[int(np.argmin(np.abs(n)))] = 1.0
+    t = np.cross(ref, n); t /= np.linalg.norm(t)
+    bt = np.cross(n, t)
+    return tuple((float(np.dot(p, t)) / TILE, float(np.dot(p, bt)) / TILE) for p in pts)
+
 class Mesh:
     def __init__(self):
         self.parts = {STONE: [], GOLD: [], GLASS: []}   # material -> list of (p0,p1,p2,n,uv0,uv1,uv2)
@@ -73,7 +90,7 @@ class Mesh:
             b, c = c, b
             uvs = (uvs[0], uvs[2], uvs[1]) if uvs else None
         if uvs is None:
-            uvs = tuple((p[0] / TILE, p[1] / TILE) for p in (a, b, c))   # planar, tileable
+            uvs = face_uvs(n, (a, b, c))
         self.parts[mat].append((a, b, c, n, uvs))
 
     def quad(self, mat, p0, p1, p2, p3, normal_hint, uvs=None):
