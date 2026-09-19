@@ -55,6 +55,12 @@ const STYLE = `
   --u: 1vmin;
   --vh: 1vh;
   --accent: #4287f5;
+  /* Two inks, because the two frames are opposites. A pill is pale marble, so its lettering is
+     cut dark into the stone; the card's interior is smoked glass, so its lettering is light and
+     the gold is the accent. Anything written on a frame takes one of these, never #fff. */
+  --ink: #2b2318;
+  --ink-dim: rgba(43, 35, 24, 0.68);
+  --gold: #c9a24a;
   --gutter: clamp(8px, calc(3 * var(--u)), 16px);
   --gap: clamp(6px, calc(2 * var(--u)), 12px);
   --tap: clamp(44px, calc(12 * var(--u)), 52px);
@@ -106,38 +112,98 @@ const STYLE = `
 }
 
 /* ---- shared looks ---- */
+/* ---- the stone frames ----
+   A pill is a nine-slice, not a stretched picture. The caps are the left and right slices and
+   only the middle is stretched, so Gallery and Back to the constellation wear the same asset at
+   completely different widths with the corner radius and the gold line identical on both. The
+   caps are half the pill's height, because the ends are semicircles - hence calc(--tap / 2).
+
+   The frames are pale marble, so the ink had to go dark. White text on cream is unreadable, and
+   that is a consequence of the art direction rather than a preference. */
 #hud .hud-pill {
   box-sizing: border-box;
   display: inline-flex; align-items: center; justify-content: center; gap: calc(var(--gap) * 0.8);
   min-height: var(--tap);
-  padding: 0 calc(var(--tap) * 0.4);
-  /* The letter-spacing is not decoration: inscriptional capitals were cut with air between them,
-     and set solid they close up and stop reading as separate letters. */
+  padding: 0 calc(var(--tap) * 0.5);
   font: var(--fs-ui)/1.1 var(--hud-display);
-  letter-spacing: 0.06em;
-  color: #fff; background: rgba(0, 0, 0, 0.7);
-  border: 1px solid var(--accent); border-radius: calc(var(--tap) / 2);
-  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  /* pill.png is 624x287 and its ends are semicircles, so each cap slice is half the height:
+     287 / 2 = 144. The rendered cap is half the pill's height for the same reason, which is
+     what keeps the ends circular instead of oval as the label gets longer. */
+  border-image: url('assets/ui/pill.png') 0 144 fill / 0 calc(var(--tap) / 2) stretch;
+  /* The shadow is CSS, not baked into the asset: a baked one shows as a grey halo over the
+     camera feed, where this falls on whatever is actually behind the pill. */
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55));
   white-space: nowrap; cursor: pointer;
   user-select: none; -webkit-user-select: none; -webkit-tap-highlight-color: transparent;
-  transition: opacity 300ms ease, background 300ms ease;
+  transition: opacity 300ms ease, filter 200ms ease, transform 120ms ease;
+}
+#hud .hud-pill:active {
+  transform: translateY(1px);
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)) brightness(0.93);
 }
 #hud .hud-pill svg { width: 1.05em; height: 1.05em; flex: none; }
+/* The hint wears the pill too. Its cap is sized from the pill's own height rather than the
+   hint's, so a hint that wraps to two lines gets the cap of a one-line pill: the end stays the
+   shape it is drawn as instead of being pulled into an oval by the extra line. */
 #hud .hud-hint {
   box-sizing: border-box;
   max-width: min(100%, 26em);
-  padding: calc(var(--gap) * 1.3) calc(var(--gutter) * 1.6);
-  font: var(--fs-body)/1.45 var(--hud-text); letter-spacing: 0.05em; text-align: center;
-  color: #fff; background: rgba(0, 0, 0, 0.7);
-  border: 1px solid var(--accent); border-radius: calc(var(--tap) / 2.2);
-  backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+  min-height: var(--tap);
+  padding: calc(var(--gap) * 1.1) calc(var(--tap) * 0.55);
+  font: var(--fs-body)/1.45 var(--hud-text); letter-spacing: 0.04em; text-align: center;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  border-image: url('assets/ui/pill.png') 0 144 fill / 0 calc(var(--tap) / 2) stretch;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.5));
   pointer-events: none;
 }
+
+/* ---- the glass card ----
+   The star panel and the lore panel are the same frame at two sizes. It is a nine-slice like
+   the pill, but rectangular, so all four rails hold their thickness while the middle stretches
+   to whatever the content needs.
+
+   The slice numbers are measured on the 468x403 asset: 31 in from each side, 37 from top and
+   bottom, which lands just inside the glass. The rendered border keeps that 37:31 proportion
+   (24:20) so the mitred corners of the marble stay square rather than shearing.
+
+   'fill' is what paints the middle slice - the smoked glass - across the content box. Without
+   it the nine-slice draws the frame and leaves a hole. The glass carries its own alpha, so the
+   camera feed reads through the panel and nothing here needs a backdrop-filter.
+
+   The asset was rebuilt for this: it came with a Greek-key meander along the bottom rail and a
+   gold rule and diamond across the glass, and both of them are features a nine-slice stretches.
+   See concepts/hud-frames/cutout.py. The rule is re-made below as a border under the header,
+   where it stays one pixel thick at any panel size. */
 #hud .hud-card {
   box-sizing: border-box;
   width: var(--card-w);
   max-height: var(--card-h);
+  color: #f2ece0;
+  background: none;
+  border-style: solid;
+  border-width: 24px 20px;
+  border-image-source: url('assets/ui/card-glass.png');
+  border-image-slice: 37 31 fill;
+  border-image-repeat: stretch;
+  border-radius: 0;
+  filter: drop-shadow(0 3px 10px rgba(0, 0, 0, 0.5));
 }
+/* Absolutely positioned children of a card - the close button - measure from the padding box,
+   so they land inside the marble without having to know how thick it is. */
+#hud .hud-card { position: relative; }
+#hud .hud-card .hud-rule {
+  border-bottom: 1px solid var(--gold);
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+}
+/* A button does not inherit its font, so the tabs inside a card were the one thing on the
+   screen still set in Arial. */
+#hud .hud-card button { font-family: var(--hud-display); letter-spacing: 0.03em; }
 
 /* ---- what each mode shows ----
    Modes: placement, constellation, lore, deep-sky. The panel state (a star or object card open)

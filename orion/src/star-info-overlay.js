@@ -12,8 +12,8 @@ import {HUD} from './js/hud-shell'
 const starInfoOverlayComponent = {
   schema: {
     width: {type: 'number', default: 300},
-    backgroundColor: {type: 'string', default: 'rgba(0, 0, 0, 0.8)'},
-    borderColor: {type: 'string', default: '#4287f5'},
+    backgroundColor: {type: 'string', default: 'transparent'},   // unused: .hud-card paints the glass
+    borderColor: {type: 'string', default: '#c9a24a'},
     borderWidth: {type: 'number', default: 2},
     fadeSpeed: {type: 'number', default: 350},  // Unity's StarInfoPanel fadeDuration
     padding: {type: 'number', default: 15},
@@ -24,22 +24,19 @@ const starInfoOverlayComponent = {
     this.overlay.id = 'star-info-overlay'
     // Width and height come from the layer's card rules (.hud-card); only the look is set here.
     this.overlay.className = 'hud-card'
+    // The panel's look - the marble frame, the smoked glass behind the text and the colour of
+    // that text - is .hud-card in hud-shell.js. The card is a nine-slice image, so its own
+    // border IS the frame; setting a border here would draw a second one on top of it. Only
+    // layout and the fade are set locally.
     this.overlay.style.cssText = `
-      background: ${this.data.backgroundColor};
-      border: ${this.data.borderWidth}px solid ${this.data.borderColor};
-      border-radius: 10px;
-      padding: ${this.data.padding}px;
-      color: white;
-      font-family: Arial, sans-serif;
+      padding: 4px 2px;
+      font-family: var(--hud-text, Arial, sans-serif);
       display: flex;
       flex-direction: column;
       opacity: 0;
       visibility: hidden;
       transition: opacity ${this.data.fadeSpeed}ms ease, visibility 0s linear ${this.data.fadeSpeed}ms;
-      backdrop-filter: blur(5px);
-      -webkit-backdrop-filter: blur(5px);
       margin: 0;
-      position: relative;
       pointer-events: none;
     `
 
@@ -57,17 +54,21 @@ const starInfoOverlayComponent = {
         border-radius: 10px;
       }
       #star-info-content::-webkit-scrollbar-thumb:hover {
-        background: #5c9aff;
+        background: #e0bf72;
       }
     `
     document.head.appendChild(scrollbarStyle)
     this.scrollbarStyle = scrollbarStyle
 
     // Header block: name, designation, separator -- Unity's top ~16% of the card.
+    // The rule under the header is the gold line the source artwork drew across the glass. It
+    // was taken out of the image because a nine-slice stretches the middle, which pulled the
+    // line's position around with the panel's height; as a border it sits under the title at
+    // any size. .hud-rule owns the colour.
     this.header = document.createElement('div')
+    this.header.className = 'hud-rule'
     this.header.style.cssText = `
       flex: 0 0 auto;
-      border-bottom: 1px solid rgba(255,255,255,0.25);
       padding-bottom: 8px;
       margin-bottom: 10px;
       padding-right: calc(var(--tap) - 8px);
@@ -121,8 +122,10 @@ const starInfoOverlayComponent = {
       width: var(--tap);
       height: var(--tap);
       font-size: var(--fs-ui);
-      background: rgba(0,0,0,0.3);
+      background: rgba(0,0,0,0.35);
+      border: 1px solid rgba(201,162,74,0.45);
       border-radius: 50%;
+      box-sizing: border-box;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -228,7 +231,7 @@ const starInfoOverlayComponent = {
 
     const d = audio.describe(rec)
     const btn = 'width:100%;padding:10px;border:1px solid ' + this.data.borderColor +
-      ';border-radius:8px;color:#eaf3ff;font-size:14px;cursor:pointer;'
+      ';border-radius:8px;color:#f2ece0;font-size:14px;cursor:pointer;'
 
     return `
       <p style="margin:0 0 10px 0;font-size:12px;line-height:1.5;">
@@ -245,12 +248,12 @@ const starInfoOverlayComponent = {
             : 'Estimated from its spectral class, so the tone is characteristic of the type rather than this individual star.'}
         </div>
       </div>
-      <button data-starsong="musical" style="${btn}background:rgba(66,135,245,.25);margin-bottom:8px;">
+      <button data-starsong="musical" style="${btn}background:rgba(201,162,74,.22);margin-bottom:8px;">
         Play</button>
       <button data-starsong="true" style="${btn}background:rgba(0,0,0,.3);">
         True sound</button>
       <div style="margin-top:14px;padding-top:12px;
-        border-top:1px solid rgba(255,255,255,0.2);">
+        border-top:1px solid rgba(201,162,74,0.3);">
         <div style="display:flex;justify-content:space-between;font-size:12px;
           margin-bottom:6px;opacity:.85;">
           <span>Volume</span><span data-volume-readout>${Math.round(audio.getVolume() * 100)}%</span>
@@ -348,10 +351,10 @@ const starInfoOverlayComponent = {
       <div style="display:flex;gap:6px;margin:0 0 10px 0;">
         <button data-tab="info" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
           border:1px solid ${this.data.borderColor};border-radius:6px;
-          background:rgba(66,135,245,.25);color:#eaf3ff;">Info</button>
+          background:rgba(201,162,74,.22);color:#f2ece0;">Info</button>
         <button data-tab="starsong" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
           border:1px solid ${this.data.borderColor};border-radius:6px;
-          background:rgba(0,0,0,.3);color:#eaf3ff;">Starsong</button>
+          background:rgba(0,0,0,.3);color:#f2ece0;">Starsong</button>
       </div>
       <div data-pane="info">${this.formatStarInfo(info)}</div>
       <div data-pane="starsong" style="display:none;">${this.buildStarsongPane(name)}</div>`

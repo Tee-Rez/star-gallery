@@ -70,10 +70,11 @@ const loreJourneyComponent = {
     this.panel = document.createElement('div')
     this.panel.id = 'lore-panel'
     this.panel.className = 'hud-card'
+    // The frame, the glass and the colour all come from .hud-card in hud-shell.js - this used
+    // to set its own black box and blue border, which is exactly the kind of local look that
+    // drifted out of step with everything else. Only behaviour is set here.
     this.panel.style.cssText = `
-      background: rgba(0,0,0,0.8); border: 2px solid #4287f5; border-radius: 10px;
-      padding: 15px; color: #fff; font-family: Arial, sans-serif;
-      backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+      padding: 4px 2px; font-family: var(--hud-text, Arial, sans-serif);
       overflow-y: auto; pointer-events: auto;
       transform: translateX(calc(-100% - 60px)); transition: transform 500ms ease-out;`
     HUD.mount(this.panel, 'sheet', 'lore-card')
@@ -81,9 +82,10 @@ const loreJourneyComponent = {
 
   showLore(stop) {
     this.panel.innerHTML = `
-      <h2 style="margin:0 0 10px 0;color:#4287f5;font-size:18px;">${stop.title}</h2>
+      <h2 class="hud-rule" style="margin:0 0 10px 0;padding-bottom:7px;color:var(--gold);
+        font:18px/1.2 var(--hud-display);letter-spacing:0.04em;">${stop.title}</h2>
       <p style="margin:0 0 12px 0;line-height:1.5;font-size:var(--fs-body);">${stop.story}</p>
-      <div style="border-top:1px solid rgba(255,255,255,0.2);padding-top:8px;font-size:var(--fs-caption);font-style:italic;opacity:0.8;">
+      <div style="border-top:1px solid rgba(201,162,74,0.35);padding-top:8px;font-size:var(--fs-caption);font-style:italic;opacity:0.8;">
         Sources: ${stop.sources}
       </div>`
     this.panel.scrollTop = 0

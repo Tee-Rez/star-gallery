@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HUD frames - 2D layer test</title>
+<!--
+  The 2D HUD, on its own, over a still standing in for the camera feed.
+
+  8th Wall will not start without a camera, so the app cannot be loaded headlessly to look at
+  its own HUD. This page sidesteps that by taking the REAL stylesheet - it fetches js/hud-shell.js
+  and lifts the STYLE template literal out of it verbatim - and building the same DOM that
+  HUD.ensure() builds, with the same markup each component mounts into it. Nothing here restates
+  a rule, so the page cannot drift from the app: edit hud-shell.js, reload, see the change.
+
+  It has to live in src/ so that assets/ui/*.png and assets/fonts/* resolve exactly as they do
+  from index.html.
+-->
+<style>
+  :root { color-scheme: dark; }
+  body {
+    margin: 0; background: #14161b; color: #cfc6b4;
+    font: 13px ui-monospace, SFMono-Regular, Menlo, monospace;
+    display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start; padding: 16px;
+  }
+  .phone {
+    position: relative; width: 375px; height: 812px; flex: none;
+    border-radius: 22px; overflow: hidden; box-shadow: 0 8px 40px #0008;
+    /* The HUD is position: fixed, so it needs a containing block of its own to sit inside a
+       phone-sized box instead of filling the browser window. A filter creates one. */
+    filter: saturate(1);
+  }
+  .phone > .feed {
+    position: absolute; inset: 0;
+    background: #1b1a17 url('_paneltest/room.png') center/cover no-repeat;
+  }
+  .phone.bright > .feed { filter: brightness(2.1) contrast(0.8); }
+  .phone.dark   > .feed { filter: brightness(0.35); }
+  .cap { font: 11px ui-monospace, monospace; color: #7d7466; letter-spacing: .08em; }
+  .col { display: grid; gap: 8px; }
+  .col > b { font: 600 11px ui-monospace, monospace; color: #c9a24a; letter-spacing: .1em; }
+  #notes { flex: 1 1 260px; min-width: 260px; white-space: pre-wrap; line-height: 1.6; color: #8d8274; }
+</style>
+</head>
+<body>
+
+<div class="col"><b>OVER A BRIGHT ROOM</b><div class="phone bright" data-variant="full"><div class="feed"></div></div></div>
+<div class="col"><b>OVER A DARK ROOM</b><div class="phone dark" data-variant="lore"><div class="feed"></div></div></div>
+<div id="notes">loading...</div>
+
+<script type="module">
+const notes = document.getElementById('notes')
+const say = t => { notes.textContent += t + '\n' }
+
+// ---- lift the real stylesheet out of the real module ----
+const srcText = await (await fetch('js/hud-shell.js')).text()
+const open = srcText.indexOf('`', srcText.indexOf('const STYLE'))
+const close = srcText.indexOf('\n`', open)
+const STYLE = srcText.slice(open + 1, close)
+if (open < 0 || close < 0) say('COULD NOT EXTRACT STYLE')
+say('stylesheet: ' + STYLE.length + ' chars lifted from js/hud-shell.js')
+
+// The app's stylesheet is written for #hud { position: fixed }. Scoping it into the phone
+// boxes is the only thing this page changes, and it changes it by adding rules rather than
+// editing the lifted ones.
+const style = document.createElement('style')
+style.textContent = STYLE + `
+  .phone #hud { position: absolute; }
+`
+document.head.appendChild(style)
+
+// ---- the markup each component mounts, copied from what those components build ----
+const pill = (label, id) =>
+  `<button class="hud-pill" data-hud-id="${id}" style="pointer-events:auto">${label}</button>`
+
+const CARD_BODY = `
+  <div style="display:flex;gap:6px;margin:0 0 10px 0;">
+    <button data-tab="info" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
+      border:1px solid #c9a24a;border-radius:6px;
+      background:rgba(201,162,74,.22);color:#f2ece0;">Info</button>
+    <button data-tab="starsong" style="flex:1;padding:6px;font-size:13px;cursor:pointer;
+      border:1px solid #c9a24a;border-radius:6px;
+      background:rgba(0,0,0,.3);color:#f2ece0;">Starsong</button>
+  </div>
+  <p style="margin:0 0 10px 0;">Betelgeuse is a red supergiant roughly 700 times the width of
+  the Sun. It sits at Orion's shoulder, and its brightness wanders on a cycle of about 400 days.</p>
+  <p style="margin:0;">Its surface is cool for a star - near 3,600 K - which is why it reads
+  orange against the blue-white of Rigel across the figure.</p>`
+
+function starCard() {
+  const el = document.createElement('div')
+  el.className = 'hud-card'
+  el.dataset.hudId = 'star-card'
+  el.style.cssText = 'padding:4px 2px;font-family:var(--hud-text,Arial,sans-serif);' +
+    'display:flex;flex-direction:column;pointer-events:auto;position:relative;'
+  el.innerHTML =
+    `<div class="hud-rule" style="flex:0 0 auto;padding-bottom:8px;margin-bottom:10px;
+       padding-right:calc(var(--tap) - 8px);">
+       <h2 style="margin:0;color:#c9a24a;font-size:18px;">Betelgeuse</h2>
+       <div style="margin:2px 0 0 0;font-size:12px;opacity:0.75;">Alpha Orionis</div>
+     </div>
+     <div id="star-info-content" style="flex:1 1 auto;overflow-y:auto;line-height:1.4;
+       font-size:var(--fs-body);">${CARD_BODY}</div>
+     <div style="position:absolute;top:6px;right:6px;width:var(--tap);height:var(--tap);
+       font-size:var(--fs-ui);background:rgba(0,0,0,0.35);border:1px solid rgba(201,162,74,0.45);
+       border-radius:50%;box-sizing:border-box;display:flex;align-items:center;
+       justify-content:center;cursor:pointer;">&#10005;</div>`
+  return el
+}
+
+function loreCard() {
+  const el = document.createElement('div')
+  el.className = 'hud-card'
+  el.style.cssText = 'padding:4px 2px;font-family:var(--hud-text,Arial,sans-serif);' +
+    'overflow-y:auto;pointer-events:auto;'
+  el.innerHTML =
+    `<h2 class="hud-rule" style="margin:0 0 10px 0;padding-bottom:7px;color:var(--gold);
+       font:18px/1.2 var(--hud-display);letter-spacing:0.04em;">The Hunter's Belt</h2>
+     <p style="margin:0 0 12px 0;line-height:1.5;font-size:var(--fs-body);">Three stars in a row,
+     almost exactly evenly spaced and almost exactly equal in brightness. Nearly every culture
+     that could see them gave them a name of their own.</p>
+     <div style="border-top:1px solid rgba(201,162,74,0.35);padding-top:8px;
+       font-size:var(--fs-caption);font-style:italic;opacity:0.8;">
+       Sources: Allen, Star Names (1899); Ridpath, Star Tales</div>`
+  return el
+}
+
+function buildHud(phone, variant) {
+  const hud = document.createElement('div')
+  hud.id = 'hud'
+  hud.dataset.engine = 'ready'
+  hud.dataset.mode = variant === 'lore' ? 'lore' : 'constellation'
+  hud.dataset.panel = variant === 'lore' ? 'closed' : 'open'
+  hud.innerHTML =
+    `<div data-region="top">
+       <div data-slot="start">${pill('Gallery', 'gallery')}</div>
+       <div data-slot="end">${pill('Recenter', 'recenter')}</div>
+     </div>
+     <div data-region="message">
+       <div class="hud-hint">Tap a star to read about it, or drag with one finger to turn the figure.</div>
+     </div>
+     <div data-region="stage" aria-hidden="true"></div>
+     <div data-region="sheet"></div>
+     <div data-region="actions">
+       ${pill('Back to the constellation', 'back')}${pill('Next Star', 'next')}
+     </div>`
+  hud.querySelector('[data-region="sheet"]').appendChild(variant === 'lore' ? loreCard() : starCard())
+  phone.appendChild(hud)
+  return hud
+}
+
+document.querySelectorAll('.phone').forEach(p => buildHud(p, p.dataset.variant))
+
+// ---- checks ----
+await document.fonts.ready
+await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)))
+
+const g = getComputedStyle(document.querySelector('.hud-pill'))
+say('pill  border-image-source ' + g.borderImageSource)
+say('pill  border-image-slice  ' + g.borderImageSlice)
+say('pill  border-image-width  ' + g.borderImageWidth)
+say('pill  colour              ' + g.color)
+say('pill  height              ' + document.querySelector('.hud-pill').offsetHeight + 'px')
+
+const c = getComputedStyle(document.querySelector('.hud-card'))
+say('card  border-image-source ' + c.borderImageSource)
+say('card  border-image-slice  ' + c.borderImageSlice)
+say('card  border-width        ' + c.borderTopWidth + ' / ' + c.borderLeftWidth)
+say('card  colour              ' + c.color)
+
+// Both frames must actually decode, or the nine-slice silently draws nothing.
+for (const src of ['assets/ui/pill.png', 'assets/ui/card-glass.png']) {
+  const img = new Image()
+  img.src = src
+  try {
+    await img.decode()
+    say('asset ' + src + '  ' + img.naturalWidth + 'x' + img.naturalHeight + '  OK')
+  } catch (e) {
+    say('asset ' + src + '  FAILED TO LOAD')
+  }
+}
+
+// Nothing may overflow the phone sideways.
+document.querySelectorAll('.phone').forEach((p, i) => {
+  const w = p.getBoundingClientRect().width
+  let worst = 0
+  p.querySelectorAll('#hud *').forEach((el) => {
+    const r = el.getBoundingClientRect(), pr = p.getBoundingClientRect()
+    // A hidden element reports an all-zero rect, which reads as a huge left overflow. Only
+    // things that are actually drawn can overflow.
+    if (!r.width && !r.height) return
+    worst = Math.max(worst, r.right - pr.right, pr.left - r.left)
+  })
+  say('phone ' + i + '  widest overflow ' + worst.toFixed(1) + 'px (want <= 0)')
+})
+</script>
+</body>
+</html>
