@@ -32,6 +32,7 @@ varying vec2 vUv;
 uniform float uTime;
 uniform vec3 uAccent;
 uniform float uOpacity;
+uniform float uGain;
 uniform float uReveal;
 uniform float uRate;
 uniform float uValue;
@@ -333,7 +334,12 @@ void main(){
   // The pixel size has to be taken here, in uniform control flow - a derivative read inside an
   // if() or a loop that not every fragment takes is undefined, and shows up as blocky edges.
   gPx = max(fwidth(p.y), 1e-5);
-  vec3 c = hud(p) * uOpacity;
+  // uGain is brightness, and it is not the same thing as opacity. Opacity fades the element
+  // towards nothing; gain pushes it past full. Because the output is additive and clamps per
+  // channel, anything over 1 burns the cores of the lines out towards white while the falloff
+  // around them keeps the accent colour - which is what an emissive line under bloom looks
+  // like, without paying for a bloom pass over the camera feed.
+  vec3 c = hud(p) * uOpacity * uGain;
   // The plane has edges and a halo does not: exp() falloff is still faintly above zero out at
   // the corners, which draws the plane itself as a glowing rectangle over the camera feed. Fade
   // the whole thing out before it gets there, so the element ends where its light ends.
@@ -342,19 +348,21 @@ void main(){
   // each one leaves a fraction of a bit spread over the whole plane, and added together over a
   // few layers that is enough to show the quad as a faintly glowing rectangle against a dark
   // room. Below this level it is not a line any more, so drop it.
-  c = max(c - 0.004, 0.0);
+  // The floor rises with the gain, or turning an element up would bring the rectangle back.
+  c = max(c - 0.004 * max(uGain, 1.0), 0.0);
   // Additive: black is already transparent, so there is no alpha to get wrong and nothing fringes
   // against the camera feed. The element can only add light, which is what a HUD should do.
   gl_FragColor = vec4(c, 1.0);
 }`
 
-function buildMaterial(preset, accent, opacity, rate) {
+function buildMaterial(preset, accent, opacity, rate, gain) {
   const body = PRESETS[preset] || PRESETS.halo
   return new THREE.ShaderMaterial({
     uniforms: {
       uTime: {value: 0},
       uAccent: {value: new THREE.Color(accent)},
       uOpacity: {value: opacity},
+      uGain: {value: gain === undefined ? 1 : gain},
       uReveal: {value: 0},
       uRate: {value: rate},
       uValue: {value: 0.5},
@@ -393,6 +401,7 @@ const hudElementComponent = {
     aspect: {type: 'number', default: 1},
     color: {type: 'color', default: '#4287f5'},
     opacity: {type: 'number', default: 1},
+    intensity: {type: 'number', default: 1},       // brightness; above 1 burns the line cores white
     rate: {type: 'number', default: 1},
     value: {type: 'number', default: 0.5},         // whatever the element is showing, 0..1
     billboard: {type: 'boolean', default: true},
@@ -404,7 +413,7 @@ const hudElementComponent = {
     this.reveal = 0
     this.mesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
-      buildMaterial(this.data.preset, this.data.color, this.data.opacity, this.data.rate)
+      buildMaterial(this.data.preset, this.data.color, this.data.opacity, this.data.rate, this.data.intensity)
     )
     this.mesh.frustumCulled = false     // the plane is small and billboarded; culling it flickers
     // No renderOrder: A-Frame 1.3 leaves renderer.sortObjects false, so draw order is scene-graph
@@ -424,11 +433,12 @@ const hudElementComponent = {
     const d = this.data
     if (old && old.preset !== d.preset) {
       this.mesh.material.dispose()
-      this.mesh.material = buildMaterial(d.preset, d.color, d.opacity, d.rate)
+      this.mesh.material = buildMaterial(d.preset, d.color, d.opacity, d.rate, d.intensity)
     }
     const u = this.mesh.material.uniforms
     u.uAccent.value.set(d.color)
     u.uOpacity.value = d.opacity
+    u.uGain.value = d.intensity
     u.uRate.value = d.rate
     u.uValue.value = d.value
     this.applySize()

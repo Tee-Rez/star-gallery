@@ -18,6 +18,11 @@ const deepSkyMarkerComponent = {
     color: {type: 'color', default: '#8fd8ff'},
     spin: {type: 'number', default: 0.6},      // radians per second
     visited: {type: 'boolean', default: false},
+    // How hard the layered ring burns, and how much of the tap sphere shows. The sphere is only
+    // there to say "this volume is touchable"; the ring is the thing to look at, so it carries
+    // the light and the sphere stays a hint.
+    intensity: {type: 'number', default: 1.8},
+    shell: {type: 'number', default: 0.04},
     // The same ring means two different things depending on where it hangs:
     //   select - among the constellation's stars; tapping ENTERS the object
     //   detail - inside the entered object; tapping opens its INFO panel
@@ -68,6 +73,7 @@ const deepSkyMarkerComponent = {
       color: this.data.color,
       rate: Math.max(this.data.spin, 0.05) / 0.6,   // the old spin, in the element's own terms
       opacity: this.data.visited ? 0.42 : 1,
+      intensity: this.data.intensity,
     })
     this.el.appendChild(this.ring)
 
@@ -87,7 +93,7 @@ const deepSkyMarkerComponent = {
       hit.setAttribute('class', 'cantap')
       hit.setAttribute('material', {
         color: this.data.color,
-        opacity: 0.12,
+        opacity: this.data.shell,
         transparent: true,
         side: 'double',
         depthTest: true,
