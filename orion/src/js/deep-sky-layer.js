@@ -314,14 +314,17 @@ const deepSkyLayerComponent = {
       role: 'detail',
       visited: defaultStore.isVisited(this.constellationId(), obj.id),
     })
-    // Bottom-left of the portal frame rather than over the object it describes. It goes in
-    // the STATIC container: the field turns, this must not turn with it.
+    // Bottom FRONT left of the portal box rather than over the object it describes: tucked
+    // into the corner nearest the viewer, where it reads as a control on the frame. At z 0 it
+    // sat at mid-depth, three units back, floating in among the object it is about. It goes
+    // in the STATIC container: the field turns, this must not turn with it.
     const orbR = 0.45
     const inset = orbR + 0.35
+    const frontZ = Number.isFinite(l.shaftFrontZ) ? l.shaftFrontZ : 0
     this.orb.setAttribute('position', {
       x: -((Number(l.portalWidth) || 6) / 2) + inset,
       y: -((Number(l.portalHeight) || 6) / 2) + inset,
-      z: 0,
+      z: frontZ - inset,
     })
     ;(l.staticContainer || l.rotatingContainer).appendChild(this.orb)
   },

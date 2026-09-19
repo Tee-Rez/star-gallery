@@ -173,15 +173,8 @@
     position="0 1.6 0"
     raycaster="objects: .cantap, .clickable"
     cursor="fuse: false; rayOrigin: mouse;">
-    <!-- Star-shaped cursor for placement -->
+    <!-- Placement reticle. The graphic itself is the layered HUD ring that tap-place-cursor.js adds. -->
     <a-entity id="star-cursor" tap-place-cursor="placementDistance: 5" position="0 0 -5">
-      <!-- Outer ring -->
-      <a-plane
-        width="1"
-        height="1"
-        material="shader: flat; src: #star-burst; blending: additive; side: front; transparent: true"
-        position="0 0 0">
-      </a-plane>
       <!-- <a-ring radius-inner="0.04" radius-outer="0.08"
         material="color: #00ff00; shader: flat; opacity: 0.6; transparent: true; side: double" position="0 0 0">
       </a-ring>
@@ -215,7 +208,6 @@
     <img id="blue-star-texture" src="assets/sunBlue.jpg" />
     <img id="red-star-texture" src="assets/sunRed.jpg" />
     <img id="white-star-texture" src="assets/sunWhite.jpg" />
-    <img id="star-burst" src="assets/star-burst.png" />
   </a-assets>
 
   <a-light type="directional" intensity="0.5" position="1 1 1"></a-light>

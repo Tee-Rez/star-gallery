@@ -1,7 +1,7 @@
 // constellation-loader.js
 import {defaultStore} from './discovery-store'
 import {resolveLayer} from './deep-sky-field'
-import {sigilText} from './sigil-font'
+import {faceText} from './hud-face'
 
 const constellationLoaderComponent = {
   schema: {
@@ -2729,6 +2729,7 @@ const constellationLoaderComponent = {
     const offsetZ = (display.position && display.position.z) || 0
     const scaleZ = (display.scale && display.scale.z) || 1
     const frontZ = (portalZ - offsetZ) / scaleZ
+    this.shaftFrontZ = frontZ
 
     positions.forEach((position) => {
       const wall = document.createElement('a-entity')
@@ -2798,7 +2799,7 @@ const constellationLoaderComponent = {
     label.setAttribute('scale', '1.5 1.5 1.5')
     label.setAttribute('color', '#ffffff')
     label.setAttribute('width', '3')
-    sigilText(label)
+    faceText(label)
     textContainer.appendChild(label)
     starEntity.appendChild(textContainer)
 
@@ -2877,7 +2878,7 @@ const constellationLoaderComponent = {
       text.setAttribute('scale', '1.5 1.5 1.5')
       text.setAttribute('color', '#bfe4ff')
       text.setAttribute('width', '3')
-      sigilText(text)
+      faceText(text)
       label.appendChild(text)
       entity.appendChild(label)
 

@@ -21,14 +21,21 @@
 // so a small phone never drops below a 44px tap target and a tablet never gets giant pills.
 
 const STYLE = `
-/* Sigil Inscriptional, the temple face. Two cuts of the same alphabet:
-     Display carries the small alchemical marks, for button labels and headings.
-     Text drops them, because below about 14px the marks turn to mush and cost legibility
-     for detail nobody can resolve.
-   Both are caps-only by design - lowercase maps to small caps - so they go on SHORT strings:
-   labels, names, readouts. Sentences and lore paragraphs stay on the system sans, because an
-   all-caps paragraph at 13px is work to read and this HUD already asks enough of the user.
-   Paths are relative to index.html; webpack copies src/assets to dist/assets. */
+/* The HUD face. Three families are loaded and one is chosen by the two variables below, so
+   comparing them is a one-line change rather than a hunt through the stylesheet:
+
+     Origin Tech        the active face. Has real lowercase, so mixed-case names and sentences
+                        set normally. NON-COMMERCIAL licence - see star-gallery/origin-tech/.
+     Sigil Display      drawn for this project, caps only, carries the alchemical marks.
+     Sigil Text         the same alphabet with the marks dropped, for small sizes.
+
+   Paths are relative to index.html; webpack copies src/assets to dist/assets. Keep these in step
+   with js/hud-face.js, which chooses the face for the in-world text. */
+@font-face {
+  font-family: 'Origin Tech';
+  src: url('assets/fonts/OriginTech-Regular.woff2') format('woff2');
+  font-display: swap;
+}
 @font-face {
   font-family: 'Sigil Display';
   src: url('assets/fonts/SigilInscriptional-Regular.woff2') format('woff2');
@@ -41,8 +48,10 @@ const STYLE = `
 }
 
 #hud {
-  --sigil-display: 'Sigil Display', 'Sigil Text', Arial, sans-serif;
-  --sigil-text: 'Sigil Text', Arial, sans-serif;
+  /* The two variables below are the whole swap: point them at a different family and the entire
+     HUD changes face. js/hud-face.js does the same for the in-world text - keep them in step. */
+  --hud-display: 'Origin Tech', Arial, sans-serif;
+  --hud-text: 'Origin Tech', Arial, sans-serif;
   --u: 1vmin;
   --vh: 1vh;
   --accent: #4287f5;
@@ -104,7 +113,7 @@ const STYLE = `
   padding: 0 calc(var(--tap) * 0.4);
   /* The letter-spacing is not decoration: inscriptional capitals were cut with air between them,
      and set solid they close up and stop reading as separate letters. */
-  font: var(--fs-ui)/1.1 var(--sigil-display);
+  font: var(--fs-ui)/1.1 var(--hud-display);
   letter-spacing: 0.06em;
   color: #fff; background: rgba(0, 0, 0, 0.7);
   border: 1px solid var(--accent); border-radius: calc(var(--tap) / 2);
@@ -118,7 +127,7 @@ const STYLE = `
   box-sizing: border-box;
   max-width: min(100%, 26em);
   padding: calc(var(--gap) * 1.3) calc(var(--gutter) * 1.6);
-  font: var(--fs-body)/1.45 var(--sigil-text); letter-spacing: 0.05em; text-align: center;
+  font: var(--fs-body)/1.45 var(--hud-text); letter-spacing: 0.05em; text-align: center;
   color: #fff; background: rgba(0, 0, 0, 0.7);
   border: 1px solid var(--accent); border-radius: calc(var(--tap) / 2.2);
   backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);

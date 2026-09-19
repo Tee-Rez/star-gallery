@@ -34,6 +34,9 @@ AFRAME.registerComponent('hud-element', hudElementComponent)
 import {selectionHudComponent} from './js/selection-hud'
 AFRAME.registerComponent('selection-hud', selectionHudComponent)
 
+import {hudTextStyleComponent} from './js/hud-text-style'
+AFRAME.registerComponent('hud-text-style', hudTextStyleComponent)
+
 // The back control is attached here rather than in the scene markup so it exists for every
 // constellation, and from the first frame rather than only once a portal has been placed.
 window.addEventListener('DOMContentLoaded', () => {

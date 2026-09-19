@@ -1,5 +1,5 @@
 // js/portal-header.js
-import {FONT} from './sigil-font'
+import {FONT, faceText} from './hud-face'
 // The portal's HUD band, laid out to match the Unity build (Portal.prefab -> PortalHUD).
 //
 // Unity draws that HUD on a 4000x800 canvas at 0.001 scale, so its canvas units map 1:1 to
@@ -41,6 +41,16 @@ const U = {
   btnW: 960,
   btnH: 250,
   btnGap: 40,  // Unity stacks buttons 290 apart: 250 tall + 40 of gap
+}
+
+// The carved stone panels each group sits in (star-gallery/temple-panel/build-panel.py). They
+// are modelled at the group sizes above in world units at bandWidth 4 - info 2.1 x 0.9, buttons
+// 1.1 x 0.9 - with a smoked glass pane 4 mm behind the frame face for the text to sit on. The
+// frame stands 60-72 mm proud of the mount plane, so it occludes the glass edge-on exactly as
+// a real slab would. Both reference the same granite textures, fetched once.
+const PANEL = {
+  info: 'assets/models/temple-panel-info.glb',
+  controls: 'assets/models/temple-panel-buttons.glb',
 }
 
 // A rounded rectangle, so HUD panels can carry the same corner radius as the star-info panel.
@@ -90,6 +100,7 @@ const portalHeaderComponent = {
     backgroundColor: {type: 'color', default: '#000000'},
     backgroundOpacity: {type: 'number', default: 0.8},   // panel background rgba(0,0,0,0.8)
     cornerRadius: {type: 'number', default: 0.06},       // panel border-radius 10px
+    stone: {type: 'boolean', default: true},             // carved stone groups; false = flat panels
     buttonFill: {type: 'color', default: '#000000'},
     font: {type: 'string', default: FONT},           // matches the star labels
     z: {type: 'number', default: 0.06},              // Unity's PortalHUD z offset
@@ -131,8 +142,8 @@ const portalHeaderComponent = {
     this.container.setAttribute('position', `0 ${bandY} ${d.z}`)
 
     // Left: the constellation's read-out. Right: the controls.
-    const info = this.makeGroup(-halfBand + inset + (infoW / 2), infoW, groupH)
-    const controls = this.makeGroup(halfBand - inset - (buttonsW / 2), buttonsW, groupH)
+    const info = this.makeGroup(-halfBand + inset + (infoW / 2), infoW, groupH, PANEL.info)
+    const controls = this.makeGroup(halfBand - inset - (buttonsW / 2), buttonsW, groupH, PANEL.controls)
 
     // Inside a deep-sky object the subject of this band is the object, not the constellation.
     this.addLine(info, d.kind ? `${d.kind}: ${d.label}` : `Constellation Name: ${d.label}`, 0, infoW)
@@ -169,10 +180,21 @@ const portalHeaderComponent = {
   },
 
   // A bordered box, positioned along the band and holding its own contents.
-  makeGroup(x, width, height) {
+  makeGroup(x, width, height, model) {
     const group = document.createElement('a-entity')
     group.setAttribute('position', `${x} 0 0`)
-    this.createBorder(group, width / 2, height / 2)
+    if (this.data.stone && model) {
+      // The model is authored for bandWidth 4; any other width scales it with the band.
+      const k = this.data.bandWidth / 4
+      const panel = document.createElement('a-entity')
+      panel.setAttribute('gltf-model', model)
+      panel.setAttribute('scale', `${k} ${k} ${k}`)
+      // Appended first so it draws before the text and buttons that follow it: the renderer
+      // does not sort, and the glass is a blended surface the text has to composite over.
+      group.appendChild(panel)
+    } else {
+      this.createBorder(group, width / 2, height / 2)
+    }
     this.container.appendChild(group)
     return group
   },
@@ -188,10 +210,12 @@ const portalHeaderComponent = {
     const text = document.createElement('a-text')
     text.setAttribute('value', value)
     text.setAttribute('color', this.data.textColor)
-    text.setAttribute('font', this.data.font)
-    // The sigil atlas is not stored inverted the way A-Frame's own Roboto is; left at the
-    // default every glyph renders as its own hole and the band comes up blank.
-    text.setAttribute('negate', 'false')
+    // The face decides the atlas, the shader and negate together - they are not separable.
+    // The atlas filename deliberately avoids the '-msdf.' substring, which means a-text does
+    // NOT force its msdf shader and would otherwise fall back to the single-channel sdf one,
+    // reading our green channel as coverage. faceText sets all three.
+    faceText(text)
+    if (this.data.font !== FONT) text.setAttribute('font', this.data.font)
     text.setAttribute('width', maxWidth)
     // wrapCount sets the glyph size for a given width; ~0.62em average advance per character.
     text.setAttribute('wrap-count', Math.max(8, Math.round(maxWidth / (capHeight * 0.62))))

@@ -1,4 +1,4 @@
-// tap-place-cursor.js - Star-shaped cursor for wall placement
+// tap-place-cursor.js - the reticle for wall placement
 //
 // The cursor entity is a CHILD OF THE CAMERA, parked straight ahead at placementDistance.
 // That is the whole trick: parented to the camera it stays pinned to the centre of the
@@ -33,8 +33,9 @@ const tapPlaceCursorComponent = {
     // placementDistance stays the single source of truth for where this lands.
     this.el.object3D.position.set(0, 0, -this.data.placementDistance)
 
-    // A layered ring around the burst, so the reticle reads as an instrument looking for a
-    // surface rather than a sticker on the screen. Added from here rather than the markup
+    // The reticle is a layered ring and nothing else, so it reads as an instrument looking for
+    // a surface rather than a sticker on the screen. (It used to ring a star-burst image.)
+    // Added from here rather than the markup
     // because the markup exists twice (body.html and the flattened index.html) and the two
     // have to be edited in step; this file is the one that owns the cursor either way.
     //
