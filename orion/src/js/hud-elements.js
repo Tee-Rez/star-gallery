@@ -132,7 +132,15 @@ vec3 partPulse(vec2 p, float r0, float r1, float n, float rate, vec3 col){
     // not take that away along with the movement.
     float ph = uMotion > 0.5 ? fract(uTime * rate + f / max(n, 1.0)) : 0.45;
     float r = mix(r0, r1, ph);
-    float d = abs(L - r);
+    // SIGNED, not abs(): negative inside the front, positive outside it. That sign is the
+    // whole difference between a ring that slides outward and a wave that travels. Built on
+    // abs() the figure is exactly symmetric about its crest, so every frame looks like a ring
+    // that happens to be at a new radius; give it a crisp face and a wake that streams behind
+    // and it reads as one thing moving, which is what says "leaving the object".
+    float sd = L - r;
+    float d = abs(sd);
+    // fillW(x, w) is smoothstep(w, -w, x): 1 well inside the front, 0 well outside it.
+    float behind = fillW(sd, px());
     // In at the start so a wave does not pop into existence, then a linear body with a tail,
     // so it still carries light when it clears the ring stack. A squared falloff was tried
     // first - which is honestly what an expanding shell of fixed energy does - and it put the
@@ -146,7 +154,17 @@ vec3 partPulse(vec2 p, float r0, float r1, float n, float rate, vec3 col){
     // more ring. It also has to survive being drawn small: at the size this orb really is on
     // screen, a 0.010 line is under half a CSS pixel, which is a shimmer and not a shape.
     c += col * strokeW(d, 0.022, px()) * amp;
-    c += col * glow(d, 0.05) * amp * 0.55;
+    // A short bloom AHEAD of the face only. Masked, because glow() is exp(-max(d,0)/r) and so
+    // returns 1 for every point inside the front - unmasked it would flood the whole disc.
+    c += col * glow(d, 0.05) * amp * 0.30 * (1.0 - behind);
+    // ...and the wake, streaming inward behind the face and stretching as the wave travels:
+    // 0.09 deep when it is born, 0.24 by the time it dies. A cubic rather than another exp()
+    // on purpose - it reaches exactly zero at "tail" with zero slope, where an exponential is
+    // still above the black floor MAIN subtracts more than half a radius in, which would light
+    // the whole plane as a glowing disc instead of a wave with a tail.
+    float tail = 0.09 + 0.15 * ph;
+    float k = max(0.0, 1.0 + sd / tail);
+    c += col * k * k * k * amp * 0.34 * behind;
   }
   return c;
 }
