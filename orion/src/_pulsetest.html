@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Deep-sky pulse test</title>
+<!--
+  The affordance wave on the deep-sky rings, on its own.
+
+  8th Wall needs a camera, so the app cannot be loaded headlessly to look at this. This page
+  loads the SAME vendored A-Frame and then IMPORTS js/hud-elements.js itself - not a copy of it,
+  the module the app registers - so the shader under test is the shipped one. If it fails to
+  compile here it fails in the app.
+
+  Left: the detail ring as deep-sky mode draws it, pulsing. Middle: the same ring with the pulse
+  off, for comparison. Right: the select ring, which does not pulse.
+-->
+<script src="../external/scripts/8frame-1.3.0.min.js"></script>
+<style>
+  body { margin:0; background:#07080b; color:#cfc6b4; font:12px ui-monospace, monospace; }
+  a-scene { display:block; height:60vh; }
+  #log { padding:10px 14px; white-space:pre-wrap; line-height:1.6; color:#8d8274; }
+  b { color:#c9a24a; font-weight:500; }
+  .bad { color:#ff8a6a; }
+</style>
+</head>
+<body>
+<a-scene embedded background="color: #07080b" vr-mode-ui="enabled: false"
+         renderer="colorManagement: true">
+  <a-assets></a-assets>
+  <a-camera id="cam" position="0 0 0" look-controls-enabled="false" wasd-controls-enabled="false"></a-camera>
+  <!-- The app's real geometry, not a comfortable one. The orb is built at schema radius
+       0.45, deep-sky-marker draws its ring at 1.15x that, and the display is scaled 0.5 -
+       so its outer radius in the room is 0.2588 m, seen from about 5.7 m. Judging a HUD
+       element at a size the app never draws it is how you ship something invisible. -->
+  <a-entity id="stage" position="0 0 -5.72"></a-entity>
+</a-scene>
+<div id="log">loading...</div>
+
+<script type="module">
+// A DYNAMIC import, because a static one cannot take an expression as its specifier and this
+// needs the cache-buster: a test page that quietly loads yesterday's module and reports it as
+// today's is worse than no test page at all.
+const {hudElementComponent, PARTS, MAIN} = await import('./js/hud-elements.js?t=' + Date.now())
+
+const log = document.getElementById('log')
+const say = t => { log.innerHTML += t + '\n' }
+log.innerHTML = ''
+
+AFRAME.registerComponent('hud-element', hudElementComponent)
+say('<b>imported js/hud-elements.js</b> - the app\'s own module, not a copy')
+say('    PARTS ' + PARTS.length + ' chars, MAIN ' + MAIN.length + ' chars')
+say('    partPulse present: ' + (PARTS.indexOf('vec3 partPulse') >= 0))
+say('    uPulse declared:   ' + (PARTS.indexOf('uniform float uPulse') >= 0))
+say('    MAIN calls it:     ' + (MAIN.indexOf('partPulse(') >= 0))
+
+// A GLSL ES 1.00 reserved-word sweep over the shipped source. "half" and "sample" have both
+// caused a hard compile failure in this file before, and the failure mode is a blank element
+// with one line in the console, which is easy to miss on a phone.
+const RESERVED = ['half', 'sample', 'input', 'output', 'filter', 'asm', 'cast', 'namespace',
+  'using', 'this', 'partition', 'double', 'fixed', 'noinline', 'public', 'static', 'extern',
+  'external', 'interface', 'long', 'short', 'sizeof', 'union', 'unsigned', 'template', 'packed']
+// Strip the comments first. Most of these words are ordinary English and every one of them
+// appears in the prose above the code; sweeping the raw string just reports the comments.
+const src = (PARTS + MAIN).replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
+const hits = RESERVED.filter(w => new RegExp('\\b' + w + '\\b').test(src))
+say('    reserved words:    ' + (hits.length ? '<span class="bad">' + hits.join(', ') + '</span>' : 'none'))
+say('')
+
+const stage = document.getElementById('stage')
+function ring(x, label, attrs) {
+  const wrap = document.createElement('a-entity')
+  wrap.setAttribute('position', x + ' 0 0')
+  const e = document.createElement('a-entity')
+  e.setAttribute('hud-element', attrs)
+  wrap.appendChild(e)
+  const t = document.createElement('a-entity')
+  t.setAttribute('text', {value: label, align: 'center', width: 2.4, color: '#8d8274', wrapCount: 26})
+  t.setAttribute('position', '0 -0.62 0')
+  wrap.appendChild(t)
+  stage.appendChild(wrap)
+  return e
+}
+
+const APP_RADIUS = 0.45 * 1.15 * 0.5     // schema radius -> ring radius -> display scale
+const DETAIL = {preset: 'orrery', radius: APP_RADIUS, color: '#8fd8ff', rate: 1,
+  intensity: 1.8, billboard: false}
+const detail = ring(-0.9, 'detail - pulsing', Object.assign({}, DETAIL, {pulse: 0.45}))
+ring(0.0, 'detail - pulse off', Object.assign({}, DETAIL, {pulse: 0}))
+ring(0.9, 'select - no pulse', {preset: 'idle', radius: 0.45 * 1.15, color: '#8fd8ff',
+  rate: 0.8, intensity: 1.8, billboard: false, pulse: 0})
+
+// In the app 8th Wall starts the scene. Loaded bare in a pane it can sit at hasLoaded false,
+// and even after load()/play() its animation loop may never be installed - so the components
+// are registered and ticking but nothing calls them, which shows up as a half-revealed element
+// frozen in place. drive() is the fallback: the same two calls A-Frame's own loop makes, from
+// our own rAF. It is a harness prop, not a difference in what is being tested - the shader,
+// the uniforms and the component's tick are all the shipped ones.
+function kick() {
+  const sc = document.querySelector('a-scene')
+  if (!sc.hasLoaded) { try { sc.load() } catch (e) { /* already loading */ } }
+  if (!sc.isPlaying) sc.play()
+}
+
+let driving = false
+function drive() {
+  if (driving) return
+  driving = true
+  const sc = document.querySelector('a-scene')
+  let last = 0
+  const frame = (t) => {
+    const dt = last ? t - last : 16
+    last = t
+    sc.tick(t, dt)
+    sc.renderer.render(sc.object3D, sc.camera)
+    requestAnimationFrame(frame)
+  }
+  requestAnimationFrame(frame)
+}
+
+function sceneRendering() {
+  const s = document.querySelector('a-scene')
+  return !!(s.renderer && s.isPlaying && s.renderer.info.render.calls > 0)
+}
+
+// Wait for the scene to actually be RENDERING before measuring anything. A ShaderMaterial has
+// no compiled program until something draws it, and the component's tick has not run either -
+// so measuring early reports "did not compile" and "time did not advance" about a scene that
+// had simply not started.
+for (let i = 0; i < 40; i++) {
+  kick()
+  if (sceneRendering()) break
+  await new Promise(r => setTimeout(r, 100))
+}
+// Rendering is not the same as ticking. If the element's own clock has not moved after a
+// moment, A-Frame's loop is not running and we drive it ourselves.
+const probeMat = () => detail.getObject3D('hud') && detail.getObject3D('hud').material
+let a0 = probeMat() && probeMat().uniforms.uTime.value
+await new Promise(r => setTimeout(r, 400))
+if (!probeMat() || probeMat().uniforms.uTime.value === a0) drive()
+await new Promise(r => setTimeout(r, 1200))
+
+// Did the shader actually compile? A ShaderMaterial that fails leaves the mesh black and logs
+// once - so ask the WebGL program directly rather than trusting the picture.
+const sc = document.querySelector('a-scene')
+const gl = sc.renderer.getContext()
+const mat = detail.getObject3D('hud').material
+const prog = sc.renderer.properties.get(mat).currentProgram
+say('<b>the shader</b>')
+say('    scene rendering: ' + sceneRendering() + ', draw calls ' + sc.renderer.info.render.calls +
+    (driving ? '   (loop driven by the harness)' : ''))
+say('    program built: ' + !!prog +
+    (prog ? '   linked: ' + gl.getProgramParameter(prog.program || prog, gl.LINK_STATUS) : ''))
+say('    uPulse uniform: ' + JSON.stringify(mat.uniforms.uPulse && mat.uniforms.uPulse.value))
+say('    blending additive: ' + (mat.blending === THREE.AdditiveBlending) +
+    '   depthWrite: ' + mat.depthWrite + '   derivatives ext: ' + !!(mat.extensions || {}).derivatives)
+
+// The wave has to MOVE. Sample the element's own clock across a second and check the phase
+// advances - a pulse that is merely bright would pass a screenshot and fail this.
+const u = mat.uniforms
+const t0 = u.uTime.value
+await new Promise(r => setTimeout(r, 1000))
+const t1 = u.uTime.value
+const rate = 0.36   // absolute, see the partPulse call in MAIN
+say('')
+say('<b>the wave</b>')
+say('    uTime advanced ' + (t1 - t0).toFixed(2) + 's in 1s of wall clock')
+say('    period ' + (1 / rate).toFixed(2) + 's, 1 wave in flight -> one crosses every ' +
+    (1 / rate).toFixed(2) + 's')
+say('    travels p-radius 0.30 -> 0.82 (the edge fade starts at 0.80, so it dissolves at the rim)')
+say('    orb outer radius ' + APP_RADIUS.toFixed(4) + ' m at 5.72 m = ' +
+    (2 * Math.atan(APP_RADIUS / 5.72) * 180 / Math.PI).toFixed(2) + ' deg across')
+</script>
+</body>
+</html>

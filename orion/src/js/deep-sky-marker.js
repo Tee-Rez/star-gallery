@@ -32,6 +32,9 @@ const deepSkyMarkerComponent = {
     // the size of a thumbnail, so it gets the quiet one; the detail marker is alone inside the
     // object with room around it, so it gets the full stack.
     preset: {type: 'string', default: ''},
+    // An expanding wave leaving the ring, to say it can be tapped. -1 means "decide from the
+    // role"; a number overrides. See pulseFor().
+    pulse: {type: 'number', default: -1},
   },
 
   init() {
@@ -59,6 +62,26 @@ const deepSkyMarkerComponent = {
     return this.data.role === 'detail' ? 'orrery' : 'idle'
   },
 
+  // Whether this ring sends out the "tap me" wave, unless the caller names a value.
+  //
+  // The detail ring does, because inside an entered object it is the ONLY thing there is to
+  // tap - it sits in the bottom front corner of the portal box looking like part of the frame,
+  // and nothing else on screen says it is a control. The select rings in the constellation view
+  // do not, because there they sit among stars that are all tappable, so a wave singling them
+  // out would say something that is not true. Pass pulse explicitly to override either way.
+  //
+  // A visited object still pulses. The wave means "this can be tapped", which stays true after
+  // a visit; what changes is opacity, and the wave is multiplied by it like every other layer,
+  // so a visited ring's wave dims in step rather than disappearing.
+  pulseFor() {
+    if (this.data.pulse >= 0) return this.data.pulse
+    // 0.45, not 1: at full amplitude the wave outshone every continuous curve in the ring
+    // it is attached to, which inverts the hierarchy - the eye reads the wave as the object
+    // and the object as its background. An invitation should be quieter than the thing it
+    // is inviting you to touch.
+    return this.data.role === 'detail' ? 0.45 : 0
+  },
+
   build() {
     this.dispose()
 
@@ -74,6 +97,7 @@ const deepSkyMarkerComponent = {
       rate: Math.max(this.data.spin, 0.05) / 0.6,   // the old spin, in the element's own terms
       opacity: this.data.visited ? 0.42 : 1,
       intensity: this.data.intensity,
+      pulse: this.pulseFor(),
     })
     this.el.appendChild(this.ring)
 

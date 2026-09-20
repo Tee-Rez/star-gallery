@@ -20,6 +20,12 @@
 // 8frame sets window.THREE; every other component in this app reads it the same way.
 const THREE = window.THREE || AFRAME.THREE
 
+// Read once. A repeating, indefinite, non-essential animation is exactly what WCAG 2.2.2
+// covers, and the pulse is the first thing in this app to honour the preference - everything
+// else here still turns regardless, which is worth fixing separately.
+const REDUCED_MOTION = !!(typeof window !== 'undefined' && window.matchMedia &&
+  window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+
 // ---------------------------------------------------------------------------------------------
 // THE PARTS, as in the lab
 //
@@ -37,6 +43,8 @@ uniform float uReveal;
 uniform float uRate;
 uniform float uValue;
 uniform float uAspect;
+uniform float uPulse;   // amplitude of the affordance wave; 0 is off
+uniform float uMotion;  // 0 when the viewer has asked for reduced motion
 
 const float PI = 3.14159265359;
 const float TAU = 6.28318530718;
@@ -94,6 +102,51 @@ vec3 partRingStack(vec2 p, float r0, float gap, float n, float rate, vec3 col){
     float fade = 1.0 - f * 0.085;
     c += col * strokeW(d, max(0.014 - f * 0.0013, 0.003), px()) * dash * fade;
     c += col * glow(d, 0.02) * dash * 0.35 * fade;
+  }
+  return c;
+}
+// The "you can tap this" wave.
+//
+// A ring whose radius travels r0 -> r1 over one period and fades as it goes, so it reads as one
+// thing moving outward rather than a ring brightening where it stands. That distinction is the
+// whole affordance: an expanding wave is a thing LEAVING the object, which is what makes it an
+// invitation rather than another animated layer.
+//
+// n waves are in flight at once, each launched 1/n of a period after the last. That is what
+// lets the signal be continuous while every individual wave stays faint - a single bright wave
+// would have to pulse hard to be seen, and hard pulsing reads as an alarm.
+//
+// It deliberately uses strokeW and glow rather than stroke/fill: those two take fwidth()
+// internally, and this part is called from inside an if() in MAIN. The branch is on a uniform
+// so every fragment agrees and a derivative would in fact be safe, but keeping the part free of
+// them means it stays safe if it is ever called from somewhere that is not uniform.
+vec3 partPulse(vec2 p, float r0, float r1, float n, float rate, vec3 col){
+  vec3 c = vec3(0.0);
+  float L = length(p);
+  for (int i = 0; i < 4; i++){
+    float f = float(i);
+    if (f >= n) break;
+    // Under prefers-reduced-motion the wave stops travelling and STANDS at mid-travel rather
+    // than disappearing. The motion is the means; the affordance is the point, and this is
+    // the only thing on screen saying the orb is a control - honouring the preference must
+    // not take that away along with the movement.
+    float ph = uMotion > 0.5 ? fract(uTime * rate + f / max(n, 1.0)) : 0.45;
+    float r = mix(r0, r1, ph);
+    float d = abs(L - r);
+    // In at the start so a wave does not pop into existence, then a linear body with a tail,
+    // so it still carries light when it clears the ring stack. A squared falloff was tried
+    // first - which is honestly what an expanding shell of fixed energy does - and it put the
+    // whole visible life of the wave inside the element's own densest annulus, where it read
+    // as a shimmer through the rings rather than as a thing leaving the object.
+    float amp = smoothstep(0.0, 0.08, ph) * (1.0 - ph) * smoothstep(1.0, 0.70, ph);
+    // WIDE and soft, not a hairline. The preset this rides on is built of thin concentric
+    // rings, so a thin one here is camouflage - measured doing exactly that, invisible among
+    // the radial bars. 0.022 is about 1.6x the widest stroke in the ring stack and the 0.05
+    // glow about 2.5x its halo, which makes the wave a different KIND of mark rather than one
+    // more ring. It also has to survive being drawn small: at the size this orb really is on
+    // screen, a 0.010 line is under half a CSS pixel, which is a shimmer and not a shape.
+    c += col * strokeW(d, 0.022, px()) * amp;
+    c += col * glow(d, 0.05) * amp * 0.55;
   }
   return c;
 }
@@ -339,7 +392,34 @@ void main(){
   // channel, anything over 1 burns the cores of the lines out towards white while the falloff
   // around them keeps the accent colour - which is what an emissive line under bloom looks
   // like, without paying for a bloom pass over the camera feed.
-  vec3 c = hud(p) * uOpacity * uGain;
+  vec3 c = hud(p);
+  // The affordance wave rides on top of whatever the preset drew, rather than living inside one
+  // preset body, so any element can carry it by setting one property. It goes in HERE, before
+  // the four lines below, on purpose: that way it obeys the reveal ramp, the opacity, the gain,
+  // the edge fade and the black floor exactly as every other layer does. Added after them it
+  // would keep burning at the plane's corners when the element was meant to be hidden.
+  //
+  // The branch is on a uniform, so every fragment in the draw takes the same side of it and it
+  // costs nothing on elements that do not pulse - which is most of them, and there can be
+  // several on screen at once.
+  if (uPulse > 0.0) {
+    // 0.30 -> 0.82, one wave, 0.36 Hz.
+    //
+    // It starts outside the gyro, because a wave born under the densest part of the element is
+    // invisible until it clears it, and stops just inside the edge fade so it dissolves at the
+    // rim rather than being cut off by it.
+    //
+    // The rate is ABSOLUTE, deliberately not uRate-scaled like every other moving part here.
+    // Period is a human-perception constant, not a look: repeating beacons sit at 0.3-0.5 Hz
+    // (ARKit's coaching loop and ARCore's reticle are 2-3 s; Material's 300 ms ripple is a
+    // RESPONSE to a touch, not an invitation to one), while 1 Hz is the turn-signal band that
+    // reads as "act now". Scaling it by the ring's spin would let a future tweak to how fast
+    // the rings turn silently move the affordance into that band.
+    //
+    // One wave, not two. The gap between waves is what makes each one read as deliberate.
+    c += partPulse(p, 0.30, 0.82, 1.0, 0.36, uAccent) * uPulse * uReveal;
+  }
+  c *= uOpacity * uGain;
   // The plane has edges and a halo does not: exp() falloff is still faintly above zero out at
   // the corners, which draws the plane itself as a glowing rectangle over the camera feed. Fade
   // the whole thing out before it gets there, so the element ends where its light ends.
@@ -355,7 +435,7 @@ void main(){
   gl_FragColor = vec4(c, 1.0);
 }`
 
-function buildMaterial(preset, accent, opacity, rate, gain) {
+function buildMaterial(preset, accent, opacity, rate, gain, pulse) {
   const body = PRESETS[preset] || PRESETS.halo
   return new THREE.ShaderMaterial({
     uniforms: {
@@ -367,6 +447,8 @@ function buildMaterial(preset, accent, opacity, rate, gain) {
       uRate: {value: rate},
       uValue: {value: 0.5},
       uAspect: {value: 1},
+      uPulse: {value: pulse === undefined ? 0 : pulse},
+      uMotion: {value: REDUCED_MOTION ? 0 : 1},
     },
     vertexShader: VERT,
     fragmentShader: PARTS + body + MAIN,
@@ -404,6 +486,9 @@ const hudElementComponent = {
     intensity: {type: 'number', default: 1},       // brightness; above 1 burns the line cores white
     rate: {type: 'number', default: 1},
     value: {type: 'number', default: 0.5},         // whatever the element is showing, 0..1
+    // An expanding wave leaving the element, to say it can be tapped. 0 is off; 1 is the
+    // amplitude tuned against the orrery preset, which is the busiest thing it sits on.
+    pulse: {type: 'number', default: 0},
     billboard: {type: 'boolean', default: true},
     reveal: {type: 'number', default: 0.9},        // seconds for the element to build in
     visible: {type: 'boolean', default: true},
@@ -413,7 +498,8 @@ const hudElementComponent = {
     this.reveal = 0
     this.mesh = new THREE.Mesh(
       new THREE.PlaneGeometry(1, 1),
-      buildMaterial(this.data.preset, this.data.color, this.data.opacity, this.data.rate, this.data.intensity)
+      buildMaterial(this.data.preset, this.data.color, this.data.opacity, this.data.rate,
+                    this.data.intensity, this.data.pulse)
     )
     this.mesh.frustumCulled = false     // the plane is small and billboarded; culling it flickers
     // No renderOrder: A-Frame 1.3 leaves renderer.sortObjects false, so draw order is scene-graph
@@ -433,7 +519,7 @@ const hudElementComponent = {
     const d = this.data
     if (old && old.preset !== d.preset) {
       this.mesh.material.dispose()
-      this.mesh.material = buildMaterial(d.preset, d.color, d.opacity, d.rate, d.intensity)
+      this.mesh.material = buildMaterial(d.preset, d.color, d.opacity, d.rate, d.intensity, d.pulse)
     }
     const u = this.mesh.material.uniforms
     u.uAccent.value.set(d.color)
@@ -441,6 +527,7 @@ const hudElementComponent = {
     u.uGain.value = d.intensity
     u.uRate.value = d.rate
     u.uValue.value = d.value
+    u.uPulse.value = d.pulse
     this.applySize()
   },
 
