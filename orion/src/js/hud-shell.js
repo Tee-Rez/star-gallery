@@ -21,24 +21,33 @@
 // so a small phone never drops below a 44px tap target and a tablet never gets giant pills.
 
 const STYLE = `
-/* The HUD face. Five families are loaded and two are chosen by the variables below, so
+/* The HUD face. Six families are loaded and two are chosen by the variables below, so
    comparing a pairing is a one-line change rather than a hunt through the stylesheet:
 
-     Space Future Bold  the active DISPLAY face - every button (.hud-pill, the tabs and
+     Digital Tech       ON TEST - a single unicase weight, currently driving BOTH roles at
+                        once so it can be judged as one look before any split is decided.
+                        Blocky segmented-display letterforms; lowercase renders identical to
+                        uppercase (confirmed by rendering the glyphs, not just their metrics).
+     Space Future Bold  the previous DISPLAY face - every button (.hud-pill, the tabs and
                         controls inside a card, the close orb) and the hint pill.
-     Space Future Reg   the active TEXT face - star-info and lore panel body copy. Real
+     Space Future Reg   the previous TEXT face - star-info and lore panel body copy. Real
                         lowercase at a genuine x-height (not near-cap like Origin Tech), so
                         mixed-case sentences read as prose rather than small caps.
-     Origin Tech        the previous face, both roles at once. Kept loaded so reverting is a
-                        one-line change. NON-COMMERCIAL licence - see star-gallery/origin-tech/.
+     Origin Tech        the face before that, both roles at once. Kept loaded so reverting is
+                        one line. NON-COMMERCIAL licence - see star-gallery/origin-tech/.
      Sigil Display      drawn for this project, caps only, carries the alchemical marks.
      Sigil Text         the same alphabet with the marks dropped, for small sizes.
 
    Paths are relative to index.html; webpack copies src/assets to dist/assets. js/hud-face.js
    chooses a face for the in-world text SEPARATELY - it still points at Origin Tech, because an
-   in-world face needs its own generated MSDF atlas (see star-gallery/sigil-font/), which these
-   two do not have yet. Until that exists, the in-world "3D View" / "Lore" buttons will read in
-   Origin Tech while the matching on-screen pills read in Space Future Bold. */
+   in-world face needs its own generated MSDF atlas (see star-gallery/sigil-font/), which none
+   of Digital Tech / Space Future have yet. Until that exists, the in-world "3D View" / "Lore"
+   buttons stay in Origin Tech regardless of what is on test here. */
+@font-face {
+  font-family: 'Digital Tech';
+  src: url('assets/fonts/DigitalTech-Regular.woff2') format('woff2');
+  font-display: swap;
+}
 @font-face {
   font-family: 'Space Future Bold';
   src: url('assets/fonts/SpaceFuture-Bold.woff2') format('woff2');
@@ -68,9 +77,10 @@ const STYLE = `
 #hud {
   /* The two variables below are the whole swap: point them at a different family and every
      button or every panel changes face in one edit, without a hunt through the stylesheet.
-     They do not have to match each other - buttons and reading text are different jobs. */
-  --hud-display: 'Space Future Bold', Arial, sans-serif;
-  --hud-text: 'Space Future Regular', Arial, sans-serif;
+     They do not have to match each other - buttons and reading text are different jobs.
+     Both point at Digital Tech right now, on test - see the comment above. */
+  --hud-display: 'Digital Tech', Arial, sans-serif;
+  --hud-text: 'Digital Tech', Arial, sans-serif;
   --u: 1vmin;
   --vh: 1vh;
   --accent: #4287f5;
