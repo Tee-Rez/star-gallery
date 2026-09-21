@@ -57,9 +57,16 @@ const deepSkyMarkerComponent = {
   },
 
   // Which element each role draws, unless the caller names one.
+  //
+  // Both roles draw the same 'gyro' (the HUD lab's "Gyroscope rings") - they used to differ,
+  // the detail ring getting the fuller 'orrery' stack and the select ring the quieter 'idle',
+  // on the theory that a marker among a field of stars needs to read at thumbnail size while
+  // the detail ring has a whole object's worth of empty space around it. That distinction is
+  // gone now by request; what still tells the two apart is size (radius differs per role,
+  // see build() below) and the pulse (pulseFor() - detail only).
   presetFor() {
     if (this.data.preset) return this.data.preset
-    return this.data.role === 'detail' ? 'orrery' : 'idle'
+    return 'gyro'
   },
 
   // Whether this ring sends out the "tap me" wave, unless the caller names a value.

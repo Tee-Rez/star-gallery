@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Reticle stack / Gyroscope rings test</title>
+<!--
+  The two new hud-element presets, on their own: 'reticle' (tap-place-cursor.js) and 'gyro'
+  (deep-sky-marker.js, both roles). Imports js/hud-elements.js live - not a copy - so a shader
+  that fails to compile here fails in the app, and a preset that renders here is the shipped one.
+
+  Left: the reticle, next to a copy of the OLD idle preset for comparison, and a copy of the
+  lab's own reticle-stack WITH its loading bar, so the removal is a visible diff rather than a
+  claim.
+
+  Right: the gyro preset at three different radii, each with a thin white wireframe circle
+  drawn at exactly that radius - "the size should match the sphere it's contained in" is a
+  claim about the OUTER constant, and the only way to check that honestly is to put a ruler
+  next to it and look, not to trust the arithmetic.
+-->
+<script src="../external/scripts/8frame-1.3.0.min.js"></script>
+<style>
+  body { margin:0; background:#07080b; color:#cfc6b4; font:12px ui-monospace, monospace; }
+  a-scene { display:block; height:60vh; }
+  #log { padding:10px 14px; white-space:pre-wrap; line-height:1.6; color:#8d8274; }
+  b { color:#c9a24a; font-weight:500; }
+  .bad { color:#ff8a6a; }
+  .ok { color:#7ee787; }
+</style>
+</head>
+<body>
+<a-scene embedded background="color: #07080b" vr-mode-ui="enabled: false"
+         renderer="colorManagement: true">
+  <a-assets></a-assets>
+  <a-camera id="cam" position="0 0 0" look-controls-enabled="false" wasd-controls-enabled="false"></a-camera>
+  <a-entity id="stage" position="0 0 -2.6"></a-entity>
+</a-scene>
+<div id="log">loading...</div>
+
+<script type="module">
+const {hudElementComponent, PARTS, PRESETS, MAIN} =
+  await import('./js/hud-elements.js?t=' + Date.now())
+
+const log = document.getElementById('log')
+const say = t => { log.innerHTML += t + '\n' }
+log.innerHTML = ''
+
+AFRAME.registerComponent('hud-element', hudElementComponent)
+say('<b>imported js/hud-elements.js live</b>')
+say('    presets available: ' + Object.keys(PRESETS).join(', '))
+say('    reticle registered: ' + ('reticle' in PRESETS) + '   gyro registered: ' + ('gyro' in PRESETS))
+say('')
+
+// A GLSL ES 1.00 reserved-word sweep, same list and same comment-stripping as _pulsetest.html -
+// this file has broken this exact way once before (a stray backtick in a comment), so it is
+// checked again rather than assumed fixed just because it compiled once.
+const RESERVED = ['half', 'sample', 'input', 'output', 'filter', 'asm', 'cast', 'namespace',
+  'using', 'this', 'partition', 'double', 'fixed', 'noinline', 'public', 'static', 'extern',
+  'external', 'interface', 'long', 'short', 'sizeof', 'union', 'unsigned', 'template', 'packed']
+const stripped = (PARTS + MAIN + Object.values(PRESETS).join('\n'))
+  .replace(/\/\/[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '')
+const hits = RESERVED.filter(w => new RegExp('\\b' + w + '\\b').test(stripped))
+say('reserved words: ' + (hits.length ? '<span class="bad">' + hits.join(', ') + '</span>' : 'none'))
+say('')
+
+const stage = document.getElementById('stage')
+
+function ring(x, y, label, attrs) {
+  const wrap = document.createElement('a-entity')
+  wrap.setAttribute('position', x + ' ' + y + ' 0')
+  const e = document.createElement('a-entity')
+  e.setAttribute('hud-element', attrs)
+  wrap.appendChild(e)
+  const t = document.createElement('a-entity')
+  t.setAttribute('text', {value: label, align: 'center', width: 3, color: '#8d8274', wrapCount: 40})
+  t.setAttribute('position', '0 ' + (-(attrs.radius || attrs.size || 0.5) - 0.28) + ' 0')
+  wrap.appendChild(t)
+  stage.appendChild(wrap)
+  return e
+}
+
+// A plain wireframe circle at an exact WORLD radius, to check hud-element's own radius against.
+function refCircle(parent, r) {
+  const pts = []
+  for (let i = 0; i <= 64; i++) {
+    const a = (i / 64) * Math.PI * 2
+    pts.push(new THREE.Vector3(Math.cos(a) * r, Math.sin(a) * r, 0.001))
+  }
+  const geo = new THREE.BufferGeometry().setFromPoints(pts)
+  const mat = new THREE.LineBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.55})
+  const line = new THREE.Line(geo, mat)
+  parent.object3D.add(line)
+  return line
+}
+
+// ---- left column: the reticle, and what it replaces ----
+const oldIdle = ring(-1.55, 0.75, 'old: idle', {preset: 'idle', radius: 0.42, color: '#8fd8ff', rate: 0.8, billboard: false})
+const newReticle = ring(-1.55, -0.35, "new: reticle (no loading bar)",
+  {preset: 'reticle', radius: 0.42, color: '#8fd8ff', rate: 0.8, billboard: false})
+
+// ---- right column: gyro at three radii, each against its own reference circle ----
+const radii = [0.253, 0.5175, 0.9]   // real select (0.22*1.15), real detail (0.45*1.15), and a stress size
+// Spaced by each pair's own radius sum plus margin - fixed 1.05 spacing let the r=0.9 circle
+// visually overlap the r=0.5175 one next to it, which was contaminating that element's own
+// radial scan with its neighbour's brightness (a test-layout bug, not a preset bug: the two
+// non-overlapping elements measured consistently, the overlapping one alone read as p=1.000).
+let cursor = 0.4
+const centers = radii.map((r, i) => {
+  if (i > 0) cursor += radii[i - 1] + r + 0.35
+  return cursor
+})
+const gyroEls = radii.map((r, i) => {
+  const wrap = document.createElement('a-entity')
+  wrap.setAttribute('position', centers[i] + ' 0.9 0')
+  const e = document.createElement('a-entity')
+  e.setAttribute('hud-element', {preset: 'gyro', radius: r, color: '#8fd8ff', rate: 1, billboard: false})
+  wrap.appendChild(e)
+  refCircle(wrap, r)
+  const t = document.createElement('a-entity')
+  t.setAttribute('text', {value: 'gyro r=' + r, align: 'center', width: 3, color: '#8d8274', wrapCount: 20})
+  t.setAttribute('position', '0 ' + (-r - 0.3) + ' 0')
+  wrap.appendChild(t)
+  stage.appendChild(wrap)
+  return e
+})
+
+function kick() {
+  const sc = document.querySelector('a-scene')
+  if (!sc.hasLoaded) { try { sc.load() } catch (e) { /* already loading */ } }
+  if (!sc.isPlaying) sc.play()
+}
+function sceneRendering() {
+  const s = document.querySelector('a-scene')
+  return !!(s.renderer && s.isPlaying && s.renderer.info.render.calls > 0)
+}
+for (let i = 0; i < 40; i++) {
+  kick()
+  if (sceneRendering()) break
+  await new Promise(r => setTimeout(r, 100))
+}
+await new Promise(r => setTimeout(r, 600))
+
+const sc = document.querySelector('a-scene')
+const gl = sc.renderer.getContext()
+
+function shaderOk(el) {
+  const mesh = el.getObject3D('hud')
+  mesh.material.uniforms.uReveal.value = 1
+  sc.renderer.render(sc.object3D, sc.camera)   // a program has no WebGL handle until something draws it
+  const prog = sc.renderer.properties.get(mesh.material).currentProgram
+  return !!prog && gl.getProgramParameter(prog.program, gl.LINK_STATUS)
+}
+
+say('<b>compile check</b>')
+say('    reticle linked: ' + (shaderOk(newReticle) ? '<span class="ok">yes</span>' : '<span class="bad">NO</span>'));
+say('    gyro    linked: ' + (shaderOk(gyroEls[0]) ? '<span class="ok">yes</span>' : '<span class="bad">NO</span>'));
+say('')
+
+// ---- does the reticle actually still draw the loading bar? ----
+// px, py are in the SHADER's own p-space (-1..1, aspect-corrected) - not local mesh units and
+// not world units. MAIN computes p as (vUv - 0.5) * 2 * vec2(aspect, 1), and a unit
+// PlaneGeometry's own vUv 0..1 maps to local geometry -0.5..0.5 - so converting p back to the
+// plane's UNSCALED local space is (p.x / (2*aspect), p.y / 2, 0). mesh.matrixWorld then supplies
+// the scale (and the entity's position/rotation) in one multiply. Applying it to an
+// ALREADY-scaled point - an earlier version of this function did that - scales it twice and
+// samples nowhere near the intended spot; that bug, not the shader, produced the first nonsense
+// readings here. uTime is also pinned to a caller-given value: the inner ring's own radius
+// breathes (0.35 to 0.362), so a single fixed sample point can land just outside the stroke
+// purely because of which instant it happened to render at.
+function sampleAt(el, px, py, t) {
+  const mesh = el.getObject3D('hud')
+  const mat = mesh.material
+  const aspect = mat.uniforms.uAspect.value || 1
+  mat.uniforms.uReveal.value = 1
+  if (t !== undefined) mat.uniforms.uTime.value = t
+  sc.renderer.render(sc.object3D, sc.camera)
+  const local = new THREE.Vector3(px / (2 * aspect), py / 2, 0)
+  const v = local.applyMatrix4(mesh.matrixWorld).project(sc.camera)
+  const W = sc.canvas.width, H = sc.canvas.height
+  const sx = Math.round((v.x * 0.5 + 0.5) * W), sy = Math.round((0.5 - v.y * 0.5) * H)
+  const buf = new Uint8Array(4)
+  gl.readPixels(sx, H - sy, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, buf)
+  return buf[0] + buf[1] + buf[2]
+}
+// Sampled across several frozen instants rather than once, so the ring's own breathing cannot
+// produce a false "gone" (or a false "still there") depending on which phase it rendered at.
+const sampleTimes = [0, 0.5, 1.0, 1.5, 2.0, 2.5]
+const barBrightness = Math.max(...sampleTimes.map(t => sampleAt(newReticle, 0, -0.74, t)))
+const centreBrightness = Math.max(...sampleTimes.map(t => sampleAt(newReticle, 0, 0.35, t)))
+const background = sampleAt(newReticle, 0.999, 0.999, 0)   // corner of the plane, empty in every preset
+say('<b>the loading bar</b> (background reads ' + background + ' for comparison)')
+say('    brightness where the lab\'s bar used to sit, worst case across 6 phases: ' + barBrightness +
+    (barBrightness <= background + 5 ? '   <span class="ok">gone</span>' : '   <span class="bad">STILL THERE</span>'))
+say('    brightness on the ring itself, worst case: ' + centreBrightness +
+    (centreBrightness > background + 100 ? '   <span class="ok">present, strong contrast</span>' : '   <span class="bad">too faint - check the ring</span>'))
+say('')
+
+// A real measurement, not the formula fed back on itself: applySize() derives plane scale
+// FROM the 0.72 constant, so reading scale back and multiplying by 0.72 again would only prove
+// the arithmetic is consistent with itself, not that 0.72 is the right number. Instead this
+// scans actual rendered brightness outward in p-space (the shader's own -1..1 coordinate) and
+// finds where the tick ring really stops, independent of what OUTER claims.
+function radialScan(el, steps, t) {
+  const out = []
+  for (let i = 0; i <= steps; i++) {
+    const p = i / steps    // p.x from 0 to 1, along the horizontal through centre
+    out.push([p, sampleAt(el, p, 0, t)])
+  }
+  return out
+}
+// Exposed for interactive debugging from outside the module (devtools / an external driver
+// cannot see module-scoped consts otherwise).
+window.__test = {newReticle, gyroEls, oldIdle, sampleAt, radialScan, sc, gl}
+
+// Two bugs lived in this check before it looked like this, both in the TEST rather than the
+// shader. (1) 120 steps (~0.0083 apart) is coarser than the tick ring's own line width, so a
+// scan could step clean over it without ever sampling inside it - fixed by scanning far finer
+// (500 steps, ~0.002 apart). (2) the three demo elements were originally spaced close enough
+// that the largest one's glow bled into a smaller neighbour's scan line - fixed by the layout
+// above, which spaces each pair by their own radius sum. A background-relative threshold
+// (signal has to clear the empty-plane reading by a real margin, not an assumed absolute
+// floor) is what finally made all three measurements land within a percent of each other.
+const bg = sampleAt(gyroEls[0], 0.999, 0.999, 0)
+const OUTER_GYRO = 0.74
+say('<b>gyro sizing</b> - real brightness scan along p.x (background reads ' + bg + ')')
+for (let i = 0; i < radii.length; i++) {
+  const scan = radialScan(gyroEls[i], 500, 1.0)
+  let lastLit = 0
+  scan.forEach(([p, b]) => { if (b > bg + 15) lastLit = p })
+  const diff = Math.abs(lastLit - OUTER_GYRO)
+  say('    r=' + radii[i] + '   measured outer edge at p=' + lastLit.toFixed(3) +
+      '   OUTER=' + OUTER_GYRO +
+      (diff < 0.03 ? '   <span class="ok">MATCH</span>' : '   <span class="bad">OFF by ' + diff.toFixed(3) + '</span>'))
+}
+</script>
+</body>
+</html>

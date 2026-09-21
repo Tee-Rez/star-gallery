@@ -39,11 +39,16 @@ const tapPlaceCursorComponent = {
     // because the markup exists twice (body.html and the flattened index.html) and the two
     // have to be edited in step; this file is the one that owns the cursor either way.
     //
+    // 'reticle' is the HUD lab's "Reticle stack" - brackets, a dashed ring and compass ticks
+    // built for exactly this job (fixed at the centre of the screen, aiming rather than
+    // marking an object). Its own bottom loading bar is left out at the source: a placement
+    // cursor is waiting for a tap, not loading anything.
+    //
     // billboard: false - the cursor is a child of the camera, so it already faces the user and
     // the billboard maths would resolve to identity every frame for nothing.
     this.hud = document.createElement('a-entity')
     this.hud.setAttribute('hud-element', {
-      preset: 'idle',
+      preset: 'reticle',
       radius: 0.5,
       color: '#8fd8ff',
       opacity: 0.85,

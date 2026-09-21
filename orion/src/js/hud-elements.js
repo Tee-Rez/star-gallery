@@ -384,13 +384,79 @@ vec3 hud(vec2 p){
   c += partOrbit(p, 0.2, 2.0, uRate * 0.6, uAccent) * 0.8 * smoothstep(0.4, 1.0, k);
   return c;
 }`,
+
+  // Ported from the HUD lab's "Reticle stack" (star-gallery/hud-lab/index.html, id
+  // 'reticle-stack'). For the wall-placement cursor: brackets, a dashed ring, compass ticks
+  // fixed at the centre of the screen. The lab's own bottom loading bar is left out on
+  // purpose - it read as "something is loading" for a reticle that is just waiting for a tap,
+  // which is not what placing a portal is.
+  //
+  // The lab writes it as one plain frag body rather than parts calls, so it is ported the same
+  // way apart from two substitutions: fill()/stroke() (fwidth-based, tuned for the lab's own
+  // pixel scale) become fillW()/strokeW() against px() - the substitution this file's header
+  // already calls out as the one line that has to differ - and the lab's own P_ring/P_rate
+  // sliders become a literal 0.35 and this element's shared uRate, since presets in the app
+  // are fixed looks with the shared schema as their only runtime knobs.
+  reticle: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float k = uReveal;
+  float breathe = 0.5 + 0.5 * sin(uTime * 1.6 * uRate);
+  c += uAccent * strokeW(sdRing(p, 0.35 + breathe * 0.012), 0.006, px())
+       * dashes(p * rot(-uTime * 0.5), 3.0, 0.45) * k;
+  c += uAccent * strokeW(sdRing(p, 0.35 * 1.53), 0.003, px())
+       * dashes(p * rot(uTime * 0.9), 24.0, 0.5) * 0.65 * smoothstep(0.2, 0.7, k);
+  for (int i = 0; i < 4; i++){
+    float a = float(i) * PI * 0.5 + PI * 0.25;
+    vec2 dir = vec2(cos(a), sin(a));
+    c += uAccent * fillW(sdSeg(p, dir * 0.54, dir * 0.64) - 0.004, px()) * 0.9 * smoothstep(0.35, 0.85, k);
+  }
+  c += vec3(1.0) * glow(length(p) - 0.005, 0.014) * 0.9 * k;
+  float ch = min(sdSeg(p, vec2(0.08, 0.0), vec2(0.18, 0.0)), sdSeg(p, vec2(-0.18, 0.0), vec2(-0.08, 0.0)));
+  ch = min(ch, min(sdSeg(p, vec2(0.0, 0.08), vec2(0.0, 0.18)), sdSeg(p, vec2(0.0, -0.18), vec2(0.0, -0.08))));
+  c += uAccent * fillW(ch - 0.004, px()) * smoothstep(0.5, 1.0, k);
+  return c;
+}`,
+
+  // Ported from the HUD lab's "Gyroscope rings" (id 'gyro-rings') - already just three named
+  // parts, so this is pure composition, nothing rewritten. For the deep-sky object, in both of
+  // the roles deep-sky-marker.js draws: the marker among the constellation's stars and the
+  // selectable orb inside the object once entered. One look for both, per the request that
+  // replaced the old orrery/idle split.
+  //
+  // 3 rings and a rate of 1.75 were the lab's own numbers for this look and are baked in the
+  // same way every other preset bakes its chosen proportions; uRate carries the element's own
+  // rate knob on top of that 1.75, the same way orrery scales its parts by uRate * 0.7 etc.
+  gyro: `
+vec3 hud(vec2 p){
+  vec3 c = vec3(0.0);
+  float k = uReveal;
+  c += partHalo(p, 0.6 * 0.95, 0.1, uAccent) * 0.3 * k;
+  c += partGyro(p, 0.6, 3.0, uRate * 1.75, uAccent) * smoothstep(0.15, 0.7, k);
+  c += partTickRing(p, 0.6 * 1.2, 72.0, 6.0, 0.05, uAccent) * 0.5 * smoothstep(0.4, 1.0, k);
+  c += mix(uAccent, vec3(1.0), 0.6) * glow(length(p) - 0.014, 0.06) * 0.85 * k;
+  return c;
+}`,
 }
 
 // How far out each preset's outermost mark reaches, as a fraction of the plane's half-height.
 // A call site wants to say "fit this to the marker", not "work out the plane size" - so it gives
 // a radius and this turns it into one. Change a preset's outermost ring and change its number
 // here, or every element built from it quietly grows.
-const OUTER = {orrery: 0.99, halo: 0.68, target: 0.85, scan: 0.72, idle: 0.54}
+const OUTER = {
+  orrery: 0.99, halo: 0.68, target: 0.85, scan: 0.72, idle: 0.54,
+  // The brackets are the outermost mark, at radius 0.64 along the four diagonals - the ring
+  // (0.35 * 1.53 = 0.5355) and the crosshair ticks (0.18) both sit inside that.
+  reticle: 0.64,
+  // The tick ring is the analytic outer mark, at 0.6 * 1.2 = 0.72 (partGyro's own rings never
+  // exceed 0.6 - each ring is squashed into an ellipse whose semi-major axis is its own radius,
+  // so the widest one, i=0, reaches exactly 0.6 and no more, however hard it squashes). But a
+  // rendered radial scan (src/_presettest.html) measured the real edge at 0.734-0.748 across
+  // three different sizes - the antialiasing and glow around the tick ring's own line extend
+  // a few percent past the geometric radius, and 0.72 was accordingly undersizing the element
+  // relative to the sphere it is meant to match. Set from that measurement, not the formula.
+  gyro: 0.74,
+}
 
 const VERT = `
 varying vec2 vUv;
