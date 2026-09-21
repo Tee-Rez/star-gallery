@@ -42,9 +42,27 @@ const FACES = {
     unicase: true,
     tracking: '0.06em',
   },
+  // Alien Cybernetics - matches the on-screen HUD's current test (hud-shell.js --hud-display /
+  // --hud-text). Atlas built with concepts/msdf-atlas (the same 81-char set as Origin Tech's,
+  // measured against the real portal readout text first - "#", ":" and "/" all appear in
+  // "# of Stars Explored: 5 / 7" and are easy to leave out of a charset by only thinking of
+  // letters). Unicase like Origin Tech, confirmed by rendering the glyphs rather than trusting
+  // the metrics table.
+  alien: {
+    atlas: 'assets/fonts/aliencyber-atlas.json',
+    family: "'Alien Cybernetics'",
+    shader: 'msdf',
+    negate: false,
+    // Wider than Origin Tech even on screen (hud-shell.js's own comment: "Back to the
+    // constellation" already runs 336 of 375px there), so it gets the least tracking of the
+    // three faces rather than inheriting Origin Tech's 1.5.
+    letterSpacing: 0.8,
+    unicase: true,
+    tracking: '0.01em',
+  },
 }
 
-const ACTIVE = 'origin'
+const ACTIVE = 'alien'
 const FACE = FACES[ACTIVE]
 const FONT = FACE.atlas
 

@@ -41,7 +41,28 @@ log.innerHTML = ''
 const s = 4 / 4000
 const BTN_W = 960 * s      // 0.96
 const BTN_H = 250 * s      // 0.25
-const ATLAS = 'assets/fonts/origintech-atlas.json'
+
+// The ACTIVE face, imported live rather than hardcoded - this file used to pin
+// 'assets/fonts/origintech-atlas.json' directly, which meant it kept testing Origin Tech long
+// after hud-face.js moved on and would have reported a pass against the wrong font.
+//
+// hud-face.js does `import './hud-text-shader'` with no extension, which webpack resolves at
+// bundle time but a raw browser import 404s on - confirmed via the network log, not guessed. A
+// relative import ALSO can't be patched-and-blobbed the way portal-header.js's PILL constant
+// is string-lifted elsewhere in this file: a module loaded from a blob: URL resolves its own
+// relative imports against that blob URL, not against js/, so './hud-text-shader.js' would 404
+// a second time from inside the blob. So hud-text-shader.js (no imports of its own) is run
+// first, for its side effect of registering the shader; then hud-face.js is fetched, that now-
+// redundant import line is dropped, and the rest still runs as the live file.
+async function blobImport(src) {
+  const url = URL.createObjectURL(new Blob([src], {type: 'text/javascript'}))
+  try { return await import(/* webpackIgnore: true */ url) } finally { URL.revokeObjectURL(url) }
+}
+await blobImport(await fetch('js/hud-text-shader.js?t=' + Date.now(), {cache: 'no-store'}).then(r => r.text()))
+const hudFaceSrc = (await fetch('js/hud-face.js?t=' + Date.now(), {cache: 'no-store'}).then(r => r.text()))
+  .replace(/^import '\.\/hud-text-shader'\n/m, '')
+const {FACE, faceText, faceProps} = await blobImport(hudFaceSrc)
+const ATLAS = FACE.atlas
 
 // ---- the sliced pill geometry, LIFTED from the app rather than copied ----
 // js/portal-header.js is an ES module, but the PILL constant and the registerGeometry call
@@ -116,11 +137,10 @@ function pillButton(x, y, value) {
   face.setAttribute('position', '0 0 -0.002')
   b.appendChild(face)
 
-  b.setAttribute('text', {
+  b.setAttribute('text', faceProps({
     value, align: 'center', color: '#2b2318',
     width: BTN_W * LABEL.widthFactor, wrapCount: LABEL.wrapCount,
-    font: ATLAS, shader: 'msdf', negate: false, letterSpacing: 1.5,
-  })
+  }))
   return b
 }
 
@@ -136,6 +156,20 @@ right.setAttribute('position', '0.75 0 0')
 right.appendChild(pillButton(0, 0.17, '3D View'))
 right.appendChild(pillButton(0, -0.17, 'Lore'))
 stage.appendChild(right)
+
+// The OTHER real in-world text path: the portal's info readout uses an <a-text> PRIMITIVE and
+// faceText(), not the text-component + faceProps() the buttons need. Different code path, same
+// atlas - and it carries the exact characters ('#', ':', '/') the charset had to be checked for
+// rather than assumed, since only thinking in letters is how a charset quietly ends up missing
+// the punctuation real copy actually uses.
+const readout = document.createElement('a-text')
+readout.setAttribute('value', '# of Stars Explored: 5 / 7')
+readout.setAttribute('color', '#ffffff')
+readout.setAttribute('width', '3')
+readout.setAttribute('align', 'left')
+faceText(readout)
+readout.setAttribute('position', '-1.6 -0.7 0')
+stage.appendChild(readout)
 
 // ---- what the app does today, measured rather than assumed ----
 // In the app 8th Wall starts the scene. Loaded bare in a pane it can sit at hasLoaded false
@@ -218,6 +252,25 @@ await (async () => {
   say('    type          = ' + mat.type)
   say('')
   say('    renderer.sortObjects = ' + document.querySelector('a-scene').renderer.sortObjects)
+
+  say('')
+  say('<b>the portal readout line</b> (faceText on an &lt;a-text&gt; primitive, not faceProps)')
+  say('    text  = "' + readout.getAttribute('value') + '"')
+  say('    font  = ' + readout.components.text.data.font)
+  const rt = readout.getObject3D('text')
+  if (rt && rt.geometry) {
+    rt.geometry.computeBoundingBox()
+    const b = rt.geometry.boundingBox
+    const w = b.max.x - b.min.x
+    // A degenerate (near-zero) width means the atlas silently dropped every character - the
+    // exact failure mode a charset missing '#' or ':' would produce, with nothing logged.
+    say('    rendered width = ' + w.toFixed(3) + (w > 0.5 ? '   drew something' : '   <b>EMPTY - check the charset</b>'))
+  }
+
+  const {FACES} = await import('./js/hud-face.js?t=' + Date.now())
+  const activeName = Object.keys(FACES).find(k => FACES[k].atlas === FACE.atlas) || '?'
+  say('')
+  say('<b>active face</b>: ' + activeName + '   (atlas ' + FACE.atlas + ')')
 })()
 </script>
 </body>
