@@ -2,3 +2,8 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Reference HUD footage: licensed previews, tens of MB each, never for the public site
+hud-lab/*.mp4
+hud-lab/*.mov
+hud-lab/reference/
