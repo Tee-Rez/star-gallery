@@ -1410,7 +1410,7 @@ const constellationLoaderComponent = {
               "roll": -34,
               "viewScale": 1.4,
               "seed": 39,
-              "steps": 8,
+              "steps": 3,
               "density": 11,
               "absorb": 4,
               "emission": 6.2,
