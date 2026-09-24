@@ -199,7 +199,7 @@ const SURFACE_FRAG = `
   precision highp float;
   ${NOISE}
   uniform vec3 uCore, uLimb, uSpot;
-  uniform float uLimbDark, uBright, uTime, uScale, uChurn, uSurface, uSpots;
+  uniform float uLimbDark, uBright, uTime, uScale, uChurn, uSurface, uSpots, uSpin, uWarp;
   varying vec3 vN;
   varying vec3 vV;
   varying vec3 vLocal;
@@ -208,15 +208,38 @@ const SURFACE_FRAG = `
     float ld = 1.0 - uLimbDark * (1.0 - mu);
     vec3 dir = normalize(vLocal);
 
-    // Granulation: convection cells, bright in the middle with darker lanes between them.
-    // smoothstep is what turns smooth fbm into cells with lanes - without it the surface reads
-    // as haze rather than as a boiling fluid.
-    float gran = fbm(dir * uScale + vec3(0.0, uTime * uChurn, 0.0), 4);
+    // Differential rotation: the equator comes round faster than the poles, as it does on a
+    // fluid body that is not rigid. On its own this is the single clearest sign the surface is
+    // a moving fluid rather than a texture pinned to a ball.
+    float lat = dir.y;
+    float omega = uSpin * (1.0 - 0.35 * lat * lat);
+    float ca = cos(uTime * omega), sa = sin(uTime * omega);
+    vec3 d = vec3(dir.x * ca - dir.z * sa, dir.y, dir.x * sa + dir.z * ca);
+
+    // Domain warp - the sample point is pushed around by a slow field before the noise is read,
+    // so the pattern SWIRLS. Sines rather than another fbm: three of them cost a fraction of
+    // three more noise lookups and the eye cannot tell which produced the churn.
+    vec3 w = vec3(
+      sin(d.y * 3.1 + uTime * 0.21),
+      sin(d.z * 2.7 + uTime * 0.17),
+      sin(d.x * 3.4 + uTime * 0.19));
+    vec3 q = d * uScale + w * uWarp;
+
+    // Two layers drifting opposite ways. One sheet of noise translating in a single direction
+    // reads as the surface SLIDING past; two in opposition interfere, so cells swell and
+    // dissolve where they are - which is what boiling looks like.
+    float gA = fbm(q + vec3(0.0, uTime * uChurn, 0.0), 3);
+    float gB = fbm(q * 1.73 - vec3(0.0, uTime * uChurn * 0.77, 0.0), 3);
+    float gran = gA * 0.6 + gB * 0.4;
+
+    // smoothstep is what turns smooth fbm into cells with lanes between them - without it the
+    // surface reads as haze rather than as a fluid.
     float cells = smoothstep(0.34, 0.72, gran);
 
-    // A second, much coarser layer. Real granulation has supergranules an order of magnitude
-    // wider than granules, and the dark end of that layer is where spots belong.
-    float sg = fbm(dir * uScale * 0.26 + 11.0, 3);
+    // A much coarser layer, carried round by the same rotation. Real granulation has
+    // supergranules an order of magnitude wider than granules, and the dark end of that layer
+    // is where spots belong.
+    float sg = fbm(d * uScale * 0.26 + 11.0, 3);
     float spot = smoothstep(0.60, 0.32, sg);
 
     // Contrast falls toward the limb: near the edge you are looking along the cells rather
@@ -367,6 +390,8 @@ const starVisualComponent = {
     surfaceScale: {type: 'number', default: 11},   // granule frequency
     churn: {type: 'number', default: 0.05},        // convection drift rate
     spots: {type: 'number', default: 0.35},        // how dark the supergranule minima go
+    spin: {type: 'number', default: 0.055},        // differential rotation, radians/sec at the equator
+    warp: {type: 'number', default: 1.1},          // how hard the swirl pushes the sample point
     prominence: {type: 'number', default: 0},      // corona + spicule fringe, 0 skips the layer
     coronaScale: {type: 'number', default: 2.3},   // corona quad width, in body radii
     arcs: {type: 'number', default: 0},            // prominence loops as geometry, 0 skips them
@@ -428,6 +453,8 @@ const starVisualComponent = {
       bodyUniforms.uChurn = {value: d.churn}
       bodyUniforms.uSurface = {value: d.surface}
       bodyUniforms.uSpots = {value: d.spots}
+      bodyUniforms.uSpin = {value: d.spin}
+      bodyUniforms.uWarp = {value: d.warp}
     }
     const bodyMat = new THREE.ShaderMaterial({
       uniforms: bodyUniforms,
@@ -454,9 +481,9 @@ const starVisualComponent = {
         // which is the whole reason to have drawn a surface at all.
         uCoreK: {value: lit ? 9 : 46},
         uHaloK: {value: lit ? 13.0 : 6.2},
-        uHaloAmt: {value: lit ? 0.5 : 0.55},
+        uHaloAmt: {value: lit ? 0.5 : 0.34},
         uInner: {value: lit ? 1 / d.haloScale : 0},
-        uBright: {value: (lit ? 0.95 : 1.35) * flux * d.intensity},
+        uBright: {value: (lit ? 0.95 : 0.62) * flux * d.intensity},
       },
       vertexShader: BILLBOARD_VERT,
       fragmentShader: HALO_FRAG,
@@ -493,7 +520,7 @@ const starVisualComponent = {
           // the bars run to the quad's boundary and stop dead there, which reads as four rules
           // drawn across the sky rather than as glare.
           uLen: {value: 7.5},
-          uBright: {value: 0.38 * glare * d.intensity},
+          uBright: {value: 0.26 * glare * d.intensity},
         },
         vertexShader: BILLBOARD_VERT,
         fragmentShader: GLARE_FRAG,
