@@ -288,25 +288,36 @@ const BODY_FRAG = `
 const PLASMA_VERT = `
   attribute float aSize;
   attribute float aPhase;
+  attribute float aU;        // where this point sits along its loop, 0 at one foot, 1 at the other
+  attribute vec2 aCycle;     // x = period in seconds, y = where in that period this loop starts
   attribute vec3 aColor;
-  uniform float uTime, uPixH, uDrift, uBright;
+  uniform float uTime, uPixH, uBright, uDuty, uEdge;
   varying vec3 vCol;
   varying float vDim;
   void main() {
-    vec3 p = position;
-    // Every point wanders on its own phase, so the loop churns instead of sitting still. This
-    // is the other half of why a tube fails: a rigid mesh can only ever be animated as a whole.
-    p += uDrift * vec3(
-      sin(uTime * 0.9 + aPhase),
-      sin(uTime * 1.13 + aPhase * 1.7),
-      sin(uTime * 0.77 + aPhase * 2.3));
+    // Each loop runs its own clock, and is DORMANT for part of it - that gap is what makes
+    // loops appear here and then somewhere else, rather than the whole set standing lit
+    // forever and merely wobbling.
+    float t = fract(uTime / aCycle.x + aCycle.y);
+    float life = t / uDuty;
 
-    vec4 mv = modelViewMatrix * vec4(p, 1.0);
+    // The plasma snakes out of one footpoint and back into the other. Over the first half of
+    // the life the head runs 0 -> 1, uncovering the arc; over the second half the tail follows
+    // it, so the loop feeds back into the surface and is gone. The curve itself never moves -
+    // what travels is which part of it is lit.
+    float head = clamp(life * 2.0, 0.0, 1.0);
+    float tail = clamp(life * 2.0 - 1.0, 0.0, 1.0);
+    float vis = (1.0 - smoothstep(head - uEdge, head, aU)) * smoothstep(tail, tail + uEdge, aU);
+    if (life > 1.0) vis = 0.0;
+
+    vec4 mv = modelViewMatrix * vec4(position, 1.0);
     float scale = length(modelViewMatrix[0].xyz);
     // Real perspective size, unlike the field stars: this is gas at a place you can walk up to,
     // so it has to grow as you approach rather than hold a fixed angular size.
     gl_PointSize = clamp(uPixH * aSize * scale / max(0.001, -mv.z), 1.0, 96.0);
-    vDim = (0.70 + 0.30 * sin(uTime * 1.7 + aPhase * 3.1)) * uBright;
+    // A little flicker on top, but only a little: the reveal is the animation now, and gas that
+    // also wobbled in place read as noise rather than as movement along the arc.
+    vDim = vis * (0.82 + 0.18 * sin(uTime * 1.7 + aPhase * 3.1)) * uBright;
     vCol = aColor;
     gl_Position = projectionMatrix * mv;
   }
@@ -357,9 +368,14 @@ const starVisualComponent = {
     prominence: {type: 'number', default: 0},      // corona + spicule fringe, 0 skips the layer
     coronaScale: {type: 'number', default: 2.3},   // corona quad width, in body radii
     arcs: {type: 'number', default: 0},            // prominence loops as geometry, 0 skips them
-    arcHeight: {type: 'number', default: 0.42},    // apex height above the surface, in radii
-    arcThickness: {type: 'number', default: 0.035},
+    arcHeight: {type: 'number', default: 0.26},    // apex height above the surface, in radii
+    arcThickness: {type: 'number', default: 0.030},
     arcSeed: {type: 'number', default: 7},
+    // One loop's full out-and-back, in seconds, before its own random spread is applied.
+    arcPeriod: {type: 'number', default: 9},
+    // How much of that period the loop is actually running. Below 1 it leaves dead time, which
+    // is what makes loops appear at one place on the star and then at another.
+    arcDuty: {type: 'number', default: 0.62},
   },
 
   init() {
@@ -538,7 +554,7 @@ const starVisualComponent = {
       // the apex reads as a different material from the photosphere it is standing on.
       const cool = new THREE.Vector3(rgb.x, rgb.y * 0.45, rgb.z * 0.30)
       const R = d.radius
-      const pos = [], col = [], siz = [], pha = []
+      const pos = [], col = [], siz = [], pha = [], par = [], cyc = []
       const SEGS = 96, STRANDS = 7
 
       const nrm = new THREE.Vector3(), bin = new THREE.Vector3(), tan = new THREE.Vector3()
@@ -555,7 +571,7 @@ const starVisualComponent = {
         const ref = Math.abs(n.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0)
         const t = new THREE.Vector3().crossVectors(n, ref).normalize()
 
-        const span = 0.22 + hash11(s + 2.7) * 0.30          // half-angle between the footpoints
+        const span = 0.20 + hash11(s + 2.7) * 0.22          // half-angle between the footpoints
         const h = d.arcHeight * (0.6 + hash11(s + 3.1) * 0.8)
         const a = n.clone().multiplyScalar(Math.cos(span)).addScaledVector(t, Math.sin(span))
           .normalize().multiplyScalar(R * 0.97)
@@ -570,6 +586,8 @@ const starVisualComponent = {
 
         const thick = R * d.arcThickness * (0.7 + hash11(s + 4.9) * 0.7)
         const loopBright = 0.75 + hash11(s + 5.5) * 0.5
+        const period = d.arcPeriod * (0.65 + hash11(s + 7.3) * 0.9)
+        const offset = hash11(s + 8.9)
 
         for (let j = 0; j < STRANDS; j++) {
           // Each strand keeps its own offset and twists at its own rate, so the loop is built
@@ -578,7 +596,7 @@ const starVisualComponent = {
           const sj = s + 100 + j * 7.31
           const a0 = hash11(sj) * 6.2831853
           const twist = (hash11(sj + 1.1) - 0.5) * 5.0
-          const rad = 0.25 + hash11(sj + 2.2) * 0.95
+          const rad = 0.12 + hash11(sj + 2.2) * 0.42
           const freq = 2.0 + hash11(sj + 3.3) * 5.0
 
           for (let k = 0; k < SEGS; k++) {
@@ -593,8 +611,8 @@ const starVisualComponent = {
             const taper = 0.30 + 0.70 * Math.pow(Math.sin(Math.PI * u), 0.55)
             const ang = a0 + twist * u
             const rr = thick * rad * taper * (0.55 + 0.45 * Math.sin(u * freq + a0))
-            const jx = (hash11(sj + k * 0.917) - 0.5) * thick * 0.5
-            const jy = (hash11(sj + k * 1.373) - 0.5) * thick * 0.5
+            const jx = (hash11(sj + k * 0.917) - 0.5) * thick * 0.25
+            const jy = (hash11(sj + k * 1.373) - 0.5) * thick * 0.25
 
             pos.push(
               at.x + nrm.x * Math.cos(ang) * rr + bin.x * Math.sin(ang) * rr + jx,
@@ -611,6 +629,8 @@ const starVisualComponent = {
               (cool.z + (hot.z - cool.z) * along) * bright)
             siz.push(thick * (1.0 + hash11(sj + k * 2.11) * 1.6))
             pha.push(hash11(sj + k * 0.511) * 6.2831853)
+            par.push(u)
+            cyc.push(period, offset)
           }
         }
       }
@@ -620,6 +640,8 @@ const starVisualComponent = {
       geo.setAttribute('aColor', new THREE.Float32BufferAttribute(col, 3))
       geo.setAttribute('aSize', new THREE.Float32BufferAttribute(siz, 1))
       geo.setAttribute('aPhase', new THREE.Float32BufferAttribute(pha, 1))
+      geo.setAttribute('aU', new THREE.Float32BufferAttribute(par, 1))
+      geo.setAttribute('aCycle', new THREE.Float32BufferAttribute(cyc, 2))
 
       const mat = new THREE.ShaderMaterial({
         uniforms: {
@@ -627,9 +649,12 @@ const starVisualComponent = {
           // Filled in per frame from the drawing buffer, so a point's world size survives a
           // change of resolution or of field of view.
           uPixH: {value: 600},
-          uDrift: {value: R * 0.035},
-          uBright: {value: 0.55 * d.intensity},
+          uBright: {value: 0.70 * d.intensity},
           uSoft: {value: 3.0},
+          // The share of each loop's period spent actually running. The remainder is dead time,
+          // and without it every site would be lit at all times and nothing would ever "appear".
+          uDuty: {value: d.arcDuty},
+          uEdge: {value: 0.10},
         },
         vertexShader: PLASMA_VERT,
         fragmentShader: PLASMA_FRAG,
@@ -644,6 +669,7 @@ const starVisualComponent = {
       })
       const cloud = new THREE.Points(geo, mat)
       cloud.renderOrder = 1
+      cloud.frustumCulled = false
       this.group.add(cloud)
       this.timed.push(mat.uniforms.uTime)
       this.plasmaMat = mat
