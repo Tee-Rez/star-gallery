@@ -13,21 +13,24 @@
   only way to know whether that survives being walked around - and what it costs on a real
   phone GPU - is to stand in a room with it.
 
-  It borrows the vendored 8th Wall runtime from the deployed app next door rather than keeping
-  a second copy, so this page is small and can never drift from the SDK the app ships.
+  It sits INSIDE app-preview rather than in a folder of its own, and that is not tidiness - it
+  is required. xrextras resolves its own images and fonts against the PAGE's path, not against
+  the URL it was loaded from, so from a sibling folder every asset of the loading screen, the
+  camera-permission prompt and the runtime-error screen 404s. The page has to live where
+  external/ is a sibling. The dist sync only ever copies files in, so nothing here removes it.
 
   star-visual.js here IS a copy, and that is the one thing to watch. The source of truth is
   orion/src/js/star-visual.js; refresh this one with:
-      cp orion/src/js/star-visual.js star-gallery/star-lab/star-visual.js
+      cp orion/src/js/star-visual.js star-gallery/app-preview/star-visual.js
   The copy exists because the webpack build bundles src/js into bundle.js and never emits the
   module on its own, so there is nothing in the deployed app for this page to import. When the
   component is wired into the app for real, this copy should go.
 -->
 
-<script crossorigin="anonymous" src="../app-preview/external/scripts/8frame-1.3.0.min.js"></script>
-<script crossorigin="anonymous" src="../app-preview/external/xrextras/xrextras.js"></script>
-<script crossorigin="anonymous" src="../app-preview/external/landing-page/landing-page.js"></script>
-<script crossorigin="anonymous" src="../app-preview/external/xr/xr.js" async="true" data-preload-chunks="slam"></script>
+<script crossorigin="anonymous" src="./external/scripts/8frame-1.3.0.min.js"></script>
+<script crossorigin="anonymous" src="./external/xrextras/xrextras.js"></script>
+<script crossorigin="anonymous" src="./external/landing-page/landing-page.js"></script>
+<script crossorigin="anonymous" src="./external/xr/xr.js" async="true" data-preload-chunks="slam"></script>
 
 <meta name="8thwall:renderer" content="aframe:1.3.0"/>
 <meta name="8thwall:package" content="@8thwall.xrextras"/>
@@ -69,6 +72,7 @@
   <button id="b-plasma" aria-pressed="true">Plasma</button>
   <button id="b-figure" aria-pressed="false">Figure stars</button>
   <button id="b-both" aria-pressed="false">Both</button>
+  <button id="b-types" aria-pressed="false">Types</button>
   <span id="fps">-- fps</span>
 </div>
 
@@ -100,6 +104,7 @@
 
     <a-entity id="plasma"></a-entity>
     <a-entity id="figure"></a-entity>
+    <a-entity id="types"></a-entity>
   </a-entity>
 </a-scene>
 
@@ -145,18 +150,40 @@ FIGURE.forEach((s) => {
   figureHost.appendChild(e)
 })
 
+// The app's three star types across the size range the constellation data actually uses.
+// Types are dynamic-star.js's blue / white / red; sizes are the smallest, the most common and
+// the largest `size` in the JSON. Same magnitude throughout, so only type and size differ.
+const typesHost = document.getElementById('types')
+const TYPES = [
+  {tempKelvin: 20000},   // blue
+  {tempKelvin: 8500},    // white
+  {tempKelvin: 3400},    // red
+]
+const SIZES = [0.04, 0.085, 0.17]
+
+TYPES.forEach((ty, ci) => {
+  SIZES.forEach((sz, si) => {
+    const e = document.createElement('a-entity')
+    e.setAttribute('position', `${-0.62 + ci * 0.46 + si * 0.15} ${0.75 - si * 0.22} 0`)
+    e.setAttribute('star-visual', {radius: sz, tempKelvin: ty.tempKelvin, magnitude: 1.8})
+    typesHost.appendChild(e)
+  })
+})
+
 // --- modes -----------------------------------------------------------------------------------
 const modes = {
-  plasma: {plasma: true, figure: false},
-  figure: {plasma: false, figure: true},
-  both: {plasma: true, figure: true},
+  plasma: {plasma: true, figure: false, types: false},
+  figure: {plasma: false, figure: true, types: false},
+  both: {plasma: true, figure: true, types: false},
+  types: {plasma: false, figure: false, types: true},
 }
-const buttons = {plasma: 'b-plasma', figure: 'b-figure', both: 'b-both'}
+const buttons = {plasma: 'b-plasma', figure: 'b-figure', both: 'b-both', types: 'b-types'}
 
 function setMode(name) {
   const m = modes[name]
   plasmaHost.object3D.visible = m.plasma
   figureHost.object3D.visible = m.figure
+  typesHost.object3D.visible = m.types
   // The two sets overlap in space, so shift them apart when both are shown rather than
   // drawing the figure stars inside the plasma star.
   figureHost.object3D.position.y = m.plasma ? 0.55 : 0
