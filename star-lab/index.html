@@ -1,0 +1,203 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Star lab (AR)</title>
+
+<!--
+  star-visual.js in real AR, on a phone, with nothing else in the scene.
+
+  The desktop harness (orion/src/_startest.html) can show the look but not the thing that
+  actually matters here: a star is layered out of billboards and additive blending, and the
+  only way to know whether that survives being walked around - and what it costs on a real
+  phone GPU - is to stand in a room with it.
+
+  It borrows the vendored 8th Wall runtime from the deployed app next door rather than keeping
+  a second copy, so this page is small and can never drift from the SDK the app ships.
+
+  star-visual.js here IS a copy, and that is the one thing to watch. The source of truth is
+  orion/src/js/star-visual.js; refresh this one with:
+      cp orion/src/js/star-visual.js star-gallery/star-lab/star-visual.js
+  The copy exists because the webpack build bundles src/js into bundle.js and never emits the
+  module on its own, so there is nothing in the deployed app for this page to import. When the
+  component is wired into the app for real, this copy should go.
+-->
+
+<script crossorigin="anonymous" src="../app-preview/external/scripts/8frame-1.3.0.min.js"></script>
+<script crossorigin="anonymous" src="../app-preview/external/xrextras/xrextras.js"></script>
+<script crossorigin="anonymous" src="../app-preview/external/landing-page/landing-page.js"></script>
+<script crossorigin="anonymous" src="../app-preview/external/xr/xr.js" async="true" data-preload-chunks="slam"></script>
+
+<meta name="8thwall:renderer" content="aframe:1.3.0"/>
+<meta name="8thwall:package" content="@8thwall.xrextras"/>
+<meta name="8thwall:package" content="@8thwall.landing-page"/>
+
+<style>
+  body { margin: 0; font: 13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
+
+  #hud {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 10;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+    background: linear-gradient(to top, rgba(4,6,10,0.88), rgba(4,6,10,0));
+    color: #cfe8f6;
+  }
+  button {
+    font: inherit; color: #cfe8f6; background: rgba(10,22,34,0.72);
+    border: 1px solid rgba(143,216,255,0.55); border-radius: 999px;
+    padding: 9px 14px; -webkit-tap-highlight-color: transparent;
+  }
+  button[aria-pressed="true"] { background: rgba(143,216,255,0.22); border-color: #8fd8ff; }
+  #fps {
+    margin-left: auto; padding: 8px 12px; border-radius: 999px;
+    background: rgba(10,22,34,0.72); border: 1px solid rgba(143,216,255,0.3);
+    font-variant-numeric: tabular-nums;
+  }
+  #tip {
+    position: fixed; left: 12px; right: 12px; top: calc(10px + env(safe-area-inset-top));
+    z-index: 10; color: #cfe8f6; text-shadow: 0 1px 3px #000; text-align: center;
+  }
+</style>
+</head>
+
+<body>
+
+<div id="tip">tap the floor to place &middot; one finger turns it &middot; pinch to size it</div>
+
+<div id="hud">
+  <button id="b-plasma" aria-pressed="true">Plasma</button>
+  <button id="b-figure" aria-pressed="false">Figure stars</button>
+  <button id="b-both" aria-pressed="false">Both</button>
+  <span id="fps">-- fps</span>
+</div>
+
+<a-scene
+  xrextras-gesture-detector
+  xrextras-loading
+  xrextras-runtime-error
+  landing-page
+  renderer="colorManagement:true"
+  xrweb="allowedDevices: any; disableWorldTracking: false">
+
+  <a-camera id="camera" position="0 1.6 0" raycaster="objects: .cantap" cursor="fuse: false; rayOrigin: mouse;"></a-camera>
+
+  <!-- The floor the tap lands on. Invisible, but a real mesh, because the raycaster needs
+       something to hit and an infinite mathematical plane is not a thing A-Frame can raycast. -->
+  <a-entity
+    id="ground"
+    class="cantap"
+    geometry="primitive: plane; width: 80; height: 80"
+    rotation="-90 0 0"
+    material="shader: flat; transparent: true; opacity: 0"
+    position="0 0 0"></a-entity>
+
+  <!-- No lights. Every layer of star-visual is unlit by design, and adding a light here would
+       hide the single biggest difference from what the app draws today. -->
+  <a-entity id="content" position="0 0 -1.6"
+    xrextras-one-finger-rotate
+    xrextras-pinch-scale>
+
+    <a-entity id="plasma"></a-entity>
+    <a-entity id="figure"></a-entity>
+  </a-entity>
+</a-scene>
+
+<script type="module">
+const {starVisualComponent} = await import('./star-visual.js?t=' + Date.now())
+AFRAME.registerComponent('star-visual', starVisualComponent)
+
+// Real Orion stars, so the magnitudes and temperatures are the ones the app has to draw.
+const FIGURE = [
+  {x: -0.45, magnitude: 1.69, tempKelvin: 27000, size: 0.055},
+  {x: -0.15, magnitude: 0.50, tempKelvin: 3600,  size: 0.070},
+  {x:  0.15, magnitude: 4.38, tempKelvin: 5900,  size: 0.035},
+  {x:  0.45, magnitude: 4.40, tempKelvin: 17000, size: 0.035},
+]
+
+const plasmaHost = document.getElementById('plasma')
+const figureHost = document.getElementById('figure')
+
+const plasma = document.createElement('a-entity')
+plasma.setAttribute('position', '0 0.55 0')
+plasma.setAttribute('star-visual', {
+  radius: 0.22,
+  tempKelvin: 5200,
+  magnitude: 1.4,
+  surface: 0.85,
+  surfaceScale: 18,
+  prominence: 0.55,
+  arcs: 7,
+  arcHeight: 0.42,
+  spots: 0.45,
+  haloScale: 2.6,
+  glareSpan: 0,
+  twinkle: 0,
+})
+plasmaHost.appendChild(plasma)
+
+FIGURE.forEach((s) => {
+  const e = document.createElement('a-entity')
+  e.setAttribute('position', `${s.x} 0.55 0`)
+  e.setAttribute('star-visual', {
+    radius: s.size, tempKelvin: s.tempKelvin, magnitude: s.magnitude,
+  })
+  figureHost.appendChild(e)
+})
+
+// --- modes -----------------------------------------------------------------------------------
+const modes = {
+  plasma: {plasma: true, figure: false},
+  figure: {plasma: false, figure: true},
+  both: {plasma: true, figure: true},
+}
+const buttons = {plasma: 'b-plasma', figure: 'b-figure', both: 'b-both'}
+
+function setMode(name) {
+  const m = modes[name]
+  plasmaHost.object3D.visible = m.plasma
+  figureHost.object3D.visible = m.figure
+  // The two sets overlap in space, so shift them apart when both are shown rather than
+  // drawing the figure stars inside the plasma star.
+  figureHost.object3D.position.y = m.plasma ? 0.55 : 0
+  Object.keys(buttons).forEach((k) => {
+    document.getElementById(buttons[k]).setAttribute('aria-pressed', String(k === name))
+  })
+}
+Object.keys(buttons).forEach((k) => {
+  document.getElementById(buttons[k]).addEventListener('click', () => setMode(k))
+})
+setMode('plasma')
+
+// --- placement -------------------------------------------------------------------------------
+// Tap the floor and the content moves there, keeping its own rotation and scale. Deliberately
+// not xrextras-tap-recenter: that moves the whole scene, which would take the ground plane with
+// it and make a second tap behave differently from the first.
+const content = document.getElementById('content')
+document.getElementById('ground').addEventListener('click', (e) => {
+  const p = e.detail && e.detail.intersection && e.detail.intersection.point
+  if (!p) return
+  content.object3D.position.set(p.x, p.y, p.z)
+  const tip = document.getElementById('tip')
+  tip.textContent = 'one finger turns it · pinch to size it · tap the floor to move it'
+})
+
+// --- fps -------------------------------------------------------------------------------------
+// Worth more than any desktop number: this is the figure that decides whether the layered star
+// is affordable on the device it actually has to run on.
+const fpsEl = document.getElementById('fps')
+let frames = 0, last = performance.now()
+function loop(now) {
+  frames++
+  if (now - last >= 1000) {
+    fpsEl.textContent = `${Math.round((frames * 1000) / (now - last))} fps`
+    frames = 0
+    last = now
+  }
+  requestAnimationFrame(loop)
+}
+requestAnimationFrame(loop)
+</script>
+
+</body>
+</html>
