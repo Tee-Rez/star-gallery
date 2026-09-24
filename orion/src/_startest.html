@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Star look test</title>
+<!--
+  The constellation star as it is drawn today, next to the layered replacement.
+  Same convention as _presettest.html: both are imported LIVE rather than copied, so what
+  renders here is the shipped code and a shader that fails to compile here fails in the app.
+  8th Wall needs a camera, so this is the only way to look at a star without a phone.
+
+  Row 1  what the app draws now. Left pair is createStarEntity() from constellation-loader.js -
+         a lit <a-sphere> plus its 0.25-opacity .cantap collision sphere, rebuilt here exactly
+         as that function writes it. Right pair is dynamic-star.js, the textured two-sphere
+         version, imported live.
+  Row 2  star-visual.js on the same stars: body + halo + spikes, coloured from physics.tempKelvin
+         and sized from magnitude.
+
+  The stars are the real Orion data, so the magnitude spread (1.69 to 5.13) and the temperatures
+  are the ones the app actually has to draw, not flattering invented ones.
+-->
+<script src="../external/scripts/8frame-1.3.0.min.js"></script>
+<style>
+  body { margin:0; background:#07080b; color:#cfc6b4; font:12px ui-monospace, monospace; }
+  a-scene { display:block; height:78vh; }
+  #log { padding:8px 14px; white-space:pre; line-height:1.5; }
+  b { color:#8fd8ff; }
+</style>
+</head>
+<body>
+
+<a-scene renderer="colorManagement:true" background="color: #07080b" embedded>
+  <a-assets>
+    <img id="blue-star-texture" src="assets/sunBlue.jpg">
+    <img id="red-star-texture" src="assets/sunRed.jpg">
+    <img id="white-star-texture" src="assets/sunWhite.jpg">
+  </a-assets>
+
+  <!-- The app's own lighting. The point of row 1 is that these reach the star at all. -->
+  <a-light type="directional" intensity="0.5" position="1 1 1"></a-light>
+  <a-light type="ambient" intensity="0.7"></a-light>
+
+  <a-entity id="rows"></a-entity>
+  <a-entity camera position="0 0 0"></a-entity>
+</a-scene>
+
+<div id="log"></div>
+
+<script type="module">
+const {starVisualComponent} = await import('./js/star-visual.js?t=' + Date.now())
+const {dynamicStarComponent} = await import('./dynamic-star.js?t=' + Date.now())
+const {hudElementComponent} = await import('./js/hud-elements.js?t=' + Date.now())
+AFRAME.registerComponent('star-visual', starVisualComponent)
+AFRAME.registerComponent('dynamic-star', dynamicStarComponent)
+AFRAME.registerComponent('hud-element', hudElementComponent)
+
+// Real Orion figure stars - the brightest, a mid one, and the faintest, so the magnitude
+// range the component has to survive is the range in the data.
+const STARS = [
+  {name: 'Alnilam',  magnitude: 1.69, tempKelvin: 27000, spectralClass: 'B0 Ia',  color: '#ffffff', size: 0.11},
+  {name: 'Betelgeuse', magnitude: 0.5, tempKelvin: 3600, spectralClass: 'M1 Ia',  color: '#ffcc99', size: 0.14},
+  {name: 'Chi1 Ori', magnitude: 4.38, tempKelvin: 5900,  spectralClass: 'G0 V',   color: '#fff4e8', size: 0.07},
+  {name: 'Nu Ori',   magnitude: 4.40, tempKelvin: 17000, spectralClass: 'B4 V',   color: '#a8bcff', size: 0.07},
+]
+
+const rows = document.getElementById('rows')
+const X = i => -3.1 + i * 1.35
+const RIGHT = 5.6
+
+// Row 1a - createStarEntity() from constellation-loader.js, written out as that function does.
+STARS.forEach((s, i) => {
+  const e = document.createElement('a-entity')
+  e.setAttribute('position', `${X(i)} 1.15 -5`)
+
+  const core = document.createElement('a-sphere')
+  core.setAttribute('radius', s.size)
+  core.setAttribute('material', {color: s.color, metalness: 0.3, roughness: 0.7})
+  e.appendChild(core)
+
+  const hit = document.createElement('a-sphere')
+  hit.setAttribute('radius', Math.max(s.size * 3, 0.3))
+  hit.setAttribute('material', {
+    color: s.color, opacity: 0.25, transparent: true, side: 'double',
+    depthTest: true, depthWrite: false,
+  })
+  e.appendChild(hit)
+  rows.appendChild(e)
+})
+
+// Row 1b - dynamic-star.js, the other current path, on the right.
+;['blue', 'white', 'red'].forEach((type, i) => {
+  const e = document.createElement('a-entity')
+  e.setAttribute('position', `${X(i) + RIGHT} 1.15 -5`)
+  e.setAttribute('dynamic-star', {type, size: 0.12})
+  rows.appendChild(e)
+})
+
+// Row 2 - the replacement, same four stars.
+STARS.forEach((s, i) => {
+  const e = document.createElement('a-entity')
+  e.setAttribute('position', `${X(i)} -0.9 -5`)
+  e.setAttribute('star-visual', {
+    radius: s.size,
+    color: s.color,
+    tempKelvin: s.tempKelvin,
+    spectralClass: s.spectralClass,
+    magnitude: s.magnitude,
+  })
+  rows.appendChild(e)
+})
+
+// Row 2, right - the same component with spikes and twinkle off, so the layers can be told
+// apart: what the body and halo alone contribute is the whole claim about "no hard edge".
+;[{glareSpan: 0, twinkle: 0, label: 'body+halo'}, {haloScale: 0.001, glareSpan: 0, twinkle: 0, label: 'body only'}]
+  .forEach((over, i) => {
+    const e = document.createElement('a-entity')
+    e.setAttribute('position', `${X(i) + RIGHT} -0.9 -5`)
+    e.setAttribute('star-visual', Object.assign({
+      radius: 0.11, tempKelvin: 27000, magnitude: 1.69, color: '#ffffff',
+    }, over))
+    rows.appendChild(e)
+  })
+
+// Layer 4 - the selected state. No new ring code: this is the 'gyro' preset the deep-sky
+// markers already use, wrapped around a star-visual star. Selection is the ONLY time it should
+// appear - fifteen of these at rest would read as a pattern rather than as a highlight.
+{
+  const e = document.createElement('a-entity')
+  e.setAttribute('position', `5.3 -0.9 -5`)
+  e.setAttribute('star-visual', {
+    radius: 0.11, tempKelvin: 27000, magnitude: 1.69, color: '#ffffff',
+  })
+  const ring = document.createElement('a-entity')
+  ring.setAttribute('hud-element', {
+    preset: 'gyro', radius: 0.62, color: '#8fd8ff', rate: 0.8, opacity: 1, intensity: 1.4,
+  })
+  e.appendChild(ring)
+  rows.appendChild(e)
+}
+
+// The entered-star look - the plasma sphere. Same component, surface and prominence turned on.
+// Placed on its own off to the left at a size you would only ever see after walking into the
+// portal: at figure size none of this detail survives the resample.
+{
+  const e = document.createElement('a-entity')
+  e.setAttribute('id', 'plasma')
+  e.setAttribute('position', '-9.5 0.1 -5')
+  e.setAttribute('star-visual', {
+    radius: 1.15,
+    tempKelvin: 5200,
+    magnitude: 1.4,
+    surface: 0.85,
+    surfaceScale: 18,
+    prominence: 0.55,
+    arcs: 7,
+    arcHeight: 0.42,
+    spots: 0.45,
+    haloScale: 2.6,
+    glareSpan: 0,
+    twinkle: 0,
+  })
+  rows.appendChild(e)
+}
+
+const sc = document.querySelector('a-scene')
+// A-Frame pauses a scene whose document is hidden, and the preview pane can start that way -
+// without this the canvas stays black and nothing here is testable.
+const wake = () => { if (!sc.isPlaying) sc.play() }
+sc.addEventListener('loaded', wake)
+document.addEventListener('visibilitychange', wake)
+setTimeout(wake, 300)
+
+document.getElementById('log').innerHTML =
+  '<b>row 1</b>  what ships now - left: constellation-loader createStarEntity (lit sphere + 0.25 hitbox)   right: dynamic-star.js (lit textured spheres)\n' +
+  '<b>row 2</b>  star-visual.js - left: Alnilam / Betelgeuse / Chi1 Ori / Nu Ori, colour from tempKelvin, size and glare from magnitude   right: layers isolated'
+</script>
+
+</body>
+</html>
