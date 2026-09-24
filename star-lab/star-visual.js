@@ -278,43 +278,50 @@ const BODY_FRAG = `
 // footpoint on the surface, up over the limb, and back down to another is the same cost bracket
 // (~240 triangles each) and it survives being looked at from the side, gets occluded by the
 // star's own body on the far side, and parallaxes correctly.
-const ARC_VERT = `
-  varying vec2 vUv;
-  varying vec3 vN;
-  varying vec3 vV;
+// Points, not a tube. A swept tube is a SURFACE: it has a silhouette, a consistent thickness
+// and a lit-looking interior, and no amount of noise on it stops it reading as a pipe, because
+// the thing the eye is objecting to is the edge. Plasma has no edge. Thousands of small soft
+// additive blobs, clustered into strands that follow the same field-line curve, build density
+// out of overlap instead - thick where strands cross, ragged at the margins, and transparent
+// throughout. It is also cheaper: one vertex per point, one draw call for every loop on the
+// star, and no triangles at all.
+const PLASMA_VERT = `
+  attribute float aSize;
+  attribute float aPhase;
+  attribute vec3 aColor;
+  uniform float uTime, uPixH, uDrift, uBright;
+  varying vec3 vCol;
+  varying float vDim;
   void main() {
-    vUv = uv;
-    vec4 mv = modelViewMatrix * vec4(position, 1.0);
-    vN = normalize(normalMatrix * normal);
-    vV = -mv.xyz;
+    vec3 p = position;
+    // Every point wanders on its own phase, so the loop churns instead of sitting still. This
+    // is the other half of why a tube fails: a rigid mesh can only ever be animated as a whole.
+    p += uDrift * vec3(
+      sin(uTime * 0.9 + aPhase),
+      sin(uTime * 1.13 + aPhase * 1.7),
+      sin(uTime * 0.77 + aPhase * 2.3));
+
+    vec4 mv = modelViewMatrix * vec4(p, 1.0);
+    float scale = length(modelViewMatrix[0].xyz);
+    // Real perspective size, unlike the field stars: this is gas at a place you can walk up to,
+    // so it has to grow as you approach rather than hold a fixed angular size.
+    gl_PointSize = clamp(uPixH * aSize * scale / max(0.001, -mv.z), 1.0, 96.0);
+    vDim = (0.70 + 0.30 * sin(uTime * 1.7 + aPhase * 3.1)) * uBright;
+    vCol = aColor;
     gl_Position = projectionMatrix * mv;
   }
 `
 
-const ARC_FRAG = `
-  precision highp float;
-  ${NOISE}
-  uniform vec3 uCol, uHot;
-  uniform float uBright, uTime, uPhase;
-  varying vec2 vUv;
-  varying vec3 vN;
-  varying vec3 vV;
+const PLASMA_FRAG = `
+  precision mediump float;
+  uniform float uSoft;
+  varying vec3 vCol;
+  varying float vDim;
   void main() {
-    // Brightest where the line of sight passes through the most gas - the middle of the tube's
-    // visible cross-section - and falling off at its edges, so the tube reads as a column of
-    // glowing gas rather than as a shaded pipe.
-    float facing = abs(dot(normalize(vN), normalize(vV)));
-    float along = abs(vUv.x - 0.5) * 2.0;          // 0 at the apex, 1 at the footpoints
-    float base = mix(0.5, 1.0, along);             // anchored bright, thinning with height
-    float flick = 0.86 + 0.14 * sin(uTime * 1.3 + uPhase);
-    // Without this the tube is a smooth solid and reads as a plastic pipe. Threading noise
-    // along its length breaks it into strands that drift, which is what turns it back into gas.
-    float wisp = 0.55 + 0.75 * fbm(vec3(vUv.x * 9.0, vUv.y * 2.0, uTime * 0.12 + uPhase), 3);
-    float a = facing * facing * base * flick * wisp * uBright;
+    float r = length(gl_PointCoord - 0.5) * 2.0;
+    float a = exp(-r * r * uSoft) * vDim;
     if (a < 0.004) discard;
-    // Hot and white where it leaves the photosphere, cooler and redder at the top: a
-    // prominence is cool dense gas held up in a hot corona, which is why it reads red.
-    gl_FragColor = vec4(mix(uCol, uHot, along) * a, a);
+    gl_FragColor = vec4(vCol * a, a);
   }
 `
 
@@ -359,7 +366,10 @@ const starVisualComponent = {
     this.group = null
     this.uniforms = []
     this.timed = []
+    this.plasmaMat = null
     this.phase = Math.random() * 6.283
+    // Reused every frame; a fresh Vector2 per tick is pure churn.
+    this._bufSize = new THREE.Vector2()
     this.build()
   },
 
@@ -377,6 +387,7 @@ const starVisualComponent = {
     const rgb = new THREE.Vector3(col[0], col[1], col[2])
 
     this.timed = []
+    this.plasmaMat = null
     this.group = new THREE.Group()
 
     // --- body ------------------------------------------------------------------------------
@@ -517,12 +528,22 @@ const starVisualComponent = {
     }
 
     // --- prominence loops ----------------------------------------------------------------------
+    // The curves are the same field-line arches as before; only what is drawn along them
+    // changed. Every loop on the star goes into ONE points geometry, so the whole prominence
+    // system is a single draw call however many loops there are.
     const arcN = Math.round(d.arcs)
     if (arcN > 0) {
-      const hot = new THREE.Vector3(1, 1, 1).lerp(rgb, 0.35)
+      const hot = rgb.clone().lerp(new THREE.Vector3(1, 1, 1), 0.30)
       // Cool dense gas against a hot corona: pushed toward red rather than simply darkened, so
       // the apex reads as a different material from the photosphere it is standing on.
       const cool = new THREE.Vector3(rgb.x, rgb.y * 0.45, rgb.z * 0.30)
+      const R = d.radius
+      const pos = [], col = [], siz = [], pha = []
+      const SEGS = 96, STRANDS = 7
+
+      const nrm = new THREE.Vector3(), bin = new THREE.Vector3(), tan = new THREE.Vector3()
+      const at = new THREE.Vector3()
+
       for (let i = 0; i < arcN; i++) {
         const s = d.arcSeed + i * 13.7
         // A direction on the sphere for the loop to straddle, and a tangent for it to lean
@@ -536,7 +557,6 @@ const starVisualComponent = {
 
         const span = 0.22 + hash11(s + 2.7) * 0.30          // half-angle between the footpoints
         const h = d.arcHeight * (0.6 + hash11(s + 3.1) * 0.8)
-        const R = d.radius
         const a = n.clone().multiplyScalar(Math.cos(span)).addScaledVector(t, Math.sin(span))
           .normalize().multiplyScalar(R * 0.97)
         const b = n.clone().multiplyScalar(Math.cos(span)).addScaledVector(t, -Math.sin(span))
@@ -548,32 +568,85 @@ const starVisualComponent = {
         const curve = new THREE.CubicBezierCurve3(
           a, a.clone().add(lift), b.clone().add(lift), b)
 
-        const geo = new THREE.TubeGeometry(curve, 22, R * d.arcThickness * (0.7 + hash11(s + 4.9) * 0.7), 6, false)
-        const mat = new THREE.ShaderMaterial({
-          uniforms: {
-            uCol: {value: cool},
-            uHot: {value: hot},
-            uBright: {value: (0.75 + hash11(s + 5.5) * 0.5) * d.intensity},
-            uTime: {value: 0},
-            uPhase: {value: hash11(s + 6.1) * 6.2831853},
-          },
-          vertexShader: ARC_VERT,
-          fragmentShader: ARC_FRAG,
-          transparent: true,
-          depthWrite: false,
-          // depthTest stays ON: a loop on the far side must be hidden by the star's own body,
-          // and that occlusion is most of what makes the arcs read as three-dimensional.
-          side: THREE.DoubleSide,
-          blending: THREE.CustomBlending,
-          blendSrc: THREE.OneFactor,
-          blendDst: THREE.OneFactor,
-          blendEquation: THREE.AddEquation,
-        })
-        const arc = new THREE.Mesh(geo, mat)
-        arc.renderOrder = 1
-        this.group.add(arc)
-        this.timed.push(mat.uniforms.uTime)
+        const thick = R * d.arcThickness * (0.7 + hash11(s + 4.9) * 0.7)
+        const loopBright = 0.75 + hash11(s + 5.5) * 0.5
+
+        for (let j = 0; j < STRANDS; j++) {
+          // Each strand keeps its own offset and twists at its own rate, so the loop is built
+          // from separable filaments. Scattering the points uniformly through a tube volume
+          // instead would just rebuild the sausage out of dots.
+          const sj = s + 100 + j * 7.31
+          const a0 = hash11(sj) * 6.2831853
+          const twist = (hash11(sj + 1.1) - 0.5) * 5.0
+          const rad = 0.25 + hash11(sj + 2.2) * 0.95
+          const freq = 2.0 + hash11(sj + 3.3) * 5.0
+
+          for (let k = 0; k < SEGS; k++) {
+            const u = k / (SEGS - 1)
+            curve.getPointAt(u, at)
+            curve.getTangentAt(u, tan)
+            bin.crossVectors(tan, n).normalize()
+            nrm.crossVectors(bin, tan).normalize()
+
+            // Taper toward the footpoints so the strands gather into the surface rather than
+            // ending in mid-air at full width.
+            const taper = 0.30 + 0.70 * Math.pow(Math.sin(Math.PI * u), 0.55)
+            const ang = a0 + twist * u
+            const rr = thick * rad * taper * (0.55 + 0.45 * Math.sin(u * freq + a0))
+            const jx = (hash11(sj + k * 0.917) - 0.5) * thick * 0.5
+            const jy = (hash11(sj + k * 1.373) - 0.5) * thick * 0.5
+
+            pos.push(
+              at.x + nrm.x * Math.cos(ang) * rr + bin.x * Math.sin(ang) * rr + jx,
+              at.y + nrm.y * Math.cos(ang) * rr + bin.y * Math.sin(ang) * rr + jy,
+              at.z + nrm.z * Math.cos(ang) * rr + bin.z * Math.sin(ang) * rr)
+
+            // Hot and white where it leaves the photosphere, cooler and redder at the top: a
+            // prominence is cool dense gas held up in a hot corona, which is why it reads red.
+            const along = Math.abs(u - 0.5) * 2
+            const bright = loopBright * (0.45 + 0.55 * along)
+            col.push(
+              (cool.x + (hot.x - cool.x) * along) * bright,
+              (cool.y + (hot.y - cool.y) * along) * bright,
+              (cool.z + (hot.z - cool.z) * along) * bright)
+            siz.push(thick * (1.0 + hash11(sj + k * 2.11) * 1.6))
+            pha.push(hash11(sj + k * 0.511) * 6.2831853)
+          }
+        }
       }
+
+      const geo = new THREE.BufferGeometry()
+      geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3))
+      geo.setAttribute('aColor', new THREE.Float32BufferAttribute(col, 3))
+      geo.setAttribute('aSize', new THREE.Float32BufferAttribute(siz, 1))
+      geo.setAttribute('aPhase', new THREE.Float32BufferAttribute(pha, 1))
+
+      const mat = new THREE.ShaderMaterial({
+        uniforms: {
+          uTime: {value: 0},
+          // Filled in per frame from the drawing buffer, so a point's world size survives a
+          // change of resolution or of field of view.
+          uPixH: {value: 600},
+          uDrift: {value: R * 0.035},
+          uBright: {value: 0.55 * d.intensity},
+          uSoft: {value: 3.0},
+        },
+        vertexShader: PLASMA_VERT,
+        fragmentShader: PLASMA_FRAG,
+        transparent: true,
+        depthWrite: false,
+        // depthTest stays ON: points on the far side must be hidden by the star's own body,
+        // and that occlusion is most of what keeps the loops three-dimensional.
+        blending: THREE.CustomBlending,
+        blendSrc: THREE.OneFactor,
+        blendDst: THREE.OneFactor,
+        blendEquation: THREE.AddEquation,
+      })
+      const cloud = new THREE.Points(geo, mat)
+      cloud.renderOrder = 1
+      this.group.add(cloud)
+      this.timed.push(mat.uniforms.uTime)
+      this.plasmaMat = mat
     }
 
     this.el.setObject3D('starVisual', this.group)
@@ -585,6 +658,19 @@ const starVisualComponent = {
   tick(time) {
     const t = time * 0.001
     for (let i = 0; i < this.timed.length; i++) this.timed[i].value = t
+    if (this.plasmaMat) {
+      // World size to pixels: half the drawing buffer's height over tan(half the vertical fov).
+      // Hard-coding it would make the plasma coarser on a phone than on a desktop, which is
+      // backwards - the phone is the device that can least afford oversized points.
+      const sceneEl = this.el.sceneEl
+      const cam = sceneEl && sceneEl.camera
+      const rend = sceneEl && sceneEl.renderer
+      if (cam && rend) {
+        rend.getDrawingBufferSize(this._bufSize)
+        this.plasmaMat.uniforms.uPixH.value =
+          this._bufSize.y / (2 * Math.tan(THREE.MathUtils.degToRad(cam.fov) * 0.5))
+      }
+    }
     if (!this.data.twinkle || !this.uniforms.length) return
     const w = 1 + this.data.twinkle * (
       0.6 * Math.sin(t * 2.1 + this.phase) + 0.4 * Math.sin(t * 3.7 + this.phase * 1.7))
@@ -603,6 +689,7 @@ const starVisualComponent = {
     this.group = null
     this.uniforms = []
     this.timed = []
+    this.plasmaMat = null
   },
 
   remove() {
