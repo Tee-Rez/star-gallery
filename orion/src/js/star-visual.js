@@ -317,7 +317,9 @@ const PLASMA_VERT = `
     gl_PointSize = clamp(uPixH * aSize * scale / max(0.001, -mv.z), 1.0, 96.0);
     // A little flicker on top, but only a little: the reveal is the animation now, and gas that
     // also wobbled in place read as noise rather than as movement along the arc.
-    vDim = vis * (0.82 + 0.18 * sin(uTime * 1.7 + aPhase * 3.1)) * uBright;
+    float shimmer = 0.60 + 0.26 * sin(uTime * 1.7 + aPhase * 3.1)
+                          + 0.14 * sin(uTime * 4.3 + aPhase * 1.9);
+    vDim = vis * shimmer * uBright;
     vCol = aColor;
     gl_Position = projectionMatrix * mv;
   }
@@ -369,7 +371,7 @@ const starVisualComponent = {
     coronaScale: {type: 'number', default: 2.3},   // corona quad width, in body radii
     arcs: {type: 'number', default: 0},            // prominence loops as geometry, 0 skips them
     arcHeight: {type: 'number', default: 0.26},    // apex height above the surface, in radii
-    arcThickness: {type: 'number', default: 0.030},
+    arcThickness: {type: 'number', default: 0.018},
     arcSeed: {type: 'number', default: 7},
     // One loop's full out-and-back, in seconds, before its own random spread is applied.
     arcPeriod: {type: 'number', default: 9},
@@ -549,7 +551,7 @@ const starVisualComponent = {
     // system is a single draw call however many loops there are.
     const arcN = Math.round(d.arcs)
     if (arcN > 0) {
-      const hot = rgb.clone().lerp(new THREE.Vector3(1, 1, 1), 0.30)
+      const hot = rgb.clone().lerp(new THREE.Vector3(1, 1, 1), 0.12)
       // Cool dense gas against a hot corona: pushed toward red rather than simply darkened, so
       // the apex reads as a different material from the photosphere it is standing on.
       const cool = new THREE.Vector3(rgb.x, rgb.y * 0.45, rgb.z * 0.30)
@@ -622,12 +624,14 @@ const starVisualComponent = {
             // Hot and white where it leaves the photosphere, cooler and redder at the top: a
             // prominence is cool dense gas held up in a hot corona, which is why it reads red.
             const along = Math.abs(u - 0.5) * 2
-            const bright = loopBright * (0.45 + 0.55 * along)
+            const hb = hash11(sj + k * 3.77)
+            const bright = loopBright * (0.45 + 0.55 * along) * (0.28 + hb * hb * 1.25)
             col.push(
               (cool.x + (hot.x - cool.x) * along) * bright,
               (cool.y + (hot.y - cool.y) * along) * bright,
               (cool.z + (hot.z - cool.z) * along) * bright)
-            siz.push(thick * (1.0 + hash11(sj + k * 2.11) * 1.6))
+            const hz = hash11(sj + k * 2.11)
+            siz.push(thick * (0.7 + hz * hz * 2.6))
             pha.push(hash11(sj + k * 0.511) * 6.2831853)
             par.push(u)
             cyc.push(period, offset)
@@ -649,7 +653,7 @@ const starVisualComponent = {
           // Filled in per frame from the drawing buffer, so a point's world size survives a
           // change of resolution or of field of view.
           uPixH: {value: 600},
-          uBright: {value: 0.70 * d.intensity},
+          uBright: {value: 0.42 * d.intensity},
           uSoft: {value: 3.0},
           // The share of each loop's period spent actually running. The remainder is dead time,
           // and without it every site would be lit at all times and nothing would ever "appear".

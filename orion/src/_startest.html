@@ -162,6 +162,29 @@ STARS.forEach((s, i) => {
   rows.appendChild(e)
 }
 
+// Row 3 - the app's three star types across the size range the data actually uses.
+// The types come from dynamic-star.js (blue / white / red) and the three sun textures; the
+// sizes are the smallest, the most common and the largest `size` in the constellation JSON.
+// Driven by temperature rather than by the authored hex, because that is the path the
+// component uses and the hexes are only an approximation of the same thing.
+const TYPES = [
+  {name: 'blue',  tempKelvin: 20000, magnitude: 1.8},
+  {name: 'white', tempKelvin: 8500,  magnitude: 1.8},
+  {name: 'red',   tempKelvin: 3400,  magnitude: 1.8},
+]
+const SIZES = [0.04, 0.085, 0.17]   // smallest / most common / largest in the data
+
+TYPES.forEach((ty, ci) => {
+  SIZES.forEach((sz, si) => {
+    const e = document.createElement('a-entity')
+    e.setAttribute('position', `${-4.1 + ci * 3.0 + si * 0.95} -2.9 -5`)
+    e.setAttribute('star-visual', {
+      radius: sz, tempKelvin: ty.tempKelvin, magnitude: ty.magnitude,
+    })
+    rows.appendChild(e)
+  })
+})
+
 const sc = document.querySelector('a-scene')
 // A-Frame pauses a scene whose document is hidden, and the preview pane can start that way -
 // without this the canvas stays black and nothing here is testable.
@@ -172,7 +195,8 @@ setTimeout(wake, 300)
 
 document.getElementById('log').innerHTML =
   '<b>row 1</b>  what ships now - left: constellation-loader createStarEntity (lit sphere + 0.25 hitbox)   right: dynamic-star.js (lit textured spheres)\n' +
-  '<b>row 2</b>  star-visual.js - left: Alnilam / Betelgeuse / Chi1 Ori / Nu Ori, colour from tempKelvin, size and glare from magnitude   right: layers isolated'
+  '<b>row 2</b>  star-visual.js - left: Alnilam / Betelgeuse / Chi1 Ori / Nu Ori, colour from tempKelvin, size and glare from magnitude   right: layers isolated\n' +
+  '<b>row 3</b>  the three types (blue / white / red) at the three sizes the data uses - 0.04, 0.085, 0.17 - same magnitude throughout, so only type and size differ'
 </script>
 
 </body>
