@@ -19,6 +19,9 @@ AFRAME.registerComponent('gallery-back-button', galleryBackButtonComponent)
 import {starAudioComponent} from './js/star-audio'
 AFRAME.registerComponent('star-audio', starAudioComponent)
 
+import {starVisualComponent} from './js/star-visual'
+AFRAME.registerComponent('star-visual', starVisualComponent)
+
 import {deepSkyFieldComponent} from './js/deep-sky-field-component'
 AFRAME.registerComponent('deep-sky-field', deepSkyFieldComponent)
 

@@ -2775,14 +2775,19 @@ const constellationLoaderComponent = {
   createStarEntity(starData) {
     const starEntity = document.createElement('a-entity')
 
-    // Create main star sphere (visible part)
-    const starCore = document.createElement('a-sphere')
-    starCore.setAttribute('radius', starData.size)
+    // The dormant star. star-visual draws it as a light source - unlit body, PSF halo, spikes
+    // on the bright ones - instead of the lit <a-sphere> that used to sit here and read as a
+    // plastic ball. Colour comes from the star's own temperature, size and glare from its
+    // magnitude; all three were already in the data and none of them drove anything before.
+    const starCore = document.createElement('a-entity')
     starCore.setAttribute('id', starData.name)
-    starCore.setAttribute('material', {
+    starCore.setAttribute('class', 'star-core')
+    starCore.setAttribute('star-visual', {
+      radius: starData.size,
       color: starData.color,
-      metalness: 0.3,
-      roughness: 0.7,
+      tempKelvin: (starData.physics && starData.physics.tempKelvin) || 0,
+      spectralClass: starData.spectralClass || '',
+      magnitude: typeof starData.magnitude === 'number' ? starData.magnitude : 3,
     })
     starEntity.appendChild(starCore)
 
@@ -2803,16 +2808,22 @@ const constellationLoaderComponent = {
     textContainer.appendChild(label)
     starEntity.appendChild(textContainer)
 
-    // Create larger collision sphere for easier selection.
-    // NOTE: made semi-transparent (was opacity 0.0) to visualize the real hit box.
-    // Its radius is driven live by showSelectionState() to starData.size * 3..6 (camera-distance based).
+    // Collision sphere for easier selection. Invisible again: it had been turned up to 0.25 to
+    // look at the hit box, and that milky shell around every star was a large part of why they
+    // read as washed out. Its radius is driven live by showSelectionState().
+    //
+    // Only 8x6 segments now. Nobody sees it, and at the default 36x18 the hit boxes alone were
+    // costing more triangles than every visible star put together.
+    // Still an <a-sphere>: showSelectionState and others select it as `a-sphere.cantap` and set
+    // `radius` on it directly, so changing the element type here would silently break selection.
     const collisionSphere = document.createElement('a-sphere')
     const collisionRadius = Math.max(starData.size * 3, 0.3)
     collisionSphere.setAttribute('radius', collisionRadius)
+    collisionSphere.setAttribute('segments-width', 8)
+    collisionSphere.setAttribute('segments-height', 6)
     collisionSphere.setAttribute('class', 'cantap')
     collisionSphere.setAttribute('material', {
-      color: starData.color,
-      opacity: 0.25,
+      opacity: 0,
       transparent: true,
       side: 'double',
       depthTest: true,
@@ -2828,6 +2839,16 @@ const constellationLoaderComponent = {
     })
     starEntity.dataset.name = starData.name
     starEntity.dataset.designation = starData.designation || ''
+    // What the star LOOKS like, carried on the entity itself. The selected star, the lore
+    // journey and the info panel all used to recover this by reading the radius and material
+    // colour back off the <a-sphere>; with the sphere gone there is nothing to read, and
+    // reconstructing a type by matching substrings of a hex string - which is what two of them
+    // did - was never reliable anyway.
+    starEntity.dataset.size = starData.size
+    starEntity.dataset.color = starData.color || '#ffffff'
+    starEntity.dataset.tempKelvin = (starData.physics && starData.physics.tempKelvin) || 0
+    starEntity.dataset.spectralClass = starData.spectralClass || ''
+    starEntity.dataset.magnitude = typeof starData.magnitude === 'number' ? starData.magnitude : 3
     starEntity.dataset.realX = starData.position2D.x
     starEntity.dataset.realY = starData.position2D.y
     starEntity.dataset.realZ = starData.distance ? -starData.distance : 0
@@ -3036,13 +3057,13 @@ const constellationLoaderComponent = {
   setupInteractions() {
     this.stars.forEach((starEntity) => {
       const collisionSphere = starEntity.querySelector('a-sphere.cantap')
-      const starCore = starEntity.querySelector('a-sphere:not(.cantap)')
+      const starCore = starEntity.querySelector('.star-core')
 
       if (collisionSphere) {
         collisionSphere.addEventListener('click', () => {
           if (this.deepSkyHidingStars()) return
           if (!this.isAnimating) {
-            this.pulseStarOnSelect(starCore, collisionSphere)
+            this.pulseStarOnSelect(starCore, collisionSphere, starEntity)
             // Entities carry the star's NAME in dataset.name, not its id, so look up by name.
             const record = (this.constellationData.stars || [])
               .find(s => s.name === starEntity.dataset.name)
@@ -3063,14 +3084,19 @@ const constellationLoaderComponent = {
     this.currentlyIntersected = null
   },
 
-  pulseStarOnSelect(starCore, collisionSphere) {
+  pulseStarOnSelect(starCore, collisionSphere, starEntity) {
+    if (!starCore) return
     // Clear any previous animations
     starCore.removeAttribute('animation__pulse')
     collisionSphere.removeAttribute('animation__fade')
 
+    // The colour comes off the entity now: star-visual carries no `material` attribute to read,
+    // and the flash this tints was the only thing still asking the drawn star what colour it is.
+    const starColor = (starEntity && starEntity.dataset.color) || '#ffffff'
+
     // Reset collision sphere opacity
     collisionSphere.setAttribute('material', {
-      color: starCore.getAttribute('material').color,
+      color: starColor,
       opacity: 0.0,
       transparent: true,
     })
@@ -3087,7 +3113,6 @@ const constellationLoaderComponent = {
     })
 
     // Make collision sphere visible with color
-    const starColor = starCore.getAttribute('material').color
     collisionSphere.setAttribute('material', {
       color: starColor,
       opacity: 0.2,
@@ -3266,8 +3291,9 @@ const constellationLoaderComponent = {
 
       const collisionSphere = star.querySelector('a-sphere.cantap')
       if (collisionSphere) {
-        const starCore = star.querySelector('a-sphere:not(.cantap)')
-        const baseSize = parseFloat(starCore.getAttribute('radius')) * 3
+        // From the entity's own data rather than from the drawn star: star-visual is not an
+        // <a-sphere> and has no `radius` attribute to read back.
+        const baseSize = (parseFloat(star.dataset.size) || 0.1) * 3
         const scaleFactor = Math.min(distance / 10, 2)
         const newRadius = baseSize * scaleFactor
         collisionSphere.setAttribute('radius', newRadius)

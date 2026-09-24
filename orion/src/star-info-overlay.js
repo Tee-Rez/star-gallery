@@ -187,27 +187,20 @@ const starInfoOverlayComponent = {
       if (this.isVisible && this.currentStarName === starName) {
         this.hideInfo()
       } else {
-        // Get color and size information for dynamic star
-        let starColor; let starSize; let
-          starType
+        // Straight off the entity. This used to read the radius and material colour back off
+        // the star's <a-sphere> and then guess a type by matching substrings of the hex - so a
+        // white star written '#ffffff' and a blue one written '#aabbff' could land in the same
+        // bucket. The entity now carries the real astrometry, so the selected star can be
+        // coloured by temperature rather than by a string match.
+        const starColor = starEntity.dataset.color || '#ffffff'
+        const starSize = parseFloat(starEntity.dataset.size) || 0.1
+        const tempKelvin = parseFloat(starEntity.dataset.tempKelvin) || 0
+        const spectralClass = starEntity.dataset.spectralClass || ''
 
-        // Get color from the visible star core (not the collision sphere)
-        const starCore = starEntity.querySelector('a-sphere:not(.cantap)')
-        if (starCore) {
-          starColor = starCore.getAttribute('material').color
-          starSize = parseFloat(starCore.getAttribute('radius') || 0.1)
-
-          // Determine star type from color
-          if (starColor.includes('ff44') || starColor.includes('ff00')) {
-            starType = 'red'
-          } else if (starColor.includes('44') || starColor.includes('aaf') || starColor.includes('bbf')) {
-            starType = 'blue'
-          } else {
-            starType = 'white'
-          }
-        }
-
-        this.showInfo(starName, starInfo, starColor, starSize, starType, starDesignation)
+        this.showInfo(
+          starName, starInfo, starColor, starSize, null, starDesignation,
+          false, {tempKelvin, spectralClass, magnitude: parseFloat(starEntity.dataset.magnitude) || 3}
+        )
       }
     }
   },
@@ -347,7 +340,7 @@ const starInfoOverlayComponent = {
     this.showInfo(d.name, body, '#8fd8ff', 0.3, 'deep_sky', d.designation || '', !!d.suppressStar)
   },
 
-  showInfo(name, info, starColor, starSize, starType, designation, suppressStar) {
+  showInfo(name, info, starColor, starSize, starType, designation, suppressStar, physics) {
     this.currentStarName = name
 
     this.header.innerHTML = `
@@ -393,6 +386,11 @@ const starInfoOverlayComponent = {
         starColor,
         starSize,
         starType,
+        // The selected star is drawn from temperature now; starColor stays in the payload as
+        // the fallback for any caller that has no astrometry to give.
+        tempKelvin: (physics && physics.tempKelvin) || 0,
+        spectralClass: (physics && physics.spectralClass) || '',
+        magnitude: (physics && physics.magnitude) || 3,
       })
     }
   },

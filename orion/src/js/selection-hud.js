@@ -60,7 +60,7 @@ const selectionHudComponent = {
     // is that it has a drawn core, so ask for that rather than trusting the name.
     const named = document.querySelectorAll(`[data-name="${CSS.escape(detail.starName)}"]`)
     let star = null
-    named.forEach((el) => { if (!star && el.querySelector('a-sphere:not(.cantap)')) star = el })
+    named.forEach((el) => { if (!star && el.querySelector('.star-core')) star = el })
     if (!star) return
     this.ensureHud()
 

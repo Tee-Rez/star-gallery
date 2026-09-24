@@ -9,6 +9,8 @@ import {HUD} from './hud-shell'
 const loreJourneyComponent = {
   schema: {
     focusDistance: {type: 'number', default: 2.0},   // units in front of camera for the focused star
+    detailMin: {type: 'number', default: 0.08},      // smallest body radius a highlighted star takes
+    detailMax: {type: 'number', default: 0.26},      // largest, before the overlap budget cuts it
     zoomScale: {type: 'number', default: 2.5},        // how much #root scales up during the journey
     transitionDur: {type: 'number', default: 3000},   // ms to glide between stops
   },
@@ -123,9 +125,9 @@ const loreJourneyComponent = {
     this.showHud(false)
     this.hideLore()
     this.clearDetailed()
-    // Restore all basic spheres.
+    // Restore every dormant star the tour hid.
     document.querySelectorAll('[data-name]').forEach((s) => {
-      const core = s.querySelector('a-sphere:not(.cantap)')
+      const core = s.querySelector('.star-core')
       if (core) core.setAttribute('visible', true)
     })
     // Restore user rotation.
@@ -202,23 +204,72 @@ const loreJourneyComponent = {
     this.setViewForStop(stop)
     this.clearDetailed()
     const factor = stop.detailScale || 4
-    stop.targetStarNames.forEach((name) => this.spawnDetailed(name, factor))
+    // A stop can highlight several stars at once, and a plasma star draws far wider than its
+    // body - halo, corona and loops all sit outside it. Blown up independently they overlap
+    // into one blob, so the budget for this stop is worked out from how close its own targets
+    // actually are before any of them is built.
+    const cap = this.overlapCap(stop.targetStarNames)
+    stop.targetStarNames.forEach((name) => this.spawnDetailed(name, factor, cap))
     this.frameStar(this.getStarEntity(stop.centerStarName))
     this.showLore(stop)
     this.soundStop(stop)
     this.hud.textContent = (i === this.stops.length - 1) ? 'End the Journey' : 'Next Star'
   },
 
-  spawnDetailed(name, factor) {
+  // The largest body radius a plasma star may take at this stop. A star-visual is about five
+  // body radii wide once the halo is counted, so two of them stay clear of each other while
+  // 5*r fits inside the gap between their centres - hence the /5, and the margin under 1. With
+  // a single target there is nothing to collide with and only the outright cap applies.
+  overlapCap(names) {
+    const pts = (names || [])
+      .map(n => this.getStarEntity(n))
+      .filter(Boolean)
+      .map((e) => {
+        const p = e.getAttribute('position')
+        return new THREE.Vector3(p.x, p.y, p.z)
+      })
+
+    let nearest = Infinity
+    for (let i = 0; i < pts.length; i++) {
+      for (let j = i + 1; j < pts.length; j++) {
+        nearest = Math.min(nearest, pts[i].distanceTo(pts[j]))
+      }
+    }
+    if (!isFinite(nearest)) return this.data.detailMax
+    return Math.min(this.data.detailMax, (nearest * 0.85) / 5)
+  },
+
+  spawnDetailed(name, factor, cap) {
     const starEntity = this.getStarEntity(name)
     if (!starEntity) return
-    const core = starEntity.querySelector('a-sphere:not(.cantap)')
-    const color = core ? core.getAttribute('material').color : '#ffffff'
-    const size = core ? parseFloat(core.getAttribute('radius') || 0.1) : 0.1
-    if (core) core.setAttribute('visible', false) // hide basic sphere
+    // From the entity's own data. This used to read the radius and material colour back off an
+    // <a-sphere> and then guess blue/white/red by matching substrings of the hex, which sorted
+    // '#ffffff' and '#aabbff' into different buckets for no better reason than the letters in
+    // them. There is a real temperature on the entity now.
+    const core = starEntity.querySelector('.star-core')
+    const size = parseFloat(starEntity.dataset.size) || 0.1
+    if (core) core.setAttribute('visible', false)   // hide the dormant star under the detail one
+
+    const radius = Math.max(
+      this.data.detailMin,
+      Math.min(cap === undefined ? this.data.detailMax : cap, size * (factor || 4) * 0.4))
 
     const detailed = document.createElement('a-entity')
-    detailed.setAttribute('dynamic-star', {type: this.typeFromColor(color), size: size * (factor || 4)})
+    detailed.setAttribute('star-visual', {
+      radius,
+      color: starEntity.dataset.color || '#ffffff',
+      tempKelvin: parseFloat(starEntity.dataset.tempKelvin) || 0,
+      spectralClass: starEntity.dataset.spectralClass || '',
+      magnitude: parseFloat(starEntity.dataset.magnitude) || 3,
+      surface: 0.85,
+      surfaceScale: 18,
+      prominence: 0.55,
+      arcs: 16,
+      spots: 0.45,
+      haloScale: 2.6,
+      glareSpan: 0,
+      twinkle: 0,
+    })
     detailed.setAttribute('scale', '0 0 0')
     starEntity.appendChild(detailed)
     detailed.setAttribute('animation', {property: 'scale', to: '1 1 1', dur: 800, easing: 'easeOutElastic'})
@@ -233,12 +284,6 @@ const loreJourneyComponent = {
     this.detailedStars = []
   },
 
-  typeFromColor(color) {
-    if (!color) return 'white'
-    if (color.includes('ff5') || color.includes('ff4') || color.includes('ff0')) return 'red'
-    if (color.includes('44') || color.includes('7a') || color.includes('aa') || color.includes('bb') || color.includes('99')) return 'blue'
-    return 'white'
-  },
 
   // Position #root so `starEntity` sits `focusDistance` in front of the camera, scaled up.
   frameStar(starEntity) {

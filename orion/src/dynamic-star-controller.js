@@ -4,6 +4,15 @@ const dynamicStarControllerComponent = {
     portalSelector: {type: 'string', default: '#portal'},
     animationDuration: {type: 'number', default: 1500},
     starScale: {type: 'number', default: 4},
+    // The selected star is a star-visual in plasma mode now, and its drawn footprint is far
+    // wider than its body: the halo quad alone spans about five body radii, before the corona
+    // and the prominence loops. Multiplying the figure-star size by starScale the way the old
+    // lit sphere did would put a star three times the width of the constellation in the portal.
+    // These three keep the footprint about what the old sphere occupied, and keep the spread
+    // between a small star and a large one without letting the large one run away.
+    plasmaScale: {type: 'number', default: 1.6},
+    plasmaMin: {type: 'number', default: 0.10},
+    plasmaMax: {type: 'number', default: 0.26},
   },
 
   init() {
@@ -107,7 +116,7 @@ const dynamicStarControllerComponent = {
   // },
 
   createStarImpl(event) {
-    const {starName, starColor, starSize, starType} = event.detail
+    const {starName, starColor, starSize, starType, tempKelvin, spectralClass, magnitude} = event.detail
 
     // Get the portal position
     if (!this.portalElement) {
@@ -138,10 +147,29 @@ const dynamicStarControllerComponent = {
     dynamicStar.setAttribute('scale', '0 0 0')  // Start with zero scale
     dynamicStar.setAttribute('class', 'cantap')
 
-    // Add the dynamic-star component after entity is in the DOM
-    dynamicStar.setAttribute('dynamic-star', {
-      type: starType || this.getStarTypeFromColor(starColor),
-      size: (starSize || 0.1) * this.data.starScale,
+    // The entered star. Same component the figure stars use, with its surface and prominences
+    // switched on - so the thing you tapped and the thing that opens are recognisably the same
+    // object, coloured from the same temperature, rather than two unrelated renderers.
+    const radius = Math.max(
+      this.data.plasmaMin,
+      Math.min(this.data.plasmaMax, (starSize || 0.1) * this.data.plasmaScale))
+
+    dynamicStar.setAttribute('star-visual', {
+      radius,
+      color: starColor || '#ffffff',
+      tempKelvin: tempKelvin || 0,
+      spectralClass: spectralClass || '',
+      magnitude: typeof magnitude === 'number' ? magnitude : 3,
+      surface: 0.85,
+      surfaceScale: 18,
+      prominence: 0.55,
+      arcs: 16,
+      spots: 0.45,
+      haloScale: 2.6,
+      // No diffraction spikes on a star you are standing next to: spikes are what a POINT
+      // source does to a lens, and this one is resolved.
+      glareSpan: 0,
+      twinkle: 0,
     })
 
     // Add collision sphere to detect clicks - after parent is in the DOM
@@ -149,7 +177,7 @@ const dynamicStarControllerComponent = {
     collisionSphere.setAttribute('class', 'cantap')
     collisionSphere.setAttribute('geometry', {
       primitive: 'sphere',
-      radius: (starSize || 0.1) * this.data.starScale * 1.5,
+      radius: radius * 1.5,
     })
     collisionSphere.setAttribute('material', {
       opacity: 0.0,
@@ -244,8 +272,8 @@ const dynamicStarControllerComponent = {
       dynamicStar.addEventListener('animationcomplete', () => {
         // Check if container still exists before trying to remove
         if (starContainer.parentNode) {
-          // First, remove all dynamic-star components to prevent warnings
-          const starComponent = dynamicStar.components['dynamic-star']
+          // Dispose the star's geometry and materials before the DOM node goes.
+          const starComponent = dynamicStar.components['star-visual']
           if (starComponent && typeof starComponent.remove === 'function') {
             starComponent.remove()
           }
@@ -260,8 +288,8 @@ const dynamicStarControllerComponent = {
     } else {
       // If already animating, just remove without animation
       if (starContainer.parentNode) {
-        // First, remove all dynamic-star components to prevent warnings
-        const starComponent = dynamicStar.components['dynamic-star']
+        // Dispose the star's geometry and materials before the DOM node goes.
+        const starComponent = dynamicStar.components['star-visual']
         if (starComponent && typeof starComponent.remove === 'function') {
           starComponent.remove()
         }
