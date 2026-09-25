@@ -16,6 +16,14 @@ const HIT_GROWTH_MAX = 2.5
 // nearest-neighbour distance is the largest either may take. The margin keeps them from
 // meeting exactly, which would make the star on the boundary ambiguous to tap.
 const HIT_NEIGHBOUR_MARGIN = 0.46
+// No cap may ever shrink a target below this, whatever the neighbours say. A tap target of
+// zero is invisible in every sense - the star is drawn, looks normal, and simply cannot be
+// selected - so this is the one place the non-overlap rule yields.
+// Deliberately well below any real spacing: Taurus's tightest authored pair is 0.155 apart
+// and wants caps of 0.071, so a floor of 0.12 would have forced those two to overlap - the
+// exact failure the cap exists to prevent. At 0.05 the floor only engages for stars closer
+// than ~0.11, which means authored on top of each other.
+const HIT_CAP_FLOOR = 0.05
 
 const constellationLoaderComponent = {
   schema: {
@@ -2771,19 +2779,31 @@ const constellationLoaderComponent = {
 
     console.log('Processing', this.constellationData.stars.length, 'stars')
 
+    // Positions taken from the DATA, not read back off the entities. createStars runs
+    // synchronously, so at this point A-Frame has not initialised the position components it
+    // was just handed: getAttribute('position') falls through to the raw HTML attribute and
+    // returns the STRING "x y z". Feeding that to THREE.Vector3 gives (0,0,0) for every star,
+    // which made every nearest-neighbour distance 0, every cap 0, and every tap target a
+    // sphere of radius zero - the stars were all still there and simply could not be hit.
+    const placed = []
+
     this.constellationData.stars.forEach((starData, index) => {
       try {
         console.log(`Creating star ${index + 1}:`, starData.name)
         const starEntity = this.createStarEntity(starData)
         this.rotatingContainer.appendChild(starEntity)
         this.stars.push(starEntity)
+        placed.push({
+          el: starEntity,
+          pos: new THREE.Vector3(starData.position2D.x, starData.position2D.y, 0),
+        })
         console.log(`✅ Star ${starData.name} created successfully`)
       } catch (error) {
         console.error(`❌ Error creating star ${starData.name}:`, error)
       }
     })
 
-    this.capHitSpheres()
+    this.capHitSpheres(placed)
 
     console.log(`Total stars created: ${this.stars.length}`)
   },
@@ -2794,20 +2814,22 @@ const constellationLoaderComponent = {
   // neighbour: generous where the figure is open, tight where it is crowded, and never
   // ambiguous. Recomputed from scratch on every build, so swapFigure's cluster figures - which
   // are far denser than a constellation - get their own caps rather than inheriting these.
-  capHitSpheres() {
-    const pts = this.stars.map((el) => {
-      const p = el.getAttribute('position')
-      return new THREE.Vector3(p.x, p.y, p.z)
-    })
+  capHitSpheres(placed) {
+    if (!placed || !placed.length) return
 
-    this.stars.forEach((el, i) => {
+    placed.forEach(({el, pos}, i) => {
       let nearest = Infinity
-      for (let j = 0; j < pts.length; j++) {
+      for (let j = 0; j < placed.length; j++) {
         if (j === i) continue
-        nearest = Math.min(nearest, pts[i].distanceTo(pts[j]))
+        nearest = Math.min(nearest, pos.distanceTo(placed[j].pos))
       }
       // A lone star has nothing to collide with, so only its own base size limits it.
-      const cap = isFinite(nearest) ? nearest * HIT_NEIGHBOUR_MARGIN : Infinity
+      // HIT_CAP_FLOOR is the backstop: two stars authored at the same point would otherwise
+      // cap each other at zero and become unselectable, which is a worse failure than a pair
+      // of slightly overlapping targets on top of each other.
+      const cap = isFinite(nearest)
+        ? Math.max(nearest * HIT_NEIGHBOUR_MARGIN, HIT_CAP_FLOOR)
+        : Infinity
       el.dataset.hitCap = isFinite(cap) ? cap : ''
       const hit = el.querySelector('a-sphere.cantap')
       if (!hit) return

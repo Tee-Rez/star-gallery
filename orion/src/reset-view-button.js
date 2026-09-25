@@ -9,7 +9,9 @@ import {HUD} from './js/hud-shell'
 const resetViewButtonComponent = {
   schema: {
     fadeTime: {type: 'number', default: 300},
-    distance: {type: 'number', default: 5},  // Distance in front of camera
+    // Matches tap-place-cursor's placementDistance. The two have to agree or Recenter
+    // would move the portal to a different distance than the one it was placed at.
+    distance: {type: 'number', default: 4},  // Distance in front of camera
   },
 
   init() {

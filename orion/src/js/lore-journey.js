@@ -230,10 +230,11 @@ const loreJourneyComponent = {
     const pts = (names || [])
       .map(n => this.getStarEntity(n))
       .filter(Boolean)
-      .map((e) => {
-        const p = e.getAttribute('position')
-        return new THREE.Vector3(p.x, p.y, p.z)
-      })
+      // object3D.position, not getAttribute: the same trap that zeroed every tap target -
+      // getAttribute falls through to the raw string attribute whenever the position component
+      // has not initialised yet. The journey only runs long after the figure is built, so this
+      // is belt and braces rather than a live bug, but it costs nothing to read the real one.
+      .map(e => e.object3D.position.clone())
 
     let nearest = Infinity
     for (let i = 0; i < pts.length; i++) {
