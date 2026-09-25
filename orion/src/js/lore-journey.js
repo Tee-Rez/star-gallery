@@ -103,6 +103,12 @@ const loreJourneyComponent = {
   // ---- Mode enter/exit ----
   enterMode() {
     this.active = true
+    // The journey scales #root up to zoomScale, and recenterConstellation only ever sets
+    // position and rotation - it does not touch scale. Without remembering it here the
+    // constellation stays 2.5x the moment the tour ends, which reads as standing much too
+    // close to the portal, and Recenter cannot undo it because scale is not its business.
+    const rootEl = document.querySelector('#root')
+    this.savedScale = rootEl ? rootEl.object3D.scale.clone() : null
     // Disable user (one-finger) rotation while in lore mode so the tour controls the view.
     const l = this.loader()
     this.prevShowReal = l ? l.data.showRealPositions : false // remember view to restore on exit
@@ -291,12 +297,26 @@ const loreJourneyComponent = {
     const root = document.querySelector('#root').object3D
     const cam = (document.querySelector('a-camera') || document.querySelector('[camera]')).object3D
     const camPos = new THREE.Vector3(); cam.getWorldPosition(camPos)
-    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(cam.getWorldQuaternion(new THREE.Quaternion())).normalize()
+    const camQuat = cam.getWorldQuaternion(new THREE.Quaternion())
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camQuat)
+    // FLATTENED. The focal point used to follow the camera's full forward vector, so whatever
+    // pitch the phone happened to be held at became the angle the figure was placed at - look
+    // down and the constellation came down with you, arriving off-square. Dropping y puts the
+    // star dead ahead at eye level and leaves the figure square to the viewer, which is what
+    // facing straight into the portal asks for.
+    fwd.y = 0
+    // Only degenerate when the phone points at the floor or the sky, where there is no
+    // horizontal heading to recover. Fall back to the camera's own right-vector turned into a
+    // heading rather than dividing by zero.
+    if (fwd.lengthSq() < 1e-6) {
+      fwd.set(0, -1, 0).applyQuaternion(camQuat)
+      fwd.y = 0
+      if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1)
+    }
+    fwd.normalize()
     const focal = camPos.clone().addScaledVector(fwd, this.data.focusDistance)
 
-    // Upright, yaw-only orientation: turn the constellation's face toward the camera around the
-    // vertical axis only (no pitch/roll). Combined with the tick() spin around the vertical axis
-    // through the focused star, this reads as a clean turntable with the star staying front-on.
+    // Yaw only, taken from that same flattened heading: no pitch, no roll.
     const toCam = camPos.clone().sub(focal); toCam.y = 0
     const yaw = Math.atan2(toCam.x, toCam.z)
 
@@ -360,6 +380,11 @@ const loreJourneyComponent = {
     const a = this.audio()
     if (a) a.stopAll()
     this.focal = null
+    // Scale first, THEN recenter: recenter places #root a fixed distance in front of the
+    // camera, and a root still at zoomScale would be put at the right distance at the wrong
+    // size - which is the same thing as being too close.
+    const rootEl = document.querySelector('#root')
+    if (rootEl && this.savedScale) rootEl.object3D.scale.copy(this.savedScale)
     // Reuse the existing recenter to restore the front view.
     const reset = document.querySelector('[reset-view-button]')
     if (reset && reset.components['reset-view-button']) {

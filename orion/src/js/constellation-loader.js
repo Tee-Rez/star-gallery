@@ -3,6 +3,20 @@ import {defaultStore} from './discovery-store'
 import {resolveLayer} from './deep-sky-field'
 import {faceText} from './hud-face'
 
+// How big a star's tap target wants to be, before its neighbours get a say. Raised from 3x /
+// 0.3: the old target was smaller than it looked and faint stars in particular were hard to
+// hit. Nothing here is the final size - capHitSpheres() cuts any sphere that would reach its
+// nearest neighbour, so a crowded figure ends up with smaller targets than a sparse one.
+const HIT_BASE = 5
+const HIT_FLOOR = 0.45
+// Camera-distance growth, applied on top and also capped. Stars across the room need a bigger
+// target than stars at arm's length.
+const HIT_GROWTH_MAX = 2.5
+// Two spheres of equal radius touch when the gap between their centres is 2r, so half the
+// nearest-neighbour distance is the largest either may take. The margin keeps them from
+// meeting exactly, which would make the star on the boundary ambiguous to tap.
+const HIT_NEIGHBOUR_MARGIN = 0.46
+
 const constellationLoaderComponent = {
   schema: {
     constellationFile: {type: 'string', default: 'orion'},
@@ -2769,7 +2783,37 @@ const constellationLoaderComponent = {
       }
     })
 
+    this.capHitSpheres()
+
     console.log(`Total stars created: ${this.stars.length}`)
+  },
+
+  // The tap targets want to be generous, but two of them overlapping means the star you get is
+  // whichever the raycaster happened to reach first - which from some angles is not the one
+  // under your finger. So every sphere is capped at just under half the distance to its nearest
+  // neighbour: generous where the figure is open, tight where it is crowded, and never
+  // ambiguous. Recomputed from scratch on every build, so swapFigure's cluster figures - which
+  // are far denser than a constellation - get their own caps rather than inheriting these.
+  capHitSpheres() {
+    const pts = this.stars.map((el) => {
+      const p = el.getAttribute('position')
+      return new THREE.Vector3(p.x, p.y, p.z)
+    })
+
+    this.stars.forEach((el, i) => {
+      let nearest = Infinity
+      for (let j = 0; j < pts.length; j++) {
+        if (j === i) continue
+        nearest = Math.min(nearest, pts[i].distanceTo(pts[j]))
+      }
+      // A lone star has nothing to collide with, so only its own base size limits it.
+      const cap = isFinite(nearest) ? nearest * HIT_NEIGHBOUR_MARGIN : Infinity
+      el.dataset.hitCap = isFinite(cap) ? cap : ''
+      const hit = el.querySelector('a-sphere.cantap')
+      if (!hit) return
+      const want = Math.max((parseFloat(el.dataset.size) || 0.1) * HIT_BASE, HIT_FLOOR)
+      hit.setAttribute('radius', Math.min(want, cap))
+    })
   },
 
   createStarEntity(starData) {
@@ -2810,14 +2854,15 @@ const constellationLoaderComponent = {
 
     // Collision sphere for easier selection. Invisible again: it had been turned up to 0.25 to
     // look at the hit box, and that milky shell around every star was a large part of why they
-    // read as washed out. Its radius is driven live by showSelectionState().
+    // read as washed out. Its radius is driven live by showSelectionState(), and capped against
+    // this star's nearest neighbour by capHitSpheres() once the whole figure exists.
     //
     // Only 8x6 segments now. Nobody sees it, and at the default 36x18 the hit boxes alone were
     // costing more triangles than every visible star put together.
     // Still an <a-sphere>: showSelectionState and others select it as `a-sphere.cantap` and set
     // `radius` on it directly, so changing the element type here would silently break selection.
     const collisionSphere = document.createElement('a-sphere')
-    const collisionRadius = Math.max(starData.size * 3, 0.3)
+    const collisionRadius = Math.max(starData.size * HIT_BASE, HIT_FLOOR)
     collisionSphere.setAttribute('radius', collisionRadius)
     collisionSphere.setAttribute('segments-width', 8)
     collisionSphere.setAttribute('segments-height', 6)
@@ -3293,10 +3338,13 @@ const constellationLoaderComponent = {
       if (collisionSphere) {
         // From the entity's own data rather than from the drawn star: star-visual is not an
         // <a-sphere> and has no `radius` attribute to read back.
-        const baseSize = (parseFloat(star.dataset.size) || 0.1) * 3
-        const scaleFactor = Math.min(distance / 10, 2)
-        const newRadius = baseSize * scaleFactor
-        collisionSphere.setAttribute('radius', newRadius)
+        const baseSize = Math.max((parseFloat(star.dataset.size) || 0.1) * HIT_BASE, HIT_FLOOR)
+        const scaleFactor = Math.min(Math.max(distance / 10, 1), HIT_GROWTH_MAX)
+        // The neighbour cap applies to the grown radius too, or walking away from the
+        // constellation would quietly merge the targets that capHitSpheres just separated.
+        const cap = parseFloat(star.dataset.hitCap)
+        const want = baseSize * scaleFactor
+        collisionSphere.setAttribute('radius', isFinite(cap) ? Math.min(want, cap) : want)
       }
     })
 
