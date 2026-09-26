@@ -9,11 +9,10 @@ import {HUD} from './js/hud-shell'
 const resetViewButtonComponent = {
   schema: {
     fadeTime: {type: 'number', default: 300},
-    // Matches tap-place-cursor's placementDistance and standHeight. The two have to agree or
-    // Recenter would move the portal to a different distance, or a different height, than the
-    // one it was placed at.
-    distance: {type: 'number', default: 3.5},  // Distance in front of camera
-    standHeight: {type: 'number', default: 1.8},
+    // Fallback only. Recenter asks tap-place-cursor for the placement point so the two cannot
+    // disagree about where the portal belongs; this is what it falls back to if that component
+    // is missing.
+    distance: {type: 'number', default: 4.5},  // Distance in front of camera
     // Whether Recenter also resets 8th Wall's own tracking. The button used to move #root and
     // nothing else, which cannot help when the problem is that the tracker's floor estimate
     // has gone wrong - the content was being put back in front of a camera whose idea of the
@@ -136,28 +135,35 @@ const resetViewButtonComponent = {
       }
     }
 
-    // Get camera's world position
-    const cameraWorldPos = new THREE.Vector3()
-    camera3D.getWorldPosition(cameraWorldPos)
+    // Ask the component that owns placement where the portal goes, rather than keeping a
+    // second copy of the rule here. Recenter and the original tap then agree by construction -
+    // distance, height and facing - instead of agreeing only as long as nobody edits one of
+    // the two.
+    const cursorEl = document.querySelector('[tap-place-cursor]')
+    const cursor = cursorEl && cursorEl.components && cursorEl.components['tap-place-cursor']
 
-    // Flattened heading, matching tap-place-cursor: the portal stands on the floor a fixed
-    // distance ahead whatever the phone's pitch, rather than being flung up or down with it.
-    const cameraDirection = new THREE.Vector3(0, 0, -1)
-    cameraDirection.applyQuaternion(camera3D.getWorldQuaternion(new THREE.Quaternion()))
-    cameraDirection.y = 0
-    if (cameraDirection.lengthSq() < 1e-6) cameraDirection.set(0, 0, -1)
-    cameraDirection.normalize()
-
-    const newPosition = new THREE.Vector3()
-    newPosition.copy(cameraWorldPos)
-    newPosition.addScaledVector(cameraDirection, this.data.distance)
-    newPosition.y = this.data.standHeight
+    let newPosition
+    let heading
+    if (cursor && typeof cursor.placementPoint === 'function') {
+      const placed = cursor.placementPoint()
+      newPosition = placed.point
+      heading = placed.forward
+    } else {
+      const cameraWorldPos = camera3D.getWorldPosition(new THREE.Vector3())
+      heading = new THREE.Vector3(0, 0, -1)
+        .applyQuaternion(camera3D.getWorldQuaternion(new THREE.Quaternion()))
+      heading.y = 0
+      if (heading.lengthSq() < 1e-6) heading.set(0, 0, -1)
+      heading.normalize()
+      newPosition = cameraWorldPos.clone().addScaledVector(heading, this.data.distance)
+      newPosition.y = cameraWorldPos.y
+    }
 
     root3D.position.copy(newPosition)
 
-    // Yaw only, from the same flattened heading. lookAt(camera) would pitch the portal now
-    // that it stands on the floor and the camera does not.
-    root3D.rotation.set(0, Math.atan2(-cameraDirection.x, -cameraDirection.z), 0)
+    // Yaw only, from the same flattened heading. lookAt(camera) would pitch the portal
+    // whenever the phone is not held exactly level.
+    root3D.rotation.set(0, Math.atan2(-heading.x, -heading.z), 0)
 
     // Visual feedback
     this.animateButtonFeedback()

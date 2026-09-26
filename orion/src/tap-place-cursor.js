@@ -11,19 +11,30 @@
 import {HUD} from './js/hud-shell'
 const tapPlaceCursorComponent = {
   schema: {
-    placementDistance: {type: 'number', default: 2.5},  // Distance from camera to place cursor
-    // Where the portal's ORIGIN sits above the floor - and, because every figure is authored
-    // centred on local y=0, this IS the height of the middle of the constellation.
+    // Only a fallback now - used when the projection matrix cannot be read and the fit
+    // cannot be solved. See fitDistance().
+    placementDistance: {type: 'number', default: 4.5},
+
+    // HEIGHT. The portal's origin goes at the camera's own height plus this, and that origin
+    // is where two things live: the middle of every figure (they are all authored centred on
+    // local y=0) and the expanded star, which dynamic-star-controller parents to #portal at
+    // 0 0 0. So at offset 0 the star opens exactly where the placement reticle was - dead
+    // centre of the screen - which is the whole point.
     //
-    // 2.25 put the frame's bottom edge exactly on y=0, which is what 8th Wall's surface
-    // guidance asks for, but it also put the figure's centre 0.65 above a 1.6 eye line and
-    // sent Orion's top star to 5.84 - you had to tip the phone up to find the constellation.
-    // 1.8 brings the centre to roughly eye level (+0.2, a slight upward bias that suits a sky)
-    // at the cost of the frame's lower edge sinking about 0.45 into the floor, which reads as
-    // the portal being planted in the ground rather than hovering over it.
-    //
-    // This is the number to change if the portal sits too high or too low.
-    standHeight: {type: 'number', default: 1.8},
+    // This replaced a fixed height above the FLOOR. Standing the portal on the floor is what
+    // 8th Wall's surface guidance asks for, but the floor is 1.6 below the camera and the
+    // figure's centre went with it, so the constellation sat high in frame and the expanded
+    // star opened above the middle of the screen.
+    heightOffset: {type: 'number', default: 0},
+
+    // FIT. Fallbacks only - the real extents are measured off the live portal-header, which
+    // differs per constellation (portal heights in the data are 9, 7, 6 and 5). These are the
+    // numbers for the tallest, Orion, used if the header cannot be found.
+    fitHalfHeight: {type: 'number', default: 3.4},
+    fitHalfWidth: {type: 'number', default: 2.0},
+    fitMargin: {type: 'number', default: 1.06},   // a little air so nothing touches the edge
+    minDistance: {type: 'number', default: 3},
+    maxDistance: {type: 'number', default: 7},
   },
 
   init() {
@@ -219,6 +230,57 @@ const tapPlaceCursorComponent = {
   //
   // Flattening the heading also makes the distance predictable: pitch the phone down and the
   // portal stays the same distance away instead of landing at your feet.
+  // How far back the portal has to be for the HUD band to fit on THIS screen.
+  //
+  // Solved from the camera's real projection matrix rather than assumed, because the answer
+  // depends entirely on the device's field of view and 8th Wall replaces the projection with
+  // the physical camera's intrinsics. For a standard perspective matrix
+  // e[5] = 1/tan(vFov/2) and e[0] = 1/(tan(vFov/2)*aspect) = 1/tan(hFov/2), so both half-angles
+  // fall straight out of it. A guessed distance is right on one phone and wrong on the next.
+  // How far the portal reaches from its own origin, in the directions that decide the fit.
+  //
+  // Measured from the live header rather than hard-coded, because the portal is sized per
+  // constellation - the data carries heights of 9, 7, 6 and 5 - and pushing the Pleiades as far
+  // back as Orion needs would put it needlessly out of reach.
+  //
+  // Downward is the binding direction: portal-header hangs the band BELOW the frame at
+  // -(frameHeight/2) - bandGap - groupH/2, so its lower edge sits frameHeight/2 + bandGap +
+  // groupH beneath the origin, further than the frame's own top edge. groupH is the band's
+  // height in world units - portal-header's U.groupH (900) over U.bandW (4000), times
+  // bandWidth.
+  fitExtents() {
+    const headerEl = document.querySelector('#portal-header')
+    const header = headerEl && headerEl.components && headerEl.components['portal-header']
+    if (!header || !header.data) {
+      return {halfHeight: this.data.fitHalfHeight, halfWidth: this.data.fitHalfWidth}
+    }
+
+    const d = header.data
+    const groupH = d.bandWidth * (900 / 4000)
+    const below = (d.frameHeight / 2) + d.bandGap + groupH
+    const above = d.frameHeight / 2
+    return {
+      halfHeight: Math.max(below, above),
+      halfWidth: Math.max(d.bandWidth / 2, d.frameWidth / 2),
+    }
+  },
+
+  fitDistance() {
+    const camObj = this.camera.getObject3D('camera')
+    const e = camObj && camObj.projectionMatrix && camObj.projectionMatrix.elements
+    if (!e || !(e[5] > 0) || !(e[0] > 0)) return this.data.placementDistance
+
+    const {halfHeight, halfWidth} = this.fitExtents()
+    const tanHalfV = 1 / e[5]
+    const tanHalfH = 1 / e[0]
+    const needV = halfHeight / tanHalfV
+    const needH = halfWidth / tanHalfH
+    const want = Math.max(needV, needH) * this.data.fitMargin
+    // Clamped: a projection read before 8th Wall has configured it could otherwise throw the
+    // portal into the next room or into the viewer's face.
+    return Math.max(this.data.minDistance, Math.min(this.data.maxDistance, want))
+  },
+
   placementPoint() {
     const cam = this.camera.object3D
     const camPos = cam.getWorldPosition(new THREE.Vector3())
@@ -230,8 +292,10 @@ const tapPlaceCursorComponent = {
     if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1)
     fwd.normalize()
 
-    const p = camPos.clone().addScaledVector(fwd, this.data.placementDistance)
-    p.y = this.data.standHeight
+    const p = camPos.clone().addScaledVector(fwd, this.fitDistance())
+    // The camera's own height, so the origin - and with it the expanded star - lands exactly
+    // where the reticle is: the middle of the screen.
+    p.y = camPos.y + this.data.heightOffset
     return {point: p, forward: fwd}
   },
 
