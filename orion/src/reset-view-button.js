@@ -12,8 +12,8 @@ const resetViewButtonComponent = {
     // Matches tap-place-cursor's placementDistance and standHeight. The two have to agree or
     // Recenter would move the portal to a different distance, or a different height, than the
     // one it was placed at.
-    distance: {type: 'number', default: 3},  // Distance in front of camera
-    standHeight: {type: 'number', default: 2.25},
+    distance: {type: 'number', default: 3.5},  // Distance in front of camera
+    standHeight: {type: 'number', default: 1.8},
     // Whether Recenter also resets 8th Wall's own tracking. The button used to move #root and
     // nothing else, which cannot help when the problem is that the tracker's floor estimate
     // has gone wrong - the content was being put back in front of a camera whose idea of the

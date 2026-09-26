@@ -12,13 +12,18 @@ import {HUD} from './js/hud-shell'
 const tapPlaceCursorComponent = {
   schema: {
     placementDistance: {type: 'number', default: 2.5},  // Distance from camera to place cursor
-    // Where the portal's ORIGIN sits above the floor. The frame is drawn +/- height/4 around
-    // that origin (portal.js: height 9 -> halfFrameHeight 2.25), so 2.25 stands the bottom
-    // edge of the frame on y=0.
+    // Where the portal's ORIGIN sits above the floor - and, because every figure is authored
+    // centred on local y=0, this IS the height of the middle of the constellation.
     //
-    // This is the number to change if the portal sits too high or too low - it is the only
-    // thing deciding the portal's height off the ground.
-    standHeight: {type: 'number', default: 2.25},
+    // 2.25 put the frame's bottom edge exactly on y=0, which is what 8th Wall's surface
+    // guidance asks for, but it also put the figure's centre 0.65 above a 1.6 eye line and
+    // sent Orion's top star to 5.84 - you had to tip the phone up to find the constellation.
+    // 1.8 brings the centre to roughly eye level (+0.2, a slight upward bias that suits a sky)
+    // at the cost of the frame's lower edge sinking about 0.45 into the floor, which reads as
+    // the portal being planted in the ground rather than hovering over it.
+    //
+    // This is the number to change if the portal sits too high or too low.
+    standHeight: {type: 'number', default: 1.8},
   },
 
   init() {
