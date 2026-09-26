@@ -12,6 +12,13 @@ import {HUD} from './js/hud-shell'
 const tapPlaceCursorComponent = {
   schema: {
     placementDistance: {type: 'number', default: 2.5},  // Distance from camera to place cursor
+    // Where the portal's ORIGIN sits above the floor. The frame is drawn +/- height/4 around
+    // that origin (portal.js: height 9 -> halfFrameHeight 2.25), so 2.25 stands the bottom
+    // edge of the frame on y=0.
+    //
+    // This is the number to change if the portal sits too high or too low - it is the only
+    // thing deciding the portal's height off the ground.
+    standHeight: {type: 'number', default: 2.25},
   },
 
   init() {
@@ -194,17 +201,40 @@ const tapPlaceCursorComponent = {
     }
   },
 
-  // Where the cursor is right now, in world space: straight out from the camera. Read from
-  // the object3D rather than recomputed, so it is exactly the spot the viewer is looking at.
-  cursorWorldPosition() {
-    return this.el.object3D.getWorldPosition(new THREE.Vector3())
+  // Where the portal actually goes: on the FLOOR, a fixed distance ahead, regardless of how
+  // the phone happens to be tilted.
+  //
+  // It used to land wherever the reticle was - dead ahead of the camera, which put it floating
+  // at eye height with nothing under it. Two things were wrong with that. 8th Wall's world
+  // tracking is a floor-plane estimate that it keeps recalculating from feature points, and its
+  // own guidance is that surface-aligned content sits with its base at y=0; content hanging in
+  // mid-air has no relationship to the plane being tracked. And in practice, once you are
+  // looking at something several metres away at eye level the floor leaves the frame entirely,
+  // which is exactly when that plane estimate goes bad and everything anchored to it slides.
+  //
+  // Flattening the heading also makes the distance predictable: pitch the phone down and the
+  // portal stays the same distance away instead of landing at your feet.
+  placementPoint() {
+    const cam = this.camera.object3D
+    const camPos = cam.getWorldPosition(new THREE.Vector3())
+    const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(
+      cam.getWorldQuaternion(new THREE.Quaternion()))
+    fwd.y = 0
+    // Pointing straight up or straight down leaves no heading to flatten; keep the last usable
+    // one rather than normalising a zero vector into NaN and losing the portal entirely.
+    if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1)
+    fwd.normalize()
+
+    const p = camPos.clone().addScaledVector(fwd, this.data.placementDistance)
+    p.y = this.data.standHeight
+    return {point: p, forward: fwd}
   },
 
   placeConstellation() {
     console.log('========== PLACING CONSTELLATION ==========')
 
-    const cursorLocation = this.cursorWorldPosition()
-    console.log('Cursor location:', cursorLocation)
+    const {point: cursorLocation, forward} = this.placementPoint()
+    console.log('Placing at floor point:', cursorLocation)
 
     this.hasPlaced = true
 
@@ -233,15 +263,10 @@ const tapPlaceCursorComponent = {
     })
     console.log('Root positioned at:', cursorLocation)
 
-    // Calculate rotation to face the camera
-    const cameraPosition = new THREE.Vector3()
-    this.camera.object3D.getWorldPosition(cameraPosition)
-
-    const direction = new THREE.Vector3()
-    direction.subVectors(cameraPosition, cursorLocation).normalize()
-
-    // Calculate angle for Y rotation (yaw)
-    const angle = Math.atan2(direction.x, direction.z) * 180 / Math.PI
+    // Face back down the heading it was placed along. Taken from the flattened forward rather
+    // than from (camera - portal): those differ now that the portal is on the floor and the
+    // camera is not, and the vertical component would tilt the portal.
+    const angle = Math.atan2(-forward.x, -forward.z) * 180 / Math.PI
 
     root.setAttribute('rotation', `0 ${angle} 0`)
     console.log('Root rotation set to:', angle)

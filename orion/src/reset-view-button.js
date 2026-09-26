@@ -9,9 +9,16 @@ import {HUD} from './js/hud-shell'
 const resetViewButtonComponent = {
   schema: {
     fadeTime: {type: 'number', default: 300},
-    // Matches tap-place-cursor's placementDistance. The two have to agree or Recenter
-    // would move the portal to a different distance than the one it was placed at.
-    distance: {type: 'number', default: 4},  // Distance in front of camera
+    // Matches tap-place-cursor's placementDistance and standHeight. The two have to agree or
+    // Recenter would move the portal to a different distance, or a different height, than the
+    // one it was placed at.
+    distance: {type: 'number', default: 3},  // Distance in front of camera
+    standHeight: {type: 'number', default: 2.25},
+    // Whether Recenter also resets 8th Wall's own tracking. The button used to move #root and
+    // nothing else, which cannot help when the problem is that the tracker's floor estimate
+    // has gone wrong - the content was being put back in front of a camera whose idea of the
+    // room was already wrong.
+    resetTracking: {type: 'boolean', default: true},
   },
 
   init() {
@@ -116,28 +123,41 @@ const resetViewButtonComponent = {
     const root3D = rootEl.object3D
     const camera3D = cameraEl.object3D
 
+    // Reset the TRACKER first, then place against the frame it leaves behind. recenter() moves
+    // 8th Wall's origin to the camera's current pose, so anything positioned before this call
+    // would be left sitting in the old frame - which is the one that had gone wrong.
+    if (this.data.resetTracking &&
+        window.XR8 && window.XR8.XrController && window.XR8.isInitialized &&
+        window.XR8.isInitialized()) {
+      try {
+        window.XR8.XrController.recenter()
+      } catch (e) {
+        console.warn('[reset-view-button] XR8 recenter failed, repositioning only:', e)
+      }
+    }
+
     // Get camera's world position
     const cameraWorldPos = new THREE.Vector3()
     camera3D.getWorldPosition(cameraWorldPos)
 
-    // Get camera's forward direction in world space
-    const cameraDirection = new THREE.Vector3(0, 0, -1)  // Camera looks down -Z
+    // Flattened heading, matching tap-place-cursor: the portal stands on the floor a fixed
+    // distance ahead whatever the phone's pitch, rather than being flung up or down with it.
+    const cameraDirection = new THREE.Vector3(0, 0, -1)
     cameraDirection.applyQuaternion(camera3D.getWorldQuaternion(new THREE.Quaternion()))
+    cameraDirection.y = 0
+    if (cameraDirection.lengthSq() < 1e-6) cameraDirection.set(0, 0, -1)
     cameraDirection.normalize()
 
-    // Calculate position in front of camera
     const newPosition = new THREE.Vector3()
     newPosition.copy(cameraWorldPos)
     newPosition.addScaledVector(cameraDirection, this.data.distance)
+    newPosition.y = this.data.standHeight
 
-    // Position the root in front of camera
     root3D.position.copy(newPosition)
 
-    // Make the constellation face the camera
-    root3D.lookAt(cameraWorldPos)
-
-    // Keep the constellation upright (no roll)
-    root3D.rotation.z = 0
+    // Yaw only, from the same flattened heading. lookAt(camera) would pitch the portal now
+    // that it stands on the floor and the camera does not.
+    root3D.rotation.set(0, Math.atan2(-cameraDirection.x, -cameraDirection.z), 0)
 
     // Visual feedback
     this.animateButtonFeedback()
