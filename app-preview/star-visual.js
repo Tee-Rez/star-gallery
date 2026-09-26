@@ -100,10 +100,20 @@ const BILLBOARD_VERT = `
   void main() {
     vUv = uv;
     float scale = length(modelViewMatrix[0].xyz);
-    vec4 mv = modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0);
-    mv.xy += position.xy * uSize * scale;
-    mv.z += uBias * scale;
-    gl_Position = projectionMatrix * mv;
+    vec3 c = (modelViewMatrix * vec4(0.0, 0.0, 0.0, 1.0)).xyz;
+
+    // Toward the camera ALONG THE VIEW RAY, not along the view z axis. A point at view-space
+    // (x, y, z) projects to (x/-z, y/-z), so adding the bias to z alone also changes where the
+    // quad lands on screen: its projected centre slides radially away from the star it belongs
+    // to, and the further off-centre the star is, the bigger the slide. The glow stops sitting
+    // on the star and starts reading as something hanging behind it. Moving along the ray keeps
+    // the direction from the camera identical, so the projected centre does not move at all.
+    float dist = max(length(c), 1e-4);
+    c += (-c / dist) * (uBias * scale);
+
+    // The quad itself still spreads in the view plane, so it stays square to the camera.
+    c.xy += position.xy * uSize * scale;
+    gl_Position = projectionMatrix * vec4(c, 1.0);
   }
 `
 
@@ -125,7 +135,10 @@ const HALO_FRAG = `
     // unresolved star. Once the disc IS resolved the halo has to start AT the limb: scattered
     // light belongs around the source, and laid over the photosphere instead it adds about
     // 0.7 of flat white to every pixel of it, which clips the granulation away entirely.
-    if (uInner > 0.0) a *= smoothstep(uInner * 0.88, uInner * 1.30, r);
+    // Starting the fade well inside the limb rather than at it: a star's glow comes OUT of the
+    // disc, and beginning it exactly at the edge left a ring hanging around the star instead.
+    // Not from zero, though - that is what washed the granulation out in the first place.
+    if (uInner > 0.0) a *= smoothstep(uInner * 0.45, uInner * 1.10, r);
     if (a < 0.003) discard;
     gl_FragColor = vec4(uCol * a, a);
   }
