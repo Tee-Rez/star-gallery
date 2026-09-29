@@ -87,7 +87,13 @@ const starInfoOverlayComponent = {
     // horizontal bar across the panel. One did - the volume slider's 2px UA margins, which
     // width:100% does not account for. That is fixed at the slider, but naming both axes here
     // is what stops the next mistuned control bringing the bar back.
+    // --fs-panel is this card's reading size, a step below the HUD's --fs-body (which stays on
+    // the buttons, where a smaller tap label would be worse). It is scoped to the overlay
+    // rather than added to the shared scale in hud-shell, because it exists to make THIS panel
+    // hold more text, not to shrink type anywhere else. One number governs both panes: the
+    // star's reading and the starsong read-outs, which previously disagreed at 14px and 12px.
     this.content.style.cssText = `
+      --fs-panel: clamp(10px, calc(2.8 * var(--u)), 12px);
       flex: 1 1 auto;
       overflow: hidden auto;
       line-height: 1.4;
@@ -230,7 +236,7 @@ const starInfoOverlayComponent = {
     const audio = this.starAudio()
 
     if (!audio || !audio.isAvailable()) {
-      return '<p style="opacity:.7;font-size:12px;">Audio is not available in this browser.</p>'
+      return '<p style="opacity:.7;">Audio is not available in this browser.</p>'
     }
 
     const d = audio.describe(rec)
@@ -238,12 +244,12 @@ const starInfoOverlayComponent = {
       ';border-radius:8px;color:#f2ece0;font-size:13px;cursor:pointer;'
 
     return `
-      <p style="margin:0 0 10px 0;font-size:12px;line-height:1.5;">
+      <p style="margin:0 0 10px 0;line-height:1.5;">
         This tone comes from the star itself. Its size sets the pitch, and its surface
         temperature of about <b>${Math.round(d.physics.tempKelvin)} K</b> sets how bright the
         overtones are.
       </p>
-      <div style="font-size:12px;margin-bottom:12px;line-height:1.6;">
+      <div style="margin-bottom:12px;line-height:1.6;">
         <div>Pitch: <b>${d.pitchHz.toFixed(1)} Hz</b></div>
         <div>True frequency: <b>${d.truePitchHz.toFixed(1)} Hz</b></div>
         <div style="opacity:.65;margin-top:6px;">
@@ -258,7 +264,7 @@ const starInfoOverlayComponent = {
         True sound</button>
       <div style="margin-top:14px;padding-top:12px;
         border-top:1px solid rgba(201,162,74,0.3);">
-        <div style="display:flex;justify-content:space-between;font-size:12px;
+        <div style="display:flex;justify-content:space-between;
           margin-bottom:6px;opacity:.85;">
           <span>Volume</span><span data-volume-readout>${Math.round(audio.getVolume() * 100)}%</span>
         </div>
@@ -360,8 +366,8 @@ const starInfoOverlayComponent = {
           border:1px solid ${this.data.borderColor};border-radius:6px;min-width:0;
           background:rgba(0,0,0,.3);color:#f2ece0;">Starsong</button>
       </div>
-      <div data-pane="info">${this.formatStarInfo(info)}</div>
-      <div data-pane="starsong" style="display:none;">${this.buildStarsongPane(name)}</div>`
+      <div data-pane="info" style="font-size:var(--fs-panel);">${this.formatStarInfo(info)}</div>
+      <div data-pane="starsong" style="display:none;font-size:var(--fs-panel);">${this.buildStarsongPane(name)}</div>`
     this.wireTabs(name)
 
     // The layer keeps a closed card out of the layout entirely, so open the row first and let
