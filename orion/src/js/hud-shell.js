@@ -190,6 +190,19 @@ const STYLE = `
   transform: translateY(1px);
   filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.6)) brightness(0.93);
 }
+/* Hover and confirmation act on the DRAWN pill, through filter, never on its background.
+   The pill's shape is a border-image with the fill keyword, so opaque marble covers the
+   middle and a
+   background colour can only show in the corners the curve leaves uncovered - tinting it
+   painted a square sitting outside the caps, which is exactly what it looked like. filter
+   applies to the rendered nine-slice, so it follows the pill's real silhouette. */
+#hud .hud-pill.is-hot {
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55)) brightness(1.12);
+}
+#hud .hud-pill.is-flash {
+  filter: drop-shadow(0 0 7px rgba(66, 135, 245, 0.85))
+          drop-shadow(0 2px 4px rgba(0, 0, 0, 0.55)) brightness(1.1);
+}
 #hud .hud-pill svg { width: 1.05em; height: 1.05em; flex: none; }
 /* The hint wears the pill too. Its cap is sized from the pill's own height rather than the
    hint's, so a hint that wraps to two lines gets the cap of a one-line pill: the end stays the

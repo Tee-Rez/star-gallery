@@ -50,7 +50,8 @@ const resetViewButtonComponent = {
     // which swallowed any tap near the top centre while the portal was still being placed.
     this.button.style.opacity = '0'
     this.button.style.pointerEvents = 'none'
-    this.button.style.transition = `opacity ${this.data.fadeTime}ms ease, background ${this.data.fadeTime}ms ease`
+    this.button.style.transition =
+      `opacity ${this.data.fadeTime}ms ease, filter 200ms ease, transform 120ms ease`
     this.button.textContent = 'Recenter'
 
     // Use bound methods
@@ -58,6 +59,7 @@ const resetViewButtonComponent = {
     this.button.addEventListener('mouseleave', this.handleMouseLeave)
     this.button.addEventListener('touchstart', this.handleTouchStart)
     this.button.addEventListener('touchend', this.handleClick)
+    this.button.addEventListener('touchcancel', this.handleMouseLeave)
     this.button.addEventListener('click', this.handleClick)
 
     HUD.mount(this.button, 'top-end', 'recenter')
@@ -65,22 +67,16 @@ const resetViewButtonComponent = {
   },
 
   handleMouseEnter() {
-    if (this.isVisible && !this.isRecentering) {
-      this.button.style.background = 'rgba(66, 135, 245, 0.3)'
-    }
+    if (this.isVisible && !this.isRecentering) this.button.classList.add('is-hot')
   },
 
   handleMouseLeave() {
-    if (this.isVisible && !this.isRecentering) {
-      this.button.style.background = 'rgba(0, 0, 0, 0.7)'
-    }
+    this.button.classList.remove('is-hot')
   },
 
   handleTouchStart(e) {
     e.preventDefault()
-    if (this.isVisible && !this.isRecentering) {
-      this.button.style.background = 'rgba(66, 135, 245, 0.3)'
-    }
+    if (this.isVisible && !this.isRecentering) this.button.classList.add('is-hot')
   },
 
   handleClick(e) {
@@ -177,10 +173,10 @@ const resetViewButtonComponent = {
   // A colour flash rather than a 'Recentering...' label: the longer label widened the pill
   // mid-tap and pushed into Gallery on narrow phones.
   animateButtonFeedback() {
-    this.button.style.background = 'rgba(66, 135, 245, 0.5)'
+    this.button.classList.add('is-flash')
 
     setTimeout(() => {
-      this.button.style.background = 'rgba(0, 0, 0, 0.7)'
+      this.button.classList.remove('is-flash')
     }, 800)
   },
 

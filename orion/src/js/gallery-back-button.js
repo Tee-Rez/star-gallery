@@ -58,11 +58,11 @@ const galleryBackButtonComponent = {
   },
 
   handleEnter() {
-    this.button.style.background = 'rgba(66, 135, 245, 0.3)'
+    this.button.classList.add('is-hot')
   },
 
   handleLeave() {
-    this.button.style.background = 'rgba(0, 0, 0, 0.7)'
+    this.button.classList.remove('is-hot')
   },
 
   handleClick(e) {
