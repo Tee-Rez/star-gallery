@@ -18,6 +18,14 @@ const resetViewButtonComponent = {
     // has gone wrong - the content was being put back in front of a camera whose idea of the
     // room was already wrong.
     resetTracking: {type: 'boolean', default: true},
+    // How many frames to wait for XR8 to write the post-recenter pose onto the camera before
+    // placing anyway. At 60fps this is about a quarter second - long enough for the pipeline
+    // to deliver, short enough that a no-op recenter does not leave the button feeling dead.
+    poseFrameCap: {type: 'int', default: 15},
+    // Wall-clock backstop for the same wait. Frames can stop altogether - a backgrounded tab,
+    // a throttled view - and a poll that only rides requestAnimationFrame would then never run
+    // again, leaving Recenter silently doing nothing. This guarantees the placement lands.
+    poseTimeoutMs: {type: 'int', default: 400},
   },
 
   init() {
@@ -115,21 +123,77 @@ const resetViewButtonComponent = {
       return
     }
 
-    const root3D = rootEl.object3D
     const camera3D = cameraEl.object3D
 
-    // Reset the TRACKER first, then place against the frame it leaves behind. recenter() moves
-    // 8th Wall's origin to the camera's current pose, so anything positioned before this call
-    // would be left sitting in the old frame - which is the one that had gone wrong.
-    if (this.data.resetTracking &&
-        window.XR8 && window.XR8.XrController && window.XR8.isInitialized &&
-        window.XR8.isInitialized()) {
-      try {
-        window.XR8.XrController.recenter()
-      } catch (e) {
-        console.warn('[reset-view-button] XR8 recenter failed, repositioning only:', e)
-      }
+    const resetting = this.data.resetTracking &&
+      window.XR8 && window.XR8.XrController && window.XR8.isInitialized &&
+      window.XR8.isInitialized()
+
+    // Visual feedback goes out now, not when the placement lands, so the button answers the
+    // tap immediately even though the work finishes a few frames later.
+    this.animateButtonFeedback()
+    setTimeout(() => { this.isRecentering = false }, 800)
+
+    if (!resetting) {
+      this.placePortal(rootEl)
+      return
     }
+
+    // recenter() moves 8th Wall's ORIGIN, and the pose that results does not reach the
+    // three.js camera until XR8's next pipeline frame. Placing in this same tick therefore
+    // reads the camera's OLD pose, in the old frame, and drops the portal off by however far
+    // the viewer had walked from that origin - to the left if they had moved left, further the
+    // further they had gone. Pressing again looked like a fix only because by then the camera
+    // had caught up and there was no movement left to mis-measure.
+    const before = camera3D.getWorldPosition(new THREE.Vector3())
+    try {
+      window.XR8.XrController.recenter()
+    } catch (e) {
+      console.warn('[reset-view-button] XR8 recenter failed, repositioning only:', e)
+      this.placePortal(rootEl)
+      return
+    }
+    this.placeWhenPoseLands(rootEl, camera3D, before)
+  },
+
+  // Wait for the camera to actually move before trusting it. The pose shifting IS the signal
+  // that XR8 has published the new origin; polling for it beats guessing a frame count, and
+  // the frame cap covers the case where it never moves - a recenter from a pose already at the
+  // origin is a no-op, and the portal should still be placed.
+  //
+  // Two clocks, because neither is sufficient alone: frames are the fast path and normally
+  // settle this within one or two, but frames can stop entirely, so wall time guarantees it
+  // finishes. Whichever arrives first wins and the other is ignored.
+  placeWhenPoseLands(rootEl, camera3D, before) {
+    let done = false
+    let frame = 0
+
+    const finish = () => {
+      if (done) return
+      done = true
+      this.placePortal(rootEl)
+    }
+
+    const poll = () => {
+      if (done) return
+      const now = camera3D.getWorldPosition(this._probe || (this._probe = new THREE.Vector3()))
+      if (now.distanceToSquared(before) > 1e-6 || frame >= this.data.poseFrameCap) {
+        finish()
+        return
+      }
+      frame++
+      requestAnimationFrame(poll)
+    }
+
+    requestAnimationFrame(poll)
+    setTimeout(finish, this.data.poseTimeoutMs)
+  },
+
+  placePortal(rootEl) {
+    const root3D = rootEl.object3D
+    const cameraEl = document.querySelector('a-camera') || document.querySelector('[camera]')
+    if (!cameraEl) return
+    const camera3D = cameraEl.object3D
 
     // Ask the component that owns placement where the portal goes, rather than keeping a
     // second copy of the rule here. Recenter and the original tap then agree by construction -
@@ -160,14 +224,6 @@ const resetViewButtonComponent = {
     // Yaw only, from the same flattened heading. lookAt(camera) would pitch the portal
     // whenever the phone is not held exactly level.
     root3D.rotation.set(0, Math.atan2(-heading.x, -heading.z), 0)
-
-    // Visual feedback
-    this.animateButtonFeedback()
-
-    // Reset the flag after animation
-    setTimeout(() => {
-      this.isRecentering = false
-    }, 800)
   },
 
   // A colour flash rather than a 'Recentering...' label: the longer label widened the pill
