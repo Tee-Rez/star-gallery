@@ -229,7 +229,7 @@ const portalHeaderComponent = {
     const controlCount = 2
     this.viewButton = this.addButton(controls, '3D View', 0, controlCount, () =>
       this.el.sceneEl.emit('viewToggleRequested'))
-    this.addButton(controls, 'Lore', 1, controlCount, () =>
+    this.addButton(controls, 'Star Journey', 1, controlCount, () =>
       this.el.sceneEl.emit('loreJourneyRequested'))
 
     // The loader announces every later change, but it may have announced the starting mode
@@ -321,18 +321,30 @@ const portalHeaderComponent = {
     // <a-text>, so it has none of that primitive's attribute mappings - which is why these
     // labels had been rendering in Roboto while the read-out lines beside them, built as real
     // <a-text> primitives, were in the HUD face. See faceProps in js/hud-face.js.
+    // wrapCount is what sets the glyph size here, not width: a-text scales the face so that
+    // wrapCount characters span `width`, so a LOWER count means BIGGER letters. At 18 the
+    // label measured 0.967 wide inside a 0.96 pill - it was running out over the caps. 32
+    // puts "3D View" at about 0.48, roughly half the pill, which is the proportion the
+    // on-screen pills have.
+    //
+    // 32 is a floor rather than the value, because it only holds for SHORT labels. The caps
+    // are half the pill's height each, so the flat middle is w - h, and a label wider than
+    // that runs out over the curve however well the geometry is sliced. "Star Journey" is
+    // three times the length of "Lore" and would have spanned about 0.82 inside a 0.71
+    // middle. Deriving the count from the label's own length keeps every label inside the
+    // straight part, and leaves the existing short ones at exactly the 32 they were designed
+    // at.
+    const textWidth = w * 2.2
+    const usable = (w - h) * 0.93
+    const wrapCount = Math.max(32, Math.ceil((value.length * textWidth) / usable))
+
     button.setAttribute('text', faceProps({
       value,
       align: 'center',
       // Pale marble takes dark lettering, exactly as the screen pills do.
       color: this.data.stone ? this.data.buttonTextColor : this.data.color,
-      // wrapCount is what sets the glyph size here, not width: a-text scales the face so that
-      // wrapCount characters span `width`, so a LOWER count means BIGGER letters. At 18 the
-      // label measured 0.967 wide inside a 0.96 pill - it was running out over the caps. 32
-      // puts "3D View" at about 0.48, roughly half the pill, which is the proportion the
-      // on-screen pills have; no label here comes near 32 characters, so nothing ever wraps.
-      width: w * 2.2,
-      wrapCount: 32,
+      width: textWidth,
+      wrapCount,
     }))
     button.classList.add('cantap', 'clickable')
     button.addEventListener('click', onClick)
