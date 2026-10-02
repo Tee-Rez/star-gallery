@@ -1,9 +1,17 @@
 // js/lore-journey.js - Guided "Lore" story journey through Orion's major stars.
 //
-// The AR camera IS the phone and cannot be moved, so each stop transforms #root so the
-// focused star swings to a point in front of the current camera and scales up to fill the
-// view. While parked, #root slowly orbits around that focal point. A screen-locked HUD
+// The AR camera IS the phone and cannot be moved, so each stop transforms #root to swing the
+// focused star to one point in the room and scale it up to fill the view. A screen-locked HUD
 // button advances through the stops; the last stop recenters and restores normal mode.
+//
+// That point is fixed FOR THE WHOLE JOURNEY, captured when it starts. It used to be recomputed
+// from the live camera on every stop, which meant each press of Next re-anchored the entire
+// constellation to wherever the viewer had wandered to and spun it to face their new heading -
+// so the figure appeared to relocate and spread out across the room every time. Nothing moves
+// #root between stops (there is no tick here), so with the point held still the constellation
+// now holds still too, and the journey slides it to bring each successive star to the same
+// spot. The cost is that wandering far leaves the focused star off to one side; Recenter is
+// the deliberate way back.
 import {HUD} from './hud-shell'
 
 const loreJourneyComponent = {
@@ -103,6 +111,9 @@ const loreJourneyComponent = {
   // ---- Mode enter/exit ----
   enterMode() {
     this.active = true
+    // The frame every stop is placed against, taken once from where the viewer is standing and
+    // facing as the journey opens. Captured here rather than per stop - that is the whole fix.
+    this.anchor = this.captureAnchor()
     // The journey scales #root up to zoomScale, and recenterConstellation only ever sets
     // position and rotation - it does not touch scale. Without remembering it here the
     // constellation stays 2.5x the moment the tour ends, which reads as standing much too
@@ -127,6 +138,9 @@ const loreJourneyComponent = {
 
   exitMode() {
     this.active = false
+    // Dropped so a second journey takes its frame from where the viewer is standing THEN,
+    // rather than inheriting a point in the room they have long since walked away from.
+    this.anchor = null
     HUD.setMode('constellation')
     this.showHud(false)
     this.hideLore()
@@ -293,41 +307,54 @@ const loreJourneyComponent = {
 
 
   // Position #root so `starEntity` sits `focusDistance` in front of the camera, scaled up.
-  frameStar(starEntity) {
-    if (!starEntity) return
-    const root = document.querySelector('#root').object3D
-    const cam = (document.querySelector('a-camera') || document.querySelector('[camera]')).object3D
+  // Where the journey puts its focused star, and which way the figure faces while doing it.
+  // Read from the camera ONCE, at the start, and then held for the journey's whole length.
+  captureAnchor() {
+    const camEl = document.querySelector('a-camera') || document.querySelector('[camera]')
+    if (!camEl) return null
+    const cam = camEl.object3D
     const camPos = new THREE.Vector3(); cam.getWorldPosition(camPos)
     const camQuat = cam.getWorldQuaternion(new THREE.Quaternion())
     const fwd = new THREE.Vector3(0, 0, -1).applyQuaternion(camQuat)
-    // FLATTENED. The focal point used to follow the camera's full forward vector, so whatever
-    // pitch the phone happened to be held at became the angle the figure was placed at - look
-    // down and the constellation came down with you, arriving off-square. Dropping y puts the
-    // star dead ahead at eye level and leaves the figure square to the viewer, which is what
-    // facing straight into the portal asks for.
+    // FLATTENED. Following the camera's full forward vector made whatever pitch the phone was
+    // held at the angle the figure was placed at - look down and the constellation came down
+    // with you, arriving off-square. Dropping y puts the star dead ahead at eye level and
+    // leaves the figure square to the viewer.
     fwd.y = 0
     // Only degenerate when the phone points at the floor or the sky, where there is no
-    // horizontal heading to recover. Fall back to the camera's own right-vector turned into a
-    // heading rather than dividing by zero.
+    // horizontal heading to recover. Fall back to the camera's own down-vector turned into a
+    // heading rather than normalising a zero vector.
     if (fwd.lengthSq() < 1e-6) {
       fwd.set(0, -1, 0).applyQuaternion(camQuat)
       fwd.y = 0
       if (fwd.lengthSq() < 1e-6) fwd.set(0, 0, -1)
     }
     fwd.normalize()
+
     const focal = camPos.clone().addScaledVector(fwd, this.data.focusDistance)
-
-    // Yaw only, taken from that same flattened heading: no pitch, no roll.
+    // Yaw only, from that same flattened heading: no pitch, no roll.
     const toCam = camPos.clone().sub(focal); toCam.y = 0
-    const yaw = Math.atan2(toCam.x, toCam.z)
+    return {focal, yaw: Math.atan2(toCam.x, toCam.z)}
+  },
 
+  frameStar(starEntity) {
+    if (!starEntity) return
+    // The anchor, never the live camera. Falling back to capturing one covers a frameStar that
+    // somehow runs before enterMode; it keeps the old behaviour for that one call rather than
+    // throwing, and every stop after it is anchored.
+    const anchor = this.anchor || (this.anchor = this.captureAnchor())
+    if (!anchor) return
+
+    const root = document.querySelector('#root').object3D
+    // An absolute set, not a multiply, so re-applying the same zoom every stop changes nothing
+    // after the first - it is the focal point moving that made the figure appear to shift.
     root.scale.set(this.data.zoomScale, this.data.zoomScale, this.data.zoomScale)
-    root.quaternion.setFromEuler(new THREE.Euler(0, yaw, 0))
+    root.quaternion.setFromEuler(new THREE.Euler(0, anchor.yaw, 0))
     root.updateMatrixWorld(true)
     const starWorld = new THREE.Vector3(); starEntity.object3D.getWorldPosition(starWorld)
-    root.position.add(focal.clone().sub(starWorld))
+    root.position.add(anchor.focal.clone().sub(starWorld))
 
-    this.focal = focal
+    this.focal = anchor.focal
   },
 
   // ---- Advance / transition ----
