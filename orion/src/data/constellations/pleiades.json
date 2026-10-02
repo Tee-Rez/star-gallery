@@ -41,6 +41,7 @@
     {
       "id": "alcyone",
       "name": "Alcyone",
+      "pronunciation": "al-SY-uh-nee",
       "designation": "η Tauri (25 Tau)",
       "isMajor": true,
       "position2D": {"x": -1.292, "y": -0.722},
@@ -63,6 +64,7 @@
     {
       "id": "atlas",
       "name": "Atlas",
+      "pronunciation": "AT-lus",
       "designation": "27 Tauri",
       "isMajor": true,
       "position2D": {"x": -3.569, "y": -1.022},
@@ -83,6 +85,7 @@
     {
       "id": "pleione",
       "name": "Pleione",
+      "pronunciation": "PLEE-uh-nee",
       "designation": "28 Tauri",
       "isMajor": false,
       "position2D": {"x": -3.600, "y": -0.527},
@@ -104,6 +107,7 @@
     {
       "id": "electra",
       "name": "Electra",
+      "pronunciation": "uh-LEK-truh",
       "designation": "17 Tauri",
       "isMajor": true,
       "position2D": {"x": 2.248, "y": -0.671},
@@ -124,6 +128,7 @@
     {
       "id": "maia",
       "name": "Maia",
+      "pronunciation": "MAY-uh",
       "designation": "20 Tauri",
       "isMajor": true,
       "position2D": {"x": 0.955, "y": 0.839},
@@ -144,6 +149,7 @@
     {
       "id": "merope",
       "name": "Merope",
+      "pronunciation": "MERR-uh-pee",
       "designation": "23 Tauri",
       "isMajor": true,
       "position2D": {"x": 0.280, "y": -1.655},
@@ -164,6 +170,7 @@
     {
       "id": "taygeta",
       "name": "Taygeta",
+      "pronunciation": "tay-IJ-uh-tuh",
       "designation": "19 Tauri",
       "isMajor": true,
       "position2D": {"x": 1.791, "y": 1.432},
@@ -184,6 +191,7 @@
     {
       "id": "celaeno",
       "name": "Celaeno",
+      "pronunciation": "suh-LEE-noh",
       "designation": "16 Tauri",
       "isMajor": true,
       "position2D": {"x": 2.342, "y": 0.376},
@@ -204,6 +212,7 @@
     {
       "id": "asterope",
       "name": "Asterope",
+      "pronunciation": "uh-STERR-uh-pee",
       "designation": "21 Tauri (Sterope)",
       "isMajor": false,
       "position2D": {"x": 0.844, "y": 1.949},

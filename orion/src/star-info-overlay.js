@@ -204,8 +204,12 @@ const starInfoOverlayComponent = {
         const spectralClass = starEntity.dataset.spectralClass || ''
 
         this.showInfo(
-          starName, starInfo, starColor, starSize, null, starDesignation,
-          false, {tempKelvin, spectralClass, magnitude: parseFloat(starEntity.dataset.magnitude) || 3}
+          starName, starInfo, starColor, starSize, null, starDesignation, false, {
+            tempKelvin,
+            spectralClass,
+            magnitude: parseFloat(starEntity.dataset.magnitude) || 3,
+            pronunciation: starEntity.dataset.pronunciation || '',
+          }
         )
       }
     }
@@ -346,12 +350,23 @@ const starInfoOverlayComponent = {
     this.showInfo(d.name, body, '#8fd8ff', 0.3, 'deep_sky', d.designation || '', !!d.suppressStar)
   },
 
-  showInfo(name, info, starColor, starSize, starType, designation, suppressStar, physics) {
+  showInfo(name, info, starColor, starSize, starType, designation, suppressStar, extra) {
+    const physics = extra
     this.currentStarName = name
 
+    // The pronunciation sits beside the name rather than under it, and is deliberately
+    // subordinate to it: smaller, lighter, in the body face rather than the display one. Only
+    // the named stars carry one - a deep-sky object or a star called "Mu Orionis" shows none,
+    // and the line closes up as though it was never there.
+    //
+    // inline-block so the respelling wraps as a WHOLE under a long name instead of breaking
+    // across its own hyphens, which is what "se-KUN-duh HY-uh-dum" would otherwise do on a
+    // narrow phone.
+    const pron = (extra && extra.pronunciation) || ''
     this.header.innerHTML = `
       <h2 style="margin: 0; color: ${this.data.borderColor}; font-size: 18px;">
-        ${name}
+        ${name}${pron ? `<span style="display:inline-block;margin-left:8px;font-size:12px;
+          font-weight:400;opacity:0.72;white-space:nowrap;">${pron}</span>` : ''}
       </h2>
       ${designation ? `<div style="margin: 2px 0 0 0; font-size: 12px; opacity: 0.75;">${designation}</div>` : ''}
     `

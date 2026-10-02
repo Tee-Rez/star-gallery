@@ -267,6 +267,7 @@ const constellationLoaderComponent = {
             "id": "alnitak",
             "hip": 26727,
             "name": "Alnitak",
+            "pronunciation": "AL-ni-tak",
             "designation": "ζ Orionis",
             "isMajor": true,
             "position2D": {
@@ -301,6 +302,7 @@ const constellationLoaderComponent = {
             "id": "alnilam",
             "hip": 26311,
             "name": "Alnilam",
+            "pronunciation": "AL-ni-lam",
             "designation": "ε Orionis",
             "isMajor": true,
             "position2D": {
@@ -334,6 +336,7 @@ const constellationLoaderComponent = {
             "id": "mintaka",
             "hip": 25930,
             "name": "Mintaka",
+            "pronunciation": "MIN-tuh-kuh",
             "designation": "δ Orionis",
             "isMajor": true,
             "position2D": {
@@ -493,6 +496,7 @@ const constellationLoaderComponent = {
             "id": "betelgeuse",
             "hip": 27989,
             "name": "Betelgeuse",
+            "pronunciation": "BET-ul-jooz",
             "designation": "α Orionis",
             "isMajor": true,
             "position2D": {
@@ -527,6 +531,7 @@ const constellationLoaderComponent = {
             "id": "saiph",
             "hip": 27366,
             "name": "Saiph",
+            "pronunciation": "SAYF",
             "designation": "κ Orionis",
             "isMajor": true,
             "position2D": {
@@ -561,6 +566,7 @@ const constellationLoaderComponent = {
             "id": "rigel",
             "hip": 24436,
             "name": "Rigel",
+            "pronunciation": "RY-jul",
             "designation": "β Orionis",
             "isMajor": true,
             "position2D": {
@@ -594,6 +600,7 @@ const constellationLoaderComponent = {
             "id": "bellatrix",
             "hip": 25336,
             "name": "Bellatrix",
+            "pronunciation": "BEL-uh-triks",
             "designation": "γ Orionis",
             "isMajor": true,
             "position2D": {
@@ -627,6 +634,7 @@ const constellationLoaderComponent = {
             "id": "meissa",
             "hip": 26207,
             "name": "Meissa",
+            "pronunciation": "MY-suh",
             "designation": "λ Orionis",
             "isMajor": true,
             "position2D": {
@@ -661,6 +669,7 @@ const constellationLoaderComponent = {
             "id": "pi3_orionis",
             "hip": 22449,
             "name": "Tabit",
+            "pronunciation": "TAB-it",
             "designation": "π³ Orionis",
             "isMajor": true,
             "position2D": {
@@ -1179,6 +1188,7 @@ const constellationLoaderComponent = {
             "id": "alpheratz",
             "hip": 677,
             "name": "Alpheratz",
+            "pronunciation": "al-FEER-ats",
             "designation": "α Andromedae",
             "isMajor": true,
             "position2D": {
@@ -1244,6 +1254,7 @@ const constellationLoaderComponent = {
             "id": "mirach",
             "hip": 5447,
             "name": "Mirach",
+            "pronunciation": "MY-rak",
             "designation": "β Andromedae",
             "isMajor": true,
             "position2D": {
@@ -1277,6 +1288,7 @@ const constellationLoaderComponent = {
             "id": "almach",
             "hip": 9640,
             "name": "Almach",
+            "pronunciation": "AL-mak",
             "designation": "γ¹ Andromedae",
             "isMajor": true,
             "position2D": {
@@ -1737,6 +1749,7 @@ const constellationLoaderComponent = {
             "id": "elnath",
             "hip": 25428,
             "name": "Elnath",
+            "pronunciation": "EL-nath",
             "designation": "β Tauri",
             "isMajor": true,
             "position2D": {
@@ -1802,6 +1815,7 @@ const constellationLoaderComponent = {
             "id": "epsilon_tauri",
             "hip": 20889,
             "name": "Ain",
+            "pronunciation": "AYN",
             "designation": "ε Tauri",
             "isMajor": true,
             "position2D": {
@@ -1835,6 +1849,7 @@ const constellationLoaderComponent = {
             "id": "aldebaran",
             "hip": 21421,
             "name": "Aldebaran",
+            "pronunciation": "al-DEB-uh-ran",
             "designation": "α Tauri",
             "isMajor": true,
             "position2D": {
@@ -1868,6 +1883,7 @@ const constellationLoaderComponent = {
             "id": "zeta_tauri",
             "hip": 26451,
             "name": "Tianguan",
+            "pronunciation": "tee-an-GWAHN",
             "designation": "ζ Tauri",
             "isMajor": true,
             "position2D": {
@@ -1901,6 +1917,7 @@ const constellationLoaderComponent = {
             "id": "gamma_tauri",
             "hip": 20205,
             "name": "Prima Hyadum",
+            "pronunciation": "PRY-muh HY-uh-dum",
             "designation": "γ Tauri",
             "isMajor": true,
             "position2D": {
@@ -1934,6 +1951,7 @@ const constellationLoaderComponent = {
             "id": "delta1_tauri",
             "hip": 20455,
             "name": "Secunda Hyadum",
+            "pronunciation": "se-KUN-duh HY-uh-dum",
             "designation": "δ Tauri",
             "isMajor": true,
             "position2D": {
@@ -2033,6 +2051,7 @@ const constellationLoaderComponent = {
             "id": "theta2_tauri",
             "hip": 20894,
             "name": "Chamukuy",
+            "pronunciation": "CHAH-moo-koo-ee",
             "designation": "θ² Tauri",
             "isMajor": true,
             "position2D": {
@@ -2089,6 +2108,7 @@ const constellationLoaderComponent = {
             "id": "atlas",
             "hip": 17847,
             "name": "Atlas",
+            "pronunciation": "AT-lus",
             "designation": "27 Tauri",
             "isMajor": true,
             "position2D": {
@@ -2190,6 +2210,7 @@ const constellationLoaderComponent = {
               {
                 "id": "alcyone",
                 "name": "Alcyone",
+                "pronunciation": "al-SY-uh-nee",
                 "designation": "η Tauri (25 Tauri)",
                 "isMajor": true,
                 "position2D": {
@@ -2221,6 +2242,7 @@ const constellationLoaderComponent = {
               {
                 "id": "electra",
                 "name": "Electra",
+                "pronunciation": "uh-LEK-truh",
                 "designation": "17 Tauri",
                 "isMajor": true,
                 "position2D": {
@@ -2252,6 +2274,7 @@ const constellationLoaderComponent = {
               {
                 "id": "maia",
                 "name": "Maia",
+                "pronunciation": "MAY-uh",
                 "designation": "20 Tauri",
                 "isMajor": true,
                 "position2D": {
@@ -2283,6 +2306,7 @@ const constellationLoaderComponent = {
               {
                 "id": "merope",
                 "name": "Merope",
+                "pronunciation": "MERR-uh-pee",
                 "designation": "23 Tauri",
                 "isMajor": true,
                 "position2D": {
@@ -2314,6 +2338,7 @@ const constellationLoaderComponent = {
               {
                 "id": "taygeta",
                 "name": "Taygeta",
+                "pronunciation": "tay-IJ-uh-tuh",
                 "designation": "19 Tauri",
                 "isMajor": false,
                 "position2D": {
@@ -2345,6 +2370,7 @@ const constellationLoaderComponent = {
               {
                 "id": "celaeno",
                 "name": "Celaeno",
+                "pronunciation": "suh-LEE-noh",
                 "designation": "16 Tauri",
                 "isMajor": false,
                 "position2D": {
@@ -2376,6 +2402,7 @@ const constellationLoaderComponent = {
               {
                 "id": "asterope",
                 "name": "Asterope",
+                "pronunciation": "uh-STERR-uh-pee",
                 "designation": "21 Tauri (Sterope)",
                 "isMajor": false,
                 "position2D": {
@@ -2400,6 +2427,7 @@ const constellationLoaderComponent = {
               {
                 "id": "atlas",
                 "name": "Atlas",
+                "pronunciation": "AT-lus",
                 "designation": "27 Tauri",
                 "isMajor": true,
                 "position2D": {
@@ -2431,6 +2459,7 @@ const constellationLoaderComponent = {
               {
                 "id": "pleione",
                 "name": "Pleione",
+                "pronunciation": "PLEE-uh-nee",
                 "designation": "28 Tauri",
                 "isMajor": false,
                 "position2D": {
@@ -2916,6 +2945,9 @@ const constellationLoaderComponent = {
     starEntity.dataset.tempKelvin = (starData.physics && starData.physics.tempKelvin) || 0
     starEntity.dataset.spectralClass = starData.spectralClass || ''
     starEntity.dataset.magnitude = typeof starData.magnitude === 'number' ? starData.magnitude : 3
+    // Only the stars carrying a real name have one. A star whose "name" is its catalogue
+    // designation - Mu Orionis, 64 Orionis - has nothing to teach and the panel shows none.
+    starEntity.dataset.pronunciation = starData.pronunciation || ''
     starEntity.dataset.realX = starData.position2D.x
     starEntity.dataset.realY = starData.position2D.y
     starEntity.dataset.realZ = starData.distance ? -starData.distance : 0

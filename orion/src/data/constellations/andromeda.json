@@ -54,6 +54,7 @@
       "id": "alpheratz",
       "hip": 677,
       "name": "Alpheratz",
+      "pronunciation": "al-FEER-ats",
       "designation": "α Andromedae",
       "isMajor": true,
       "position2D": {
@@ -119,6 +120,7 @@
       "id": "mirach",
       "hip": 5447,
       "name": "Mirach",
+      "pronunciation": "MY-rak",
       "designation": "β Andromedae",
       "isMajor": true,
       "position2D": {
@@ -152,6 +154,7 @@
       "id": "almach",
       "hip": 9640,
       "name": "Almach",
+      "pronunciation": "AL-mak",
       "designation": "γ¹ Andromedae",
       "isMajor": true,
       "position2D": {

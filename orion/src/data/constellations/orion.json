@@ -54,6 +54,7 @@
       "id": "alnitak",
       "hip": 26727,
       "name": "Alnitak",
+      "pronunciation": "AL-ni-tak",
       "designation": "ζ Orionis",
       "isMajor": true,
       "position2D": {
@@ -88,6 +89,7 @@
       "id": "alnilam",
       "hip": 26311,
       "name": "Alnilam",
+      "pronunciation": "AL-ni-lam",
       "designation": "ε Orionis",
       "isMajor": true,
       "position2D": {
@@ -121,6 +123,7 @@
       "id": "mintaka",
       "hip": 25930,
       "name": "Mintaka",
+      "pronunciation": "MIN-tuh-kuh",
       "designation": "δ Orionis",
       "isMajor": true,
       "position2D": {
@@ -280,6 +283,7 @@
       "id": "betelgeuse",
       "hip": 27989,
       "name": "Betelgeuse",
+      "pronunciation": "BET-ul-jooz",
       "designation": "α Orionis",
       "isMajor": true,
       "position2D": {
@@ -314,6 +318,7 @@
       "id": "saiph",
       "hip": 27366,
       "name": "Saiph",
+      "pronunciation": "SAYF",
       "designation": "κ Orionis",
       "isMajor": true,
       "position2D": {
@@ -348,6 +353,7 @@
       "id": "rigel",
       "hip": 24436,
       "name": "Rigel",
+      "pronunciation": "RY-jul",
       "designation": "β Orionis",
       "isMajor": true,
       "position2D": {
@@ -381,6 +387,7 @@
       "id": "bellatrix",
       "hip": 25336,
       "name": "Bellatrix",
+      "pronunciation": "BEL-uh-triks",
       "designation": "γ Orionis",
       "isMajor": true,
       "position2D": {
@@ -414,6 +421,7 @@
       "id": "meissa",
       "hip": 26207,
       "name": "Meissa",
+      "pronunciation": "MY-suh",
       "designation": "λ Orionis",
       "isMajor": true,
       "position2D": {
@@ -448,6 +456,7 @@
       "id": "pi3_orionis",
       "hip": 22449,
       "name": "Tabit",
+      "pronunciation": "TAB-it",
       "designation": "π³ Orionis",
       "isMajor": true,
       "position2D": {
