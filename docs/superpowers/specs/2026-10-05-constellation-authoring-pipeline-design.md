@@ -38,8 +38,10 @@ This design extends a working pipeline rather than replacing it.
   prevents. `docs/constellation-data-schema.md` — the field reference.
 - `tools/import-brain.mjs` — imports figures and star identity from the Brain into `tools/brain/`.
 - `tools/brain/` — already imported for **all 88 constellations**: 691 figure stars, 242 with
-  proper names; `physics.json` holds measured mass, radius and temperature for **657 of 691**,
-  sourced; `journeys-draft.json` covers only the three shipped constellations.
+  proper names; `physics.json` holds values for every star, but each entry records its sources,
+  and only **about 401 of 691** are genuinely measured — the rest are spectral-type estimates
+  (`"derived from spectral type"`, `"typical for spectral type"`), which §5.2 treats as absent.
+  `journeys-draft.json` covers only the three shipped constellations.
 - `tools/project-constellation.js` — the shared projection. Verified 2026-10-05 to reproduce the
   shipped Andromeda's positions exactly (max difference 0.0).
 - `tools/sync-loader-data.mjs` — regenerates the embedded copy in `constellation-loader.js` from
@@ -63,7 +65,7 @@ Every field a constellation needs, grouped by where it comes from. The first thr
 instant and identical on every run; only **Researched** needs judgment.
 
 ### 4.1 Imported from the Brain
-- `metadata.name`, `metadata.abbreviation`, `metadata.season`, `metadata.hemisphere`
+- `metadata.name`, `metadata.abbreviation`
 - per star: `hip`, `name`, `designation`, `magnitude`, `spectralClass`
 - the figure's connecting lines (Stellarium western sky culture)
 - per named star: `pronunciation` — **when the star's vault note already carries it**. A named
@@ -72,8 +74,14 @@ instant and identical on every run; only **Researched** needs judgment.
 
 ### 4.2 Harvested
 From `tools/brain/physics.json`:
-- per star: `distance`, `physics.massSolar`, `physics.radiusSolar`, `physics.tempKelvin`
-- `physics.note` — a short attribution drawn from the harvest's `sources`
+- per star: `distance`
+- `physics.massSolar`, `physics.radiusSolar`, `physics.tempKelvin` — **only when all three are
+  genuinely measured**. Any value whose recorded source is a spectral-type estimate makes the whole
+  block absent, and a Stefan-Boltzmann radius counts only when the temperature beneath it is
+  measured.
+- `physics.note` — the distinct source names
+- the **designation** of a star the Brain leaves unnamed, recovered from the harvest's `xhipName`
+  (`"6 Zeta-1 Lyrae (HR 7056)"` → `ζ¹ Lyrae`)
 
 ### 4.3 Computed by rule
 Each rule was checked against the three shipped constellations.
@@ -81,6 +89,8 @@ Each rule was checked against the three shipped constellations.
 | Field | Rule |
 |---|---|
 | star `id` | from the **designation**: Greek letters spelled out, superscripts to digits, any parenthetical dropped, lower-cased, runs of non-alphanumerics to one underscore — `θ² Tauri` → `theta2_tauri`, `64 Orionis` → `64_orionis`. Falls back to `hip_<number>` for a star with no designation. See §4.3.1 |
+| `metadata.season` | from the figure's centroid RA: autumn 20h–4h, winter 4h–8h, spring 8h–14h, summer 14h–20h. Fits all three shipped constellations. Computed rather than imported because Lyra's vault note carries no season |
+| `metadata.hemisphere` | from centroid declination: `northern` at +10° or above, `southern` at −10° or below, otherwise `both`. Fits all three shipped constellations |
 | `isMajor` | `magnitude < 4.0` — matches all 37 shipped figure stars, and 45 of 46 including cluster stars. The one exception is Merope (4.18) in the Pleiades cluster, hand-set as major; it is left as is |
 | `position2D` | `project-constellation.js` over the final star set, in one pass |
 | `portal.width`, `portal.height` | the projection tool's suggested whole-number portal |
@@ -155,6 +165,13 @@ node tools/draft-constellation.mjs <Abbr> --promote
 
 Drafts live **outside** `orion/src/data/` so an unfinished constellation cannot ship by accident.
 
+### 5.1a Researched input
+Everything researched for the app lives in `tools/input/<id>-research.json` — metadata prose,
+per-star `info` and physics overrides, the journey, and the deep-sky objects — and the generator
+merges it in. Without this, re-drafting would wipe any prose written into the draft itself. The
+draft is therefore fully reproducible from its inputs: the Brain import, the physics harvest, and
+this file.
+
 ### 5.2 Gaps
 Researched fields are **left absent — never filled with placeholder text** — and listed in a
 top-level `_draft` block. Each gap records its JSON path, what fills it, and whether it blocks
@@ -179,10 +196,14 @@ have unpublished physics.
 ### 5.4 Promotion
 `--promote` refuses while any **required** gap is open. Otherwise it copies the draft into
 `orion/src/data/constellations/<id>.json` without the `_draft` block, runs
-`sync-loader-data.mjs <id>`, and adds the entry to `star-gallery/data/catalog.json`, built from
-the constellation's `metadata` and star count in the shape the three existing entries use
-(`id`, `name`, `displayName`, `description`, `path: app/?c=<id>`, `stars`, `season`,
-`hemisphere`). The verifier then runs. A shipped data file carrying a `_draft` block fails verification.
+`sync-loader-data.mjs <id> --add` — the plain sync cannot insert a constellation the loader has
+never held, so `--add` inserts its block first — then `--check`. The verifier then runs.
+
+**The gallery catalogue is not touched here.** `star-gallery/data/catalog.json` drives the *live*
+gallery, so a card added at preview time would link visitors to a constellation the live app does
+not have. The entry is added when the constellation is promoted to live, built from its
+`metadata` in the shape the existing entries use (`id`, `name`, `displayName`, `description`,
+`path: app/?c=<id>`, `stars`, `season`, `hemisphere`). A shipped data file carrying a `_draft` block fails verification.
 
 ### 5.5 Determinism
 The same inputs produce a byte-identical draft. A re-run after the Brain changes therefore shows
