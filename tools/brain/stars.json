@@ -10758,16 +10758,24 @@
         "α Lyrae",
         "Alpha Lyrae",
         "Wega",
-        "al-Nasr al-Waqi"
+        "al-Nasr al-Waqi",
+        "Zhinü",
+        "Chih Neu",
+        "Orihime"
       ],
       "magnitude": 0.03,
       "spectralClass": "A",
+      "pronunciation": "VEE-guh",
       "cultures": [
         "arabic",
         "greek",
+        "chinese",
+        "japanese",
         "starseed"
       ],
-      "threads": [],
+      "threads": [
+        "the-weaver-and-the-herdsman"
+      ],
       "constellations": [
         "lyra"
       ],
@@ -10881,6 +10889,7 @@
       ],
       "magnitude": 3.42,
       "spectralClass": "B",
+      "pronunciation": "SHEE-lee-ak",
       "cultures": [
         "arabic",
         "greek"
@@ -11088,6 +11097,7 @@
       ],
       "magnitude": 3.25,
       "spectralClass": "B",
+      "pronunciation": "SOO-luh-fat",
       "cultures": [
         "arabic",
         "greek"
@@ -11725,9 +11735,13 @@
       "cultures": [
         "arabic",
         "greek",
+        "chinese",
+        "japanese",
         "starseed"
       ],
-      "threads": [],
+      "threads": [
+        "the-weaver-and-the-herdsman"
+      ],
       "constellations": [
         "aquila"
       ],

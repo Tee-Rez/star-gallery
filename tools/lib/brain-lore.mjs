@@ -45,15 +45,16 @@ function byHeading(body) {
   return subs
 }
 
-// A bold label opens a section and a blank line closes it. Synthesis callouts here sit BETWEEN
-// paragraphs rather than inside a section, so they are counted as dropped on the spot - they
-// would otherwise vanish without being recorded.
+// A bold label opens a section, and the next label or synthesis callout closes it - not a blank
+// line, since one tradition can run to several paragraphs and a quote callout. Synthesis callouts
+// here sit BETWEEN sections rather than inside one, so they are counted as dropped on the spot -
+// they would otherwise vanish without being recorded.
 function byBoldLabel(body, result) {
   const subs = []
   let current = null
   for (let i = 0; i < body.length; i++) {
     const l = body[i]
-    if (!l.trim()) { current = null; continue }
+    if (!l.trim()) { if (current) current.lines.push(l); continue }
     if (SYNTHESIS_OPEN.test(l)) {
       result.dropped.synthesis++
       while (i + 1 < body.length && /^>/.test(body[i + 1])) i++

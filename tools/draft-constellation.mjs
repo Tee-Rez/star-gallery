@@ -40,9 +40,10 @@ const brain = name => readJSON(path.join(ROOT, 'tools/brain', `${name}.json`))
 const idOf = name => name.toLowerCase().replace(/[^a-z0-9]+/g, '_')
 
 // A spectral class is shippable when it carries a luminosity class ("B7IIIe", "A1V") or is the
-// Am-star notation ("kA5hF0mF2"). The harvest's raw XHIP strings - "A8. :V      COMP,SB" - and
-// the Brain's bare letters are not: the panel prints this, and the star's colour falls back on it.
-const FULL_CLASS = /^(?:[OBAFGKM]\d+(?:\.\d+)?(?:Iab|Ia|Ib|III|II|IV|VI|V)[a-z]*|k[A-F]\d+h[A-F]\d+m[A-F]\d+)$/
+// Am-star notation ("kA5hF0mF2"); a published subclass range ("B6-8II") counts. The harvest's raw
+// XHIP strings - "A8. :V      COMP,SB" - and the Brain's bare letters do not: the panel prints
+// this, and the star's colour falls back on it.
+const FULL_CLASS = /^(?:[OBAFGKM]\d+(?:\.\d+)?(?:-\d+)?(?:Iab|Ia|Ib|III|II|IV|VI|V)[a-z]*|k[A-F]\d+h[A-F]\d+m[A-F]\d+)$/
 const MAX_UNDISTORTED_DEG = 45
 
 function vaultCommit() {

@@ -64,11 +64,19 @@ test('researched fields missing from the input are required gaps', () => {
   const {draft} = buildDraft('Lyr', {research: {}})
   const req = draft._draft.required.map(g => g.path)
   for (const p of ['journey', 'deepSkyObjects', 'metadata.displayName', 'metadata.description',
-    'metadata.mythology', 'stars.alpha_lyrae.info', 'stars.alpha_lyrae.pronunciation']) {
+    'metadata.mythology', 'stars.alpha_lyrae.info']) {
     assert.ok(req.includes(p), p)
   }
   // Only named stars owe a pronunciation.
   assert.ok(!req.includes('stars.zeta1_lyrae.pronunciation'))
+})
+
+test('a pronunciation comes from the vault, and a named star without one is a required gap', () => {
+  const {draft} = buildDraft('Lyr', {research: {}})
+  assert.equal(draft.stars.find(s => s.id === 'alpha_lyrae').pronunciation, 'VEE-guh')
+  // Cygnus has not been through the pipeline, so Deneb's note carries no pronunciation yet.
+  const cyg = buildDraft('Cyg', {research: {}}).draft
+  assert.ok(cyg._draft.required.some(g => g.path === 'stars.alpha_cygni.pronunciation'))
 })
 
 test('a deep-sky object with no renderer ships as layer none and records the gap', () => {
