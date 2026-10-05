@@ -1,0 +1,160 @@
+{
+  "portal": {"width": 7, "height": 8},
+  "metadata": {
+    "displayName": "Lyra the Lyre",
+    "description": "Lyra is a small northern constellation of the summer sky: a compact parallelogram of four faint stars hanging below Vega, the fifth-brightest star in the night sky and one corner of the Summer Triangle. Between two of those stars sits the Ring Nebula, the cast-off shell of a dying star, and toward Cygnus lies the globular cluster M56.",
+    "mythology": "The Greeks saw the lyre the infant Hermes made from a tortoise shell, which passed through Apollo to Orpheus and was set among the stars after his death - by Zeus at the Muses' request in one telling, by the Muses themselves in another. Arab astronomers saw a swooping eagle in Vega and its two small neighbours, and kept the instrument in the Arabic names for the constellation that became the stars Sheliak and Sulafat. In China, Vega is the Weaving Girl, parted from the Herdsman, Altair, by the Milky Way."
+  },
+  "stars": {
+    "alpha_lyrae": {
+      "spectralClass": "A0Va",
+      "info": {
+        "basic": "Vega, the fifth-brightest star in the night sky and one corner of the Summer Triangle. Its name comes from the Arabic for a swooping eagle; in China it is the Weaving Girl.",
+        "scientific": {
+          "class": "A0 V white main-sequence star",
+          "temperature": "About 9,330 K",
+          "mass": "About 2.5 times the Sun's mass",
+          "radius": "About 2.7 times the Sun's radius",
+          "feature": "The first star other than the Sun ever photographed, on 17 July 1850, and for decades a zero point of the stellar brightness scale"
+        }
+      }
+    },
+    "zeta1_lyrae": {
+      "info": {
+        "basic": "Zeta1 Lyrae is the faint star beside Vega that, with Epsilon Lyrae, made Vega's half-folded eagle for Arab astronomers and its Weaving Girl in China. In the figure it joins Vega to the lyre's body.",
+        "scientific": {
+          "class": "Am star (kA5hF0mF2), white",
+          "temperature": "About 7,940 K",
+          "mass": "About 2.1 times the Sun's mass",
+          "radius": "About 3.0 times the Sun's radius",
+          "feature": "Its spectrum shows unusually strong metal lines, and an unseen companion circles it every 4.3 days"
+        }
+      }
+    },
+    "beta_lyrae": {
+      "spectralClass": "B6-8II",
+      "physics": {
+        "massSolar": 2.97,
+        "radiusSolar": 15.2,
+        "tempKelvin": 13300,
+        "note": "β Lyr Aa1, the visible star of the eclipsing pair; Wikipedia, Beta Lyrae, citing MNRAS 432, 799"
+      },
+      "info": {
+        "basic": "Sheliak marks a corner of the lyre's body, and takes its name from an Arabic name for the whole constellation. It is one of the strangest stars in the sky: two stars so close that one is pouring itself onto the other.",
+        "scientific": {
+          "class": "B6-8 II blue-white bright giant (the star you see)",
+          "temperature": "About 13,300 K",
+          "mass": "About 3.0 times the Sun's mass",
+          "radius": "About 15 times the Sun's radius",
+          "feature": "An eclipsing binary that fades and recovers every 12.94 days. Its companion, now about 13 times the Sun's mass, is hidden inside a disc of gas pulled from the star you see"
+        }
+      }
+    },
+    "gamma_lyrae": {
+      "spectralClass": "B9III",
+      "physics": {
+        "massSolar": 5.76,
+        "radiusSolar": 15.4,
+        "tempKelvin": 11000,
+        "note": "Wikipedia, Gamma Lyrae infobox; the article's text gives 10,080 K"
+      },
+      "info": {
+        "basic": "Sulafat, the other foot of the lyre, is named from the Arabic for the tortoise - the shell from which Hermes made the first lyre.",
+        "scientific": {
+          "class": "B9 III blue-white giant",
+          "temperature": "About 11,000 K",
+          "mass": "About 5.8 times the Sun's mass",
+          "radius": "About 15 times the Sun's radius",
+          "feature": "A fast-spinning giant whose size has been measured directly by interferometry"
+        }
+      }
+    },
+    "delta2_lyrae": {
+      "distance": 770,
+      "physics": {
+        "massSolar": 4.5,
+        "radiusSolar": 293,
+        "tempKelvin": 3394,
+        "note": "Wikipedia, Delta2 Lyrae infobox (mass Halabi 2015; radius Baines 2021); distance 770 ly from the same article"
+      },
+      "info": {
+        "basic": "Delta2 Lyrae, the lyre's fourth corner, is a red bright giant - the one warm-coloured star among the white stars of the figure.",
+        "scientific": {
+          "class": "M4 II red bright giant",
+          "temperature": "About 3,390 K",
+          "mass": "About 4.5 times the Sun's mass",
+          "radius": "About 290 times the Sun's radius",
+          "feature": "One of the standard stars that defines its spectral class, M4 II"
+        }
+      }
+    }
+  },
+  "deepSky": [
+    {
+      "id": "m57",
+      "name": "Ring Nebula",
+      "designation": "M57, NGC 6720",
+      "type": "planetary_nebula",
+      "raH": 18.893082,
+      "dec": 33.029133,
+      "distance": 2570,
+      "magnitude": 8.8,
+      "size": 0.02,
+      "description": "A planetary nebula between Sheliak and Sulafat: the shell of gas thrown off by a dying Sun-like star, seen nearly end-on as a ring around the white dwarf left behind. Not in the explorable layer yet - a hollow shell needs a renderer of its own."
+    },
+    {
+      "id": "m56",
+      "name": "M56",
+      "designation": "M56, NGC 6779",
+      "type": "globular_cluster",
+      "raH": 19.276547,
+      "dec": 30.183472,
+      "distance": 32900,
+      "magnitude": 8.3,
+      "size": 0.15,
+      "description": "A globular cluster about 33,000 light-years away, roughly 13.7 billion years old, found by Messier in January 1779 while he was following a comet. Not in the explorable layer yet - a dense ball of stars needs a renderer of its own."
+    }
+  ],
+  "journey": [
+    {
+      "id": "falling_eagle",
+      "title": "The Falling Eagle",
+      "centerStarName": "Vega",
+      "targetStarNames": ["Vega", "Zeta1 Lyrae"],
+      "story": "Vega's name is Arabic. Arab astronomers saw Vega and the two faint stars beside it - Zeta Lyrae is one of them - as a swooping eagle, al-nasr al-waqi', dropping with its wings half-closed. Across the Milky Way, Altair in Aquila was its partner, al-nasr al-tair, the flying eagle with its wings spread. The word waqi', swooping, passed into Europe through the Alfonsine Tables as Wega, and became Vega. The sky's slow wobble has also made Vega a pole star: it marked the north around 12,000 BCE, and will again roughly 12,000 years from now.",
+      "sources": "R. H. Allen, Star-Names and Their Meanings (1899), pp. 282, 284, 286; Kunitzsch & Smart, A Dictionary of Modern Star Names (2006); Wikipedia, Vega"
+    },
+    {
+      "id": "weaving_girl",
+      "title": "The Weaving Girl",
+      "centerStarName": "Vega",
+      "targetStarNames": ["Vega"],
+      "story": "In China, Vega and the two small stars beside it are Zhinü, the Weaving Girl. Across the Milky Way - the Silver River - Altair is the Herdsman, Niulang, and the lovers may meet only once a year, on the seventh night of the seventh month, when magpies form a bridge for her to cross. The stars are older than the romance: the Book of Songs, China's oldest collection of poetry, already complains that the Weaving Sisters beside the Milky Way weave no cloth. The festival, Qixi, travelled to Korea as Chilseok and to Japan as Tanabata, where Vega is Orihime and Altair is Hikoboshi.",
+      "sources": "R. H. Allen, Star-Names and Their Meanings (1899), p. 285; Shijing, ode 203 (Da Dong), trans. J. Legge (1879); Wikipedia, Qixi Festival; Wikipedia, Tanabata"
+    },
+    {
+      "id": "lyre_of_orpheus",
+      "title": "The Lyre of Orpheus",
+      "centerStarName": "Delta2 Lyrae",
+      "targetStarNames": ["Vega", "Zeta1 Lyrae", "Sheliak", "Sulafat", "Delta2 Lyrae"],
+      "story": "This is the first lyre ever made. On the day he was born, the god Hermes found a mountain tortoise, scooped out its shell and strung it with seven strings of gut, then gave it to Apollo to settle a quarrel over stolen cattle. The lyre passed to Orpheus, son of the Muse Calliope, who took it down into the underworld in search of his wife, Eurydice. When he was later torn apart by followers of Dionysus, the Muses buried him. Here the old handbooks part ways: in one, the Muses asked Zeus to set the lyre among the stars as a memorial; in Hyginus, they placed it there themselves.",
+      "sources": "Homeric Hymn to Hermes, trans. H. G. Evelyn-White (1914); Pseudo-Eratosthenes, Catasterismi 24; Hyginus, De Astronomia 2.7"
+    },
+    {
+      "id": "tortoise_and_harp",
+      "title": "The Tortoise and the Harp",
+      "centerStarName": "Sulafat",
+      "targetStarNames": ["Sulafat", "Sheliak"],
+      "story": "The two stars at the foot of the lyre carry its Arabic names. Sulafat comes from al-sulahfat, the tortoise - the shell Hermes made the instrument from - and was first a name for the whole constellation; the Greek poet Aratus had already called it the Little Tortoise. Sheliak also began as a name for the constellation, and what it means is disputed: the nineteenth-century collector R. H. Allen read it as another word for the tortoise, while the modern scholar Paul Kunitzsch reads it as the harp. Sheliak hides a stranger story too. In 1784 the British amateur astronomer John Goodricke noticed that it changes brightness, fading and recovering every 12.9 days.",
+      "sources": "R. H. Allen, Star-Names and Their Meanings (1899), pp. 283, 284, 287; Kunitzsch & Smart, A Dictionary of Modern Star Names (2006); Wikipedia, Beta Lyrae"
+    },
+    {
+      "id": "ring_nebula",
+      "title": "The Fading Planet",
+      "centerStarName": "Sheliak",
+      "targetStarNames": ["Sheliak", "Sulafat"],
+      "story": "Between Sheliak and Sulafat, too faint for the eye, lies the Ring Nebula. Charles Messier found it on 31 January 1779 while following a comet, and took it for a patch of stars too small to separate. Weeks later Antoine Darquier, tracking the same comet from Toulouse, described it better: dull but sharply outlined, as large as Jupiter, like a planet that is fading. For more than two centuries the discovery was credited to Darquier, until historians corrected the record in 2017. The ring is the shell of gas thrown off by a dying Sun-like star some 2,570 light-years away, with the white dwarf it left behind at its centre.",
+      "sources": "SEDS, The Messier Catalog (M57); Wikipedia, Ring Nebula"
+    }
+  ]
+}

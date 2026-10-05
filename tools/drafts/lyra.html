@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lyra the Lyre Draft</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+  :root {
+    --paper: #faf7f2; --panel: #f2ede4; --ink: #1c1b24; --ink-soft: #58534a; --rule: #ddd5c8;
+    --brass: #8a6420; --lapis: #2c4a7c; --cut: #8c3a2e; --sky: #141a2c; --sky-line: #6f8fc4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #101320; --panel: #171b2a; --ink: #e9e4d9; --ink-soft: #9b9585; --rule: #2b3145;
+      --brass: #d8ab55; --lapis: #86a8dd; --cut: #d98a72; --sky: #0a0d18; --sky-line: #6f8fc4;
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #101320; --panel: #171b2a; --ink: #e9e4d9; --ink-soft: #9b9585; --rule: #2b3145;
+    --brass: #d8ab55; --lapis: #86a8dd; --cut: #d98a72; --sky: #0a0d18; --sky-line: #6f8fc4;
+  }
+  body { margin: 0; background: var(--paper); color: var(--ink);
+    font-family: 'EB Garamond', Georgia, serif; font-size: 19px; line-height: 1.6; }
+  .wrap { max-width: 62rem; margin: 0 auto; padding: 3rem 16px 5rem; }
+  h1 { font-size: clamp(2.2rem, 6vw, 3.2rem); font-weight: 500; margin: 0; text-wrap: balance; }
+  h2 { font-size: 1.5rem; font-weight: 500; margin: 3rem 0 1rem; padding-bottom: .3rem; border-bottom: 1px solid var(--rule); }
+  h3 { font-size: 1.15rem; font-weight: 600; margin: 0 0 .3rem; }
+  h3.sub { margin-top: 2rem; }
+  .mono, .meta, .num, th, .say, .sources, .targets, .status {
+    font-family: 'IBM Plex Mono', ui-monospace, monospace; font-size: .78rem; }
+  .meta, .sources, .targets { color: var(--ink-soft); font-weight: 400; }
+  .status { display: inline-block; margin-top: 1rem; padding: .25rem .7rem; border-radius: 999px;
+    border: 1px solid currentColor; letter-spacing: .04em; text-transform: uppercase; }
+  .status--open { color: var(--cut); } .status--ready { color: var(--lapis); }
+  .lede { max-width: 64ch; color: var(--ink-soft); }
+  .figure { display: block; width: 100%; max-width: 40rem; margin: 1rem auto; background: var(--sky); border-radius: 6px; }
+  .fig-portal { fill: none; stroke: #2fbf5a; stroke-width: .04; }
+  .fig-line { stroke: var(--sky-line); stroke-width: .035; }
+  .fig-star text, .fig-dso text { fill: #d8deea; font: .28px 'IBM Plex Mono', monospace; }
+  .fig-dso circle { fill: none; stroke: #e0a85a; stroke-width: .03; stroke-dasharray: .08 .06; }
+  .fig-dso--none circle { stroke: #7a7f8c; }
+  .scroll { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; font-size: .95rem; }
+  th, td { text-align: left; padding: .45rem .6rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  th { color: var(--ink-soft); font-weight: 500; text-transform: uppercase; letter-spacing: .05em; }
+  .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .say { display: block; color: var(--brass); }
+  .gap { color: var(--cut); } .absent { color: var(--ink-soft); font-style: italic; }
+  .stop { display: grid; grid-template-columns: 2.2rem 1fr; gap: 1rem; padding: 1.2rem 0; border-bottom: 1px solid var(--rule); }
+  .stop__index { font-family: 'IBM Plex Mono', monospace; color: var(--brass); padding-top: .2rem; }
+  .prose p { margin: .4rem 0; max-width: 64ch; }
+  .dso { padding: 1rem 0; border-bottom: 1px solid var(--rule); }
+  .gapnote { background: var(--panel); padding: .7rem .9rem; border-radius: 4px; font-size: .95rem; }
+  ul.plain { padding-left: 1.1rem; } ul.plain li { margin: .3rem 0; }
+  .none { color: var(--ink-soft); font-style: italic; }
+  code { font-family: 'IBM Plex Mono', monospace; font-size: .8em; }
+</style></head>
+<body><main class="wrap">
+  <header>
+    <p class="meta">Lyr · summer · northern hemisphere · portal 7×8 · tools/drafts/lyra.json</p>
+    <h1>Lyra the Lyre</h1>
+    <p class="lede">Lyra is a small northern constellation of the summer sky: a compact parallelogram of four faint stars hanging below Vega, the fifth-brightest star in the night sky and one corner of the Summer Triangle. Between two of those stars sits the Ring Nebula, the cast-off shell of a dying star, and toward Cygnus lies the globular cluster M56.</p>
+    <span class="status status--ready">ready to promote</span>
+  </header>
+
+  <h2>Figure</h2>
+  <svg class="figure" viewBox="-4.1 -4.6 8.2 9.2"
+    role="img" aria-label="Lyra as the portal frames it">
+    <rect x="-3.5" y="-4" width="7" height="8" class="fig-portal"/>
+    <line x1="2.721" y1="-3.339" x2="1.002" y2="-1.96" class="fig-line"/><line x1="1.002" y1="-1.96" x2="-0.202" y2="2.861" class="fig-line"/><line x1="-0.202" y1="2.861" x2="-2.323" y2="3.6" class="fig-line"/><line x1="-2.323" y1="3.6" x2="-1.197" y2="-1.16" class="fig-line"/><line x1="-1.197" y1="-1.16" x2="1.002" y2="-1.96" class="fig-line"/>
+    <g class="fig-dso fig-dso--none">
+      <circle cx="-1.037" cy="3.235" r="0.22"/>
+      <text x="-0.7369999999999999" y="3.315">M57, NGC 6720</text>
+    </g>
+    <g class="fig-dso fig-dso--none">
+      <circle cx="-6.76" cy="6.283" r="0.22"/>
+      <text x="-6.46" y="6.363">M56, NGC 6779</text>
+    </g>
+    <g class="fig-star">
+      <circle cx="2.721" cy="-3.339" r="0.138" fill="#fdf3e8"/>
+      <text x="2.994" y="-3.459">Vega</text>
+    </g>
+    <g class="fig-star">
+      <circle cx="1.002" cy="-1.96" r="0.058" fill="#ffedd9"/>
+      <text x="1.186" y="-2.08">Zeta1 Lyrae</text>
+    </g>
+    <g class="fig-star">
+      <circle cx="-0.202" cy="2.861" r="0.076" fill="#f4f4ff"/>
+      <text x="0.001999999999999988" y="2.741">Sheliak</text>
+    </g>
+    <g class="fig-star">
+      <circle cx="-2.323" cy="3.6" r="0.078" fill="#f9f4f3"/>
+      <text x="-2.1159999999999997" y="3.48">Sulafat</text>
+    </g>
+    <g class="fig-star">
+      <circle cx="-1.197" cy="-1.16" r="0.059" fill="#ffa660"/>
+      <text x="-1.0110000000000001" y="-1.2799999999999998">Delta2 Lyrae</text>
+    </g>
+  </svg>
+
+  <h2>Stars</h2>
+  <div class="scroll"><table>
+    <thead><tr><th>Star</th><th>Designation</th><th class="num">Mag</th><th>Class</th><th class="num">ly</th><th class="num">Physics</th><th>Panel</th></tr></thead>
+    <tbody>
+    <tr>
+      <td><strong>Vega</strong><span class="say">VEE-guh</span></td>
+      <td>α Lyrae</td>
+      <td class="num">0.03</td>
+      <td>A0Va</td>
+      <td class="num">25</td>
+      <td class="num">9,330 K · 2.51 M☉ · 2.69 R☉</td>
+      <td>written</td>
+    </tr>
+    <tr>
+      <td><strong>Zeta1 Lyrae</strong></td>
+      <td>ζ¹ Lyrae</td>
+      <td class="num">4.36</td>
+      <td>kA5hF0mF2</td>
+      <td class="num">156</td>
+      <td class="num">7,940 K · 2.06 M☉ · 2.95 R☉</td>
+      <td>written</td>
+    </tr>
+    <tr>
+      <td><strong>Sheliak</strong><span class="say">SHEE-lee-ak</span></td>
+      <td>β Lyrae</td>
+      <td class="num">3.42</td>
+      <td>B6-8II</td>
+      <td class="num">959</td>
+      <td class="num">13,300 K · 2.97 M☉ · 15.2 R☉</td>
+      <td>written</td>
+    </tr>
+    <tr>
+      <td><strong>Sulafat</strong><span class="say">SOO-luh-fat</span></td>
+      <td>γ Lyrae</td>
+      <td class="num">3.25</td>
+      <td>B9III</td>
+      <td class="num">618</td>
+      <td class="num">11,000 K · 5.76 M☉ · 15.4 R☉</td>
+      <td>written</td>
+    </tr>
+    <tr>
+      <td><strong>Delta2 Lyrae</strong></td>
+      <td>δ² Lyrae</td>
+      <td class="num">4.3</td>
+      <td>M4II</td>
+      <td class="num">770</td>
+      <td class="num">3,394 K · 4.5 M☉ · 293 R☉</td>
+      <td>written</td>
+    </tr></tbody></table></div>
+
+  <h2>Journey</h2>
+  
+    <article class="stop">
+      <div class="stop__index">1</div>
+      <div>
+        <h3>The Falling Eagle</h3>
+        <p class="targets">Vega · Zeta1 Lyrae</p>
+        <div class="prose"><p>Vega's name is Arabic. Arab astronomers saw Vega and the two faint stars beside it - Zeta Lyrae is one of them - as a swooping eagle, al-nasr al-waqi', dropping with its wings half-closed. Across the Milky Way, Altair in Aquila was its partner, al-nasr al-tair, the flying eagle with its wings spread. The word waqi', swooping, passed into Europe through the Alfonsine Tables as Wega, and became Vega. The sky's slow wobble has also made Vega a pole star: it marked the north around 12,000 BCE, and will again roughly 12,000 years from now.</p></div>
+        <p class="sources">R. H. Allen, Star-Names and Their Meanings (1899), pp. 282, 284, 286; Kunitzsch &amp; Smart, A Dictionary of Modern Star Names (2006); Wikipedia, Vega</p>
+      </div>
+    </article>
+    <article class="stop">
+      <div class="stop__index">2</div>
+      <div>
+        <h3>The Weaving Girl</h3>
+        <p class="targets">Vega</p>
+        <div class="prose"><p>In China, Vega and the two small stars beside it are Zhinü, the Weaving Girl. Across the Milky Way - the Silver River - Altair is the Herdsman, Niulang, and the lovers may meet only once a year, on the seventh night of the seventh month, when magpies form a bridge for her to cross. The stars are older than the romance: the Book of Songs, China's oldest collection of poetry, already complains that the Weaving Sisters beside the Milky Way weave no cloth. The festival, Qixi, travelled to Korea as Chilseok and to Japan as Tanabata, where Vega is Orihime and Altair is Hikoboshi.</p></div>
+        <p class="sources">R. H. Allen, Star-Names and Their Meanings (1899), p. 285; Shijing, ode 203 (Da Dong), trans. J. Legge (1879); Wikipedia, Qixi Festival; Wikipedia, Tanabata</p>
+      </div>
+    </article>
+    <article class="stop">
+      <div class="stop__index">3</div>
+      <div>
+        <h3>The Lyre of Orpheus</h3>
+        <p class="targets">Vega · Zeta1 Lyrae · Sheliak · Sulafat · Delta2 Lyrae</p>
+        <div class="prose"><p>This is the first lyre ever made. On the day he was born, the god Hermes found a mountain tortoise, scooped out its shell and strung it with seven strings of gut, then gave it to Apollo to settle a quarrel over stolen cattle. The lyre passed to Orpheus, son of the Muse Calliope, who took it down into the underworld in search of his wife, Eurydice. When he was later torn apart by followers of Dionysus, the Muses buried him. Here the old handbooks part ways: in one, the Muses asked Zeus to set the lyre among the stars as a memorial; in Hyginus, they placed it there themselves.</p></div>
+        <p class="sources">Homeric Hymn to Hermes, trans. H. G. Evelyn-White (1914); Pseudo-Eratosthenes, Catasterismi 24; Hyginus, De Astronomia 2.7</p>
+      </div>
+    </article>
+    <article class="stop">
+      <div class="stop__index">4</div>
+      <div>
+        <h3>The Tortoise and the Harp</h3>
+        <p class="targets">Sulafat · Sheliak</p>
+        <div class="prose"><p>The two stars at the foot of the lyre carry its Arabic names. Sulafat comes from al-sulahfat, the tortoise - the shell Hermes made the instrument from - and was first a name for the whole constellation; the Greek poet Aratus had already called it the Little Tortoise. Sheliak also began as a name for the constellation, and what it means is disputed: the nineteenth-century collector R. H. Allen read it as another word for the tortoise, while the modern scholar Paul Kunitzsch reads it as the harp. Sheliak hides a stranger story too. In 1784 the British amateur astronomer John Goodricke noticed that it changes brightness, fading and recovering every 12.9 days.</p></div>
+        <p class="sources">R. H. Allen, Star-Names and Their Meanings (1899), pp. 283, 284, 287; Kunitzsch &amp; Smart, A Dictionary of Modern Star Names (2006); Wikipedia, Beta Lyrae</p>
+      </div>
+    </article>
+    <article class="stop">
+      <div class="stop__index">5</div>
+      <div>
+        <h3>The Fading Planet</h3>
+        <p class="targets">Sheliak · Sulafat</p>
+        <div class="prose"><p>Between Sheliak and Sulafat, too faint for the eye, lies the Ring Nebula. Charles Messier found it on 31 January 1779 while following a comet, and took it for a patch of stars too small to separate. Weeks later Antoine Darquier, tracking the same comet from Toulouse, described it better: dull but sharply outlined, as large as Jupiter, like a planet that is fading. For more than two centuries the discovery was credited to Darquier, until historians corrected the record in 2017. The ring is the shell of gas thrown off by a dying Sun-like star some 2,570 light-years away, with the white dwarf it left behind at its centre.</p></div>
+        <p class="sources">SEDS, The Messier Catalog (M57); Wikipedia, Ring Nebula</p>
+      </div>
+    </article>
+    <h3 class="sub">Candidates not chosen</h3>
+    <p class="none">none</p>
+
+  <h2>Deep-sky objects</h2>
+  <article class="dso">
+      <h3>Ring Nebula <span class="meta">M57, NGC 6720 · planetary nebula · layer none</span></h3>
+      <p>A planetary nebula between Sheliak and Sulafat: the shell of gas thrown off by a dying Sun-like star, seen nearly end-on as a ring around the white dwarf left behind. Not in the explorable layer yet - a hollow shell needs a renderer of its own.</p>
+      <p class="gapnote"><strong>Renderer gap.</strong> Ships as data only - a layer-none object draws nothing in the scene. Nebula generator with a ring layout - a shell with a hollow centre and a central star.</p>
+    </article><article class="dso">
+      <h3>M56 <span class="meta">M56, NGC 6779 · globular cluster · layer none</span></h3>
+      <p>A globular cluster about 33,000 light-years away, roughly 13.7 billion years old, found by Messier in January 1779 while he was following a comet. Not in the explorable layer yet - a dense ball of stars needs a renderer of its own.</p>
+      <p class="gapnote"><strong>Renderer gap.</strong> Ships as data only - a layer-none object draws nothing in the scene. A dense spherical point field, concentrated strongly toward the centre.</p>
+    </article>
+
+  <h2>Open gaps</h2>
+  <p class="none">none</p>
+
+  <h2>Honest absences</h2>
+  <p class="lede">Shipped without: no source publishes a measured value, and physics is never inferred from the spectral class. The app labels these tones as estimated.</p>
+  <p class="none">none</p>
+
+  <h2>Warnings</h2>
+  <p class="none">none</p>
+</main></body></html>
