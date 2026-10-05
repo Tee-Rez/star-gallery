@@ -35,38 +35,12 @@
 // The one real cost is additive overdraw on the halo quad, which is why the fragment shader
 // discards below the same 0.003 threshold nebula-core uses.
 
-// The ramp nebula-core.js keys its star colours off, copied rather than imported: nebula-core
-// does not export bbColor, and this file must not start depending on window.NebulaCore being
-// present - the constellation draws with or without a deep-sky object in the scene.
-const BB = [[1, 0.52, 0.22], [1, 0.70, 0.43], [1, 0.86, 0.70], [1, 0.95, 0.89],
-  [0.96, 0.96, 1], [0.82, 0.88, 1], [0.70, 0.80, 1]]
-
-function bbColor(t) {
-  const f = Math.max(0, Math.min(1, t)) * (BB.length - 1)
-  const i = Math.min(BB.length - 2, Math.floor(f)), k = f - i, a = BB[i], b = BB[i + 1]
-  return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k]
-}
-
-// Temperature to ramp position, in LOG T. Linear in kelvin spends most of the ramp between
-// 20,000K and 30,000K, where the colour barely changes, and crushes the 3,000-6,000K range
-// where it changes fastest - which is where most of a constellation's stars actually sit.
-function tempToRamp(k) {
-  if (!(k > 0)) return -1
-  const lo = Math.log(2500), hi = Math.log(30000)
-  return Math.max(0, Math.min(1, (Math.log(k) - lo) / (hi - lo)))
-}
-
-// Spectral class is the fallback when physics.tempKelvin is absent: the letter alone fixes the
-// temperature to within a class, which is far closer than the authored hex, and unlike the hex
-// it lands on the same ramp as everything else.
-const CLASS_K = {O: 30000, B: 15000, A: 8500, F: 6800, G: 5600, K: 4400, M: 3200}
+// The blackbody ramp lives in star-color.mjs so the constellation tools draft each star with the
+// same colour this file draws it with. See that file for the ramp itself.
+import {bbColor, rampForStar} from './star-color.mjs'
 
 function starColor(data) {
-  let t = tempToRamp(data.tempKelvin)
-  if (t < 0 && data.spectralClass) {
-    const m = /^\s*([OBAFGKM])/.exec(data.spectralClass.toUpperCase())
-    if (m) t = tempToRamp(CLASS_K[m[1]])
-  }
+  const t = rampForStar(data)
   if (t >= 0) return bbColor(t)
   // Nothing astrophysical to go on - fall back to whatever hex the data carries.
   const c = new THREE.Color(data.color || '#ffffff')
