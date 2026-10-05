@@ -2511,7 +2511,8 @@
         "arabic",
         "hindu",
         "babylonian",
-        "greek"
+        "greek",
+        "starseed"
       ],
       "threads": [
         "the-follower",
@@ -2955,7 +2956,8 @@
       "spectralClass": "B",
       "cultures": [
         "greek",
-        "arabic"
+        "arabic",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -2988,7 +2990,8 @@
       "cultures": [
         "greek",
         "arabic",
-        "babylonian"
+        "babylonian",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -3062,7 +3065,8 @@
       "spectralClass": "B",
       "cultures": [
         "greek",
-        "arabic"
+        "arabic",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -3188,7 +3192,8 @@
       "spectralClass": "O",
       "cultures": [
         "greek",
-        "arabic"
+        "arabic",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -3387,7 +3392,8 @@
       "spectralClass": "O",
       "cultures": [
         "greek",
-        "arabic"
+        "arabic",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -3592,7 +3598,8 @@
       "cultures": [
         "greek",
         "arabic",
-        "hindu"
+        "hindu",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -4192,7 +4199,8 @@
       "cultures": [
         "greek",
         "arabic",
-        "egyptian"
+        "egyptian",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -4818,7 +4826,8 @@
       "cultures": [
         "greek",
         "arabic",
-        "egyptian"
+        "egyptian",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -6092,7 +6101,8 @@
         "greek",
         "arabic",
         "babylonian",
-        "hindu"
+        "hindu",
+        "starseed"
       ],
       "threads": [
         "the-royal-stars"
@@ -7996,7 +8006,8 @@
       "cultures": [
         "greek",
         "arabic",
-        "egyptian"
+        "egyptian",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -8091,7 +8102,8 @@
         "greek",
         "arabic",
         "hindu",
-        "māori"
+        "māori",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -9423,7 +9435,8 @@
         "greek",
         "arabic",
         "babylonian",
-        "hindu"
+        "hindu",
+        "starseed"
       ],
       "threads": [
         "the-royal-stars"
@@ -10751,7 +10764,8 @@
       "spectralClass": "A",
       "cultures": [
         "arabic",
-        "greek"
+        "greek",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -11710,7 +11724,8 @@
       "spectralClass": "A",
       "cultures": [
         "arabic",
-        "greek"
+        "greek",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -12167,7 +12182,8 @@
       "spectralClass": "A",
       "cultures": [
         "arabic",
-        "greek"
+        "greek",
+        "starseed"
       ],
       "threads": [],
       "constellations": [
@@ -13535,7 +13551,8 @@
       "cultures": [
         "arabic",
         "greek",
-        "babylonian"
+        "babylonian",
+        "starseed"
       ],
       "threads": [
         "the-royal-stars"

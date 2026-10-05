@@ -24,7 +24,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 
 const VAULT = process.env.CONSTELLATION_BRAIN
-  || 'C:/Users/TearS/OneDrive/Desktop/STAR Arts/Consetellations/Constellation Brain'
+  || 'C:/Users/TearS/STAR-Arts/Consetellations/Constellation Brain'
 const OUT = 'tools/brain'
 
 // PowerShell redirects leave a BOM that breaks JSON.parse - strip it on every read.
