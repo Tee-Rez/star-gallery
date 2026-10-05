@@ -275,23 +275,34 @@ function main(argv) {
   console.log(`  renderer gaps   ${d.rendererGaps.length}${d.rendererGaps.length ? '  (' + d.rendererGaps.map(g => `${g.object}: ${g.type}`).join(', ') + ')' : ''}`)
   for (const w of d.warnings) console.log(`  warning: ${w}`)
 
-  if (argv.includes('--promote')) promote(draft, id)
+  if (argv.includes('--promote')) {
+    try {
+      promote(draft, id)
+    } catch (e) {
+      console.error(`\n${e.message}`)
+      process.exit(1)
+    }
+    console.log('next: the gallery catalogue entry waits for live promotion (spec section 5.4)')
+  }
 }
 
-function promote(draft, id) {
-  if (draft._draft.required.length) {
-    console.error(`\nrefusing to promote ${id}: ${draft._draft.required.length} required gap(s) open`)
-    process.exit(1)
+// Ship a draft: the data file without its _draft block, then the loader's embedded copy, then a
+// check that the two agree. `dataDir` and `loader` exist so tests can promote into copies.
+export function promote(draft, id, {dataDir = path.join(ROOT, 'orion/src/data/constellations'), loader} = {}) {
+  const open = draft._draft ? draft._draft.required : []
+  if (open.length) {
+    throw new Error(`refusing to promote ${id}: ${open.length} required gap(s) open\n` +
+      open.map(g => `  ${g.path}  <- ${g.fill}`).join('\n'))
   }
   const shipped = {...draft}
   delete shipped._draft
-  const out = path.join(ROOT, 'orion/src/data/constellations', `${id}.json`)
+  const out = path.join(dataDir, `${id}.json`)
   fs.writeFileSync(out, toJSON(shipped))
   console.log(`\nwrote ${path.relative(ROOT, out)}`)
   const sync = path.join(ROOT, 'tools/sync-loader-data.mjs')
-  execFileSync(process.execPath, [sync, id, '--add'], {stdio: 'inherit', cwd: ROOT})
-  execFileSync(process.execPath, [sync, '--check'], {stdio: 'inherit', cwd: ROOT})
-  console.log('next: the catalogue entry waits for live promotion (spec section 5.4)')
+  const env = {...process.env, CONSTELLATION_DATA: dataDir, ...(loader ? {LOADER: loader} : {})}
+  execFileSync(process.execPath, [sync, id, '--add'], {stdio: 'inherit', cwd: ROOT, env})
+  execFileSync(process.execPath, [sync, '--check'], {stdio: 'inherit', cwd: ROOT, env})
 }
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) main(process.argv.slice(2))
