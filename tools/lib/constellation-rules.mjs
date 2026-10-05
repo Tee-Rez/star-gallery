@@ -7,6 +7,8 @@
 // These apply to NEW constellations only. Orion, Andromeda and Taurus keep the hand-tuned values
 // they shipped with - including ids, which visited-star progress is saved against.
 
+import PRESETS from '../deep-sky-presets.json' with {type: 'json'}
+
 const GREEK = {
   'α': 'alpha', 'β': 'beta', 'γ': 'gamma', 'δ': 'delta', 'ε': 'epsilon', 'ζ': 'zeta',
   'η': 'eta', 'θ': 'theta', 'ι': 'iota', 'κ': 'kappa', 'λ': 'lambda', 'μ': 'mu', 'ν': 'nu',
@@ -184,4 +186,30 @@ export function scientificLines(physics, spectralClass) {
   lines.mass = `About ${multiple(physics.massSolar)} times the Sun's mass`
   lines.radius = `About ${multiple(physics.radiusSolar)} times the Sun's radius`
   return lines
+}
+
+// ------------------------------------------------------------------------------ deep sky
+
+// What a deep-sky object becomes, from its astronomical type. A supported type gets a copy of
+// its renderer's seed values - a copy, so tuning one object's colours cannot reach back into the
+// registry and change the next constellation's. Anything else is a tappable marker carrying the
+// reason, so a constellation never waits on renderer work: the gap is designed separately and
+// the object is upgraded once its renderer exists.
+export function presetFor(type, hasNamedMembers) {
+  const sup = PRESETS.supported[type]
+  if (sup && !(sup.requiresNamedMembers && !hasNamedMembers)) {
+    const out = {layer: sup.layer}
+    if (sup.field) out.field = structuredClone(sup.field)
+    if (sup.render) out.render = structuredClone(sup.render)
+    return out
+  }
+  const key = type === 'open_cluster' ? 'open_cluster_unnamed' : type
+  return {
+    layer: 'none',
+    rendererGap: {
+      type,
+      startingPoint: PRESETS.needsRenderer[key] ||
+        'No renderer and no suggested starting point yet - design one before this can be entered.',
+    },
+  }
 }
