@@ -9,6 +9,30 @@ Generate the embedded copy from the file with a script; hand transcription drift
 Top-level keys, in order:
 `metadata`, `portal`, `display`, `gridBox`, `stars`, `connections`, `deepSkyObjects`, `journey`.
 
+A new constellation is not written by hand: `tools/draft-constellation.mjs` drafts this shape from
+the Constellation Brain, and `--promote` ships it. See `docs/constellation-pipeline.md`.
+
+**A draft is this shape plus `_draft`** - `tools/drafts/<id>.json` carries a top-level `_draft`
+block listing what is still missing (`required`, `absences`, `rendererGaps`, `warnings`,
+`journeyCandidates`, `scientificDrafts`, and `builtFrom`, the vault commit it came from). A shipped
+file must never carry it; the verifier and `sync-loader-data.mjs` both refuse one that does.
+
+**The research file**, `tools/input/<id>-research.json`, holds everything researched for one
+constellation, which the generator merges in:
+
+```json
+{"metadata": {"displayName": "...", "description": "...", "mythology": "..."},
+ "stars": {"beta_lyrae": {"info": {...}, "spectralClass": "B7Ve", "physics": {...}}},
+ "deepSky": [{"id": "m57", "name": "Ring Nebula", "designation": "M57, NGC 6720",
+   "type": "planetary_nebula", "raH": 18.8931, "dec": 33.0292, "distance": 2570,
+   "magnitude": 8.8, "size": 0.4, "description": "..."}],
+ "journey": [{"id": "...", "title": "...", "centerStarName": "...", "targetStarNames": [], "story": "...", "sources": "..."}],
+ "portal": {"width": 6, "height": 8}}
+```
+
+Star entries are keyed by the drafted star `id`. Every key is optional; what is missing shows up
+as a gap. `portal` overrides the suggested size.
+
 ## metadata
 
 ```json
@@ -72,12 +96,19 @@ and bottom span `width × depth`.
  "info": {"basic": "...", "scientific": {"class": "...", "temperature": "..."}}}
 ```
 
-- `id` — lowercase snake_case, referenced by `connections`.
+- `id` — lowercase snake_case, referenced by `connections`. Visited-star progress is saved
+  against it, so it never changes once shipped. New constellations take it from the designation
+  (`beta_lyrae`, `zeta1_lyrae`), which never changes, rather than the proper name, which can.
+- `pronunciation` — how a proper name is said, as a plain respelling with the stress in capitals
+  (`"VEE-guh"`). Required on every star with a proper name; absent on Bayer and Flamsteed names.
+  Owned by the vault: it comes from `pronunciation:` in the star note's frontmatter.
 - `name` — the display name; the DOM exposes it as `data-name` and the journey looks stars up
   by it. Must be unique.
 - `position2D` — from `tools/project-constellation.js`, fitted to this constellation's portal.
 - `distance` in light-years; drives the 3D depth spread.
-- `color` from spectral class, `size` from magnitude — see `constellation-builder`.
+- `color` from temperature (else the spectral letter) on the same blackbody ramp the app draws
+  with; `size` from magnitude by `0.1538 - 0.0205 x mag`, clamped to 0.05-0.17; `isMajor` is
+  magnitude below 4.0. All in `tools/lib/constellation-rules.mjs`.
 - **No `esoteric` field.** It was removed after the original text proved fabricated; lore lives
   in `journey` with sources.
 - `physics` *(strongly recommended)* —
@@ -120,6 +151,11 @@ share a centre and scale:
  "position2D": {"x": -0.315, "y": 0.462},
  "distance": 2537000, "magnitude": 3.44, "size": 2.0, "description": "..."}
 ```
+
+`type` is open-ended; `tools/deep-sky-presets.json` maps it to a layer and seeds the `field` and
+`render` blocks for the types that have a renderer. A type without one is drafted as
+`layer: "none"` and recorded in `_draft.rendererGaps` - which keeps it in the data but draws
+nothing, since the loader makes markers only for objects the viewer can enter.
 
 ### `layer` — whether it is explorable, and how
 
@@ -229,6 +265,7 @@ assert all(st['centerStarName'] in names for st in d.get('journey',[]))
 assert all(n in names for st in d.get('journey',[]) for n in st['targetStarNames'])
 assert all(st.get('sources') for st in d.get('journey',[]))
 assert not any('esoteric' in s.get('info',{}) for s in d['stars'])
+assert '_draft' not in d
 hw=d['portal']['width']/2; hh=d['portal']['height']/2
 assert all(abs(s['position2D']['x'])<=hw and abs(s['position2D']['y'])<=hh for s in d['stars'])
 print('OK', len(d['stars']),'stars', len(d['connections']),'connections', len(d.get('journey',[])),'stops')
