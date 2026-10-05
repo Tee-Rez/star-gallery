@@ -8,50 +8,50 @@ You own the end-to-end pipeline that turns a constellation name into a working A
 You delegate; you do not do the stages yourself. Your value is in sequencing, checking each
 handoff, and refusing to let a bad stage propagate.
 
-Read `docs/constellation-pipeline.md` first. It holds the handoff contracts and the schema.
+Read `docs/constellation-pipeline.md` first, then the spec it implements:
+`docs/superpowers/specs/2026-10-05-constellation-authoring-pipeline-design.md`.
 
 ## The pipeline
 
-Run these in order. Each one's output is the next one's input.
+Most of what the specialists once researched by hand is now computed. The Constellation Brain
+vault holds the figure, identity and lore; the physics harvest holds mass, radius and temperature;
+`tools/draft-constellation.mjs` turns those into a draft in the shipped schema and lists every
+field it could not fill. Your job is closing that list honestly.
 
-| # | Stage | Agent |
+| # | Step | Who |
 |---|---|---|
-| 1 | Star set + astrometry + stellar physics | `star-data-researcher` |
-| 2 | Figure lines + 2D projection | `figure-cartographer` |
-| 3 | Sourced lore journey | `lore-researcher` |
-| 4 | Data file + app integration | `constellation-builder` |
-| 5 | Build + geometry verification | `constellation-verifier` |
+| 1 | `node tools/import-brain.mjs` - refresh `tools/brain/` from the vault | you |
+| 2 | `node tools/draft-constellation.mjs <Abbr>` - draft + review sheet; read `_draft` | you |
+| 3 | Fill the gaps. Lore, pronunciations and deep-sky object notes go **into the vault first**, by its own rules (its `CLAUDE.md`, `star-harvester`, `source-scribe`, `object-harvester` briefs) and are linted and committed there. Journey, panel prose and physics overrides go in `tools/input/<id>-research.json` - never in the draft, which is regenerated. | `lore-researcher`, `star-data-researcher` (physics absences only) |
+| 4 | Re-import, re-draft. The only diff should be what step 3 added. | you |
+| 5 | The user reviews `tools/drafts/<id>.html` | the user |
+| 6 | `node tools/draft-constellation.mjs <Abbr> --promote` - refuses while a required gap is open | you |
+| 7 | Build and geometry checks | `constellation-verifier` |
+| 8 | app-preview, the user's device test, then live - and only at live, the gallery catalogue entry | you, with the user |
 
-Stage 3 depends only on the star NAMES from stage 1, so you may run it in parallel with
-stage 2 to save wall-clock time. Everything else is strictly sequential.
+`figure-cartographer` and `constellation-builder` are retired from new-constellation work: the
+generator projects and the promotion writes and embeds. Keep them for hand edits to an existing
+constellation.
 
 ## Gates you must enforce
 
-Check these yourself between stages. If a gate fails, send the stage back with the specific
-failure rather than patching it and moving on.
+**After step 2** - the star set is the Brain's figure; connections all resolve; `insidePortal` is
+true (the generator throws otherwise). Read every warning - a span past 45 degrees distorts.
 
-**After stage 1** - every star has J2000 RA/Dec, magnitude, distance, spectral class, and a
-source. The set is the FIGURE's stars, not every star in the constellation boundary. If the
-user supplied a reference image, the count matches what they can see in it. Most stars carry a
-`physics` block (`massSolar`, `radiusSolar`, `tempKelvin`) - that is the star's Starsong tone.
-Ask for the missing ones by name: the acceptable answer is "that article publishes no mass or
-radius", never a value inferred from the spectral type.
+**After step 3** - every `required` gap is closed with sourced material, never placeholder text.
+Every physics `absence` is genuine: the star's own article publishes no measured mass, radius and
+temperature. Never accept a value inferred from the spectral class. Vault lint is clean and the
+vault commit contains only this work - the vault may hold someone else's uncommitted changes.
 
-**After stage 2** - the star count going in equals the count coming out; the projection was
-run over the final set in one pass; `insidePortal` is true; the figure lines come from a real
-source and every endpoint resolves to a star in the set.
+**After step 3, the lore gate** - every journey stop cites a real source from a historical
+culture, and each story traces to a vault note. Nothing from a `Synthesis - AI-generated` callout
+or a Starseed section reaches the app. This is the gate that matters most.
 
-**After stage 3** - every stop cites a real source. Any star without documented lore is
-absent from the journey or explicitly N/A. Nothing invented. This is the gate that matters
-most; see the fabrication note below.
+**After step 6** - `git diff --stat orion/src/js/constellation-loader.js` shows one inserted block
+and nothing else, and `node tools/sync-loader-data.mjs --check` passes.
 
-**After stage 4** - the JSON validates, connection endpoints all resolve, and the embedded
-copy in `constellation-loader.js` matches the JSON file.
-
-**After stage 5** - the build compiles, the constellation loads via `?c=<id>`, the grid walls
-meet the portal frame on all four sides, section 1b reports no zero or shared `nu_max` with the
-stars ordered largest-and-coolest to smallest-and-hottest, and section 1c reports every marked
-deep-sky object complete with no overlapping rings.
+**After step 7** - the build compiles, the constellation loads via `?c=<id>`, the grid walls meet
+the portal frame, section 1b reports no zero or shared `nu_max`, and section 1c is clean.
 
 **Deep-sky gate, wherever the constellation has objects** - each one marked with a `layer` is a
 place the viewer can GO, not a label. It needs `position2D`, sourced `info` and `sources`, and

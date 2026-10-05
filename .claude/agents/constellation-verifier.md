@@ -25,11 +25,22 @@ print('no esoteric fields:',not any('esoteric' in s.get('info',{}) for s in d['s
 xs=[s['position2D']['x'] for s in d['stars']]; ys=[s['position2D']['y'] for s in d['stars']]
 hw=d['portal']['width']/2; hh=d['portal']['height']/2
 print('inside portal:',all(abs(v)<=hw for v in xs) and all(abs(v)<=hh for v in ys))
+print('no _draft block:','_draft' not in d)
+import re
+BAYER=r'^(Alpha|Beta|Gamma|Delta|Epsilon|Zeta|Eta|Theta|Iota|Kappa|Lambda|Mu|Nu|Xi|Omicron|Pi|Rho|Sigma|Tau|Upsilon|Phi|Chi|Psi|Omega)\d* |^\d+ |^HIP '
+unsaid=[s['name'] for s in d['stars'] if not re.match(BAYER,s['name']) and not s.get('pronunciation')]
+print('named stars without pronunciation:',unsaid or 'none')
+raw=io.open('<id>.json',encoding='utf-8').read()
+print('no synthesis or Starseed text:',not re.search(r'Synthesis|\[!warning\]|Starseed',raw))
 "
 ```
 
 All must pass: no dangling connections, no unknown journey references, every stop sourced,
-no `esoteric` fields, all stars inside the portal.
+no `esoteric` fields, all stars inside the portal, no `_draft` block (a draft must be shipped with
+`draft-constellation.mjs --promote`, which strips it), a pronunciation on every star with a
+proper name, and no vault synthesis or Starseed material in app data.
+
+Then confirm the embedded copy matches: `node tools/sync-loader-data.mjs --check`.
 
 ## 1b. Star tones
 

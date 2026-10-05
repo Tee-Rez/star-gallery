@@ -12,39 +12,64 @@ showed up both times. Each stage below encodes what went wrong so it does not go
 Use the constellation-orchestrator agent to add <constellation name>.
 ```
 
-The orchestrator delegates each stage and checks the handoff before the next one starts. You
-can also call a single specialist directly when only one part needs redoing - re-projecting
-after a star set changes, or re-checking lore against sources.
+Or by hand, which is the same sequence:
 
-## Stages
+```bash
+node tools/import-brain.mjs                    # refresh tools/brain/ from the vault
+node tools/draft-constellation.mjs Lyr         # tools/drafts/lyra.json + lyra.html
+#   ...fill the gaps the draft lists, vault first...
+node tools/import-brain.mjs && node tools/draft-constellation.mjs Lyr
+node tools/draft-constellation.mjs Lyr --promote
+```
 
-| # | Stage | Agent | Model | Why that model |
-|---|---|---|---|---|
-| 1 | Star set + astrometry + physics | `star-data-researcher` | sonnet | High-volume extraction from catalogue tables and infoboxes into a fixed shape. Needs care, not deep reasoning. |
-| 2 | Figure lines + projection | `figure-cartographer` | sonnet | Decoding coordinates and driving a deterministic script; the maths lives in the tool, not the model. |
-| 3 | Sourced lore | `lore-researcher` | **opus** | The judgment call that carries the most risk - separating documented history from plausible-sounding invention. Worth the tokens. |
-| 4 | Data + integration | `constellation-builder` | sonnet | Schema transcription and precise file surgery. Mechanical but unforgiving. |
-| 5 | Build + verification | `constellation-verifier` | **haiku** | A fixed checklist producing numbers. Cheapest model that can run commands and compare values. |
-| — | Orchestration | `constellation-orchestrator` | **opus** | Sequences the work, judges whether each handoff is good enough, and decides when a stage must be re-run. |
+Spec: `docs/superpowers/specs/2026-10-05-constellation-authoring-pipeline-design.md`.
 
-Stage 3 needs only the star **names** from stage 1, so it can run alongside stage 2. Everything
-else is sequential.
+## Where the data comes from
 
-## Handoff contracts
+| Data | Owner | How it arrives |
+|---|---|---|
+| figure, names, designations, HIP, positions, magnitudes | the Constellation Brain vault | `import-brain.mjs` → `tools/brain/` |
+| lore by culture, sources, pronunciations, deep-sky object notes | the vault | read by `tools/lib/brain-lore.mjs`, synthesis and Starseed removed |
+| mass, radius, temperature, distance | `tools/brain/physics.json` (the harvest) | measured values only, via `measuredPhysics` |
+| ids, sizes, colours, isMajor, portal, grid, box, season, hemisphere, positions | computed | `tools/lib/constellation-rules.mjs`, `project-constellation.js` |
+| journey, panel prose, physics overrides, deep-sky objects | researched | `tools/input/<id>-research.json` |
 
-**1 → 2** `tools/input/<id>-stars.json` — every star with `id`, `name`, `designation`, `raH`
-(hours), `dec` (degrees), `dist`, `mag`, `spectralClass`, `source`; a `physics` block
-(`massSolar`, `radiusSolar`, `tempKelvin`) on every star whose article publishes those figures;
-optional `deepSky` entries with the same coordinate fields.
+**Vault first.** Anything researched that the vault should own - lore, a pronunciation, an
+object's history - is written into the vault by its own rules, linted and committed there, then
+re-imported. The app never holds lore the vault does not.
 
-**2 → 4** The chosen portal `width`/`height`, the projection `scale`, a `position2D` per star
-and per deep-sky object, and the connection pairs with a `type` on each.
+## The draft
 
-**3 → 4** The `journey` array — each stop with `id`, `title`, `centerStarName`,
-`targetStarNames`, `story`, `sources`.
+`draft-constellation.mjs` writes the shipped schema plus a `_draft` block, and never fills a
+researched field with placeholder text - an absent field cannot render as if it were real.
 
-**4 → 5** The data file path, the constellation `id`, and confirmation the embedded loader copy
-matches the JSON.
+- `required` - blocks promotion: star `info`, `pronunciation` on each named star, a full spectral
+  class, the `journey`, the deep-sky list (`[]` is an answer), and `displayName`, `description`
+  and `mythology`.
+- `absences` - stars whose harvest holds only spectral-type estimates. They ship without
+  `physics` and the app labels their tone as estimated (failure #8).
+- `rendererGaps` - deep-sky objects whose type has no renderer. They ship with `layer: "none"`,
+  which keeps them in the data but draws nothing; each gap is its own design task.
+- `journeyCandidates` - named stars by brightness, and the two stars nearest each object.
+- `scientificDrafts` - the panel's science lines in one format, to revise into `info.scientific`.
+
+The review sheet, `tools/drafts/<id>.html`, shows all of it with the figure as the portal frames
+it. `--promote` refuses while any required gap is open; otherwise it writes the data file without
+`_draft`, adds the loader's embedded block with `sync-loader-data.mjs <id> --add`, and checks the
+two agree.
+
+**The gallery catalogue waits.** `star-gallery/data/catalog.json` drives the live gallery, so a
+new constellation's card is added when it is promoted to live, not at app-preview.
+
+## Agents
+
+| Agent | Model | Role now |
+|---|---|---|
+| `constellation-orchestrator` | **opus** | Runs the sequence above and enforces its gates. |
+| `lore-researcher` | **opus** | Brain first; writes back to the vault; chooses and writes the journey (spec section 6). |
+| `star-data-researcher` | sonnet | Confirms each physics absence against the star's own article, or supplies a measured override. |
+| `constellation-verifier` | **haiku** | Build, geometry and data checks, including no `_draft`, pronunciations, and no synthesis. |
+| `figure-cartographer`, `constellation-builder` | sonnet | Retired from new constellations - the generator and `--promote` do their work. Kept for hand edits. |
 
 ## The eight failures this pipeline exists to prevent
 
@@ -101,10 +126,14 @@ A constellation's nebulae, galaxies and clusters are not decoration — each one
 becomes a place you can go. See `docs/constellation-data-schema.md` for the full field
 reference; what the pipeline needs to know:
 
-- **Stage 1 gathers them** alongside the stars: coordinates, distance, magnitude, angular size,
-  and — for anything that will be in the layer — sourced `info.basic` / `info.scientific` and
-  `sources`, exactly as a star gets them.
-- **Stage 2 projects them in the same run** as the stars, so they share a centre and scale.
+- **The research file lists them** under `deepSky`: `raH`/`dec`, distance, magnitude, angular
+  size, `type`, a `description`, and - for anything the viewer can enter - sourced `info` and
+  `sources`. Their history goes into the vault's `objects/` first.
+- **The type picks the layer.** `tools/deep-sky-presets.json` maps each `type` to a renderer and
+  seeds its `field`/`render` blocks inline. A type with no renderer ships as `layer: "none"` -
+  in the data, but invisible: the loader draws markers only for objects it can enter. Such an
+  object reaches the viewer through the journey's prose until its renderer is designed.
+- **The generator projects them in the same run** as the stars, so they share a centre and scale.
 - **Only the primary of a close group gets a marker.** Companions carry `"layer": "none"`.
 - **A cluster needs its own star set**, in the full star schema with `physics`, projected to fit
   the PARENT's portal because it borrows that portal and box.
@@ -156,30 +185,40 @@ node tools/project-constellation.js <input.json>            # aspect + suggested
 node tools/project-constellation.js <input.json> <W> <H>    # final positions
 ```
 
-Shared so the maths is written once. It reproduces the shipped Andromeda exactly (scale
-11.7818), which is the regression test to run if it is ever changed.
+Shared so the maths is written once; the draft generator calls it. The regression test if it is
+ever changed: it must reproduce every shipped position exactly from `tools/input/<id>-stars.json`
+- Orion at 6 x 9 (scale 14.218), Andromeda at 8 x 7 (16.2118) and Taurus at 8 x 6 (12.3288), all
+19, 6 and 12 stars matching to the last digit.
 
 ## Files
 
 ```
-.claude/agents/            the six agent definitions
+.claude/agents/                     the agent definitions
 docs/constellation-pipeline.md      this file
 docs/constellation-data-schema.md   the data contract
+tools/import-brain.mjs              vault -> tools/brain/
+tools/draft-constellation.mjs       draft, review sheet, --promote
+tools/lib/constellation-rules.mjs   every computed field
+tools/lib/brain-lore.mjs            vault lore, synthesis and Starseed removed
+tools/deep-sky-presets.json         deep-sky type -> renderer
 tools/project-constellation.js      shared projection
-tools/input/<id>-stars.json         stage 1 output
+tools/sync-loader-data.mjs          data file -> the loader's embedded copy
+tools/input/<id>-research.json      everything researched for one constellation
+tools/drafts/<id>.json, .html       the draft and its review sheet
 orion/src/data/constellations/      canonical constellation data
-star-gallery/data/catalog.json      gallery listing
+star-gallery/data/catalog.json      gallery listing (live only)
 ```
 
 ## Reference state
 
-Both shipped constellations pass every check in `constellation-verifier`, so either can be
+The shipped constellations pass every check in `constellation-verifier`, so either can be
 read as a worked example of the schema:
 
 | | Stars | Connections | Deep-sky | Stops | Portal | Measured physics |
 |---|---|---|---|---|---|---|
-| Orion | 15 | 15 | 2 | 5 | 6 x 9 | 15 / 15 |
-| Andromeda | 15 | 14 | 5 | 5 | 8 x 7 | 14 / 15 |
+| Orion | 19 | 21 | 2 | 5 | 6 x 9 | 19 / 19 |
+| Andromeda | 6 | 5 | 5 | 4 | 8 x 7 | 6 / 6 |
+| Taurus | 12 | 12 | 2 | 4 | 8 x 6 | 12 / 12 |
 
 Three inconsistencies were closed when this pipeline was written, all of them the kind the
 stages above now prevent:

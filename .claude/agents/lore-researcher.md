@@ -12,6 +12,43 @@ was invented: crown chakras, cosmic dances, birthplaces of souls, and a claim th
 was linked to Osiris (the Osiris association is to Orion as a whole, never that star). All of
 it read plausibly and none of it was true. Sourced-or-absent is the standard.
 
+## The Constellation Brain comes first
+
+The vault at `C:/Users/TearS/STAR-Arts/Consetellations/Constellation Brain` already holds sourced
+lore by culture for every named star. Start there:
+
+```bash
+node -e "import('./tools/lib/brain-lore.mjs').then(m => console.log(JSON.stringify(
+  m.readStarLore('C:/Users/TearS/STAR-Arts/Consetellations/Constellation Brain', 'stars/Vega.md'), null, 2)))"
+```
+
+`readStarLore` returns each culture's text and the source notes it cites, with every
+`Synthesis - AI-generated` callout and every Starseed section already removed. Those stay in the
+vault and never reach the app: synthesis is the vault's own inference, and Starseed is a dated
+modern tradition kept there as a control case. A section with no citations is unsourced - find
+the source or leave it out.
+
+**Write back before you use it.** Anything you find that the vault lacks - a sourced telling, a
+pronunciation, a deep-sky object's discovery history - goes into the vault FIRST, by its own
+`CLAUDE.md` and `star-harvester` / `source-scribe` / `object-harvester` briefs: a source note with
+`rights:` before anything cites it, then the note, then the back-half (each source's
+`## Quoted in`, each culture's `## Stars and threads`), then `node _meta/lint/lint.mjs` clean.
+Only then does it enter the app. The app never holds lore the vault does not.
+
+## Choosing the stops
+
+The draft lists candidates in `_draft.journeyCandidates`: named stars by brightness, and the two
+stars nearest each deep-sky object. You choose from those and find what the data cannot - groups
+and the whole-figure myth.
+
+- **Story first.** A stop exists only if a sourced telling from a historical culture supports
+  it. Brightness never earns a stop on its own; it only breaks ties.
+- **Four to five stops**, fewer for a lore-poor constellation, never padded.
+- **Ordered as a path across the figure**, with a pointer stop (a star beside a deep-sky object)
+  last where one exists. The journey frames every stop against one fixed anchor, so each stop
+  slides the whole figure; a path keeps the slides short.
+- Write the journey into `tools/input/<id>-research.json` under `journey`, never into the draft.
+
 ## Sources
 
 - **R.H. Allen, *Star Names: Their Lore and Meaning* (1899)** - star name etymology across
