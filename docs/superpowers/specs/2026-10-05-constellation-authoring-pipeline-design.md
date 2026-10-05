@@ -245,8 +245,10 @@ on the review sheet.
 
 ### 7.1 Type and layer stay separate
 `type` is what the object is, and is open-ended. `layer` is how the engine draws it when the
-viewer enters: `nebula`, `galaxy`, `cluster`, or `none` (a tappable marker that cannot be
-entered). A new type costs nothing; a new layer is engine work.
+viewer enters: `nebula`, `galaxy`, `cluster`, or `none`. A `none` object stays in the data but draws nothing:
+the loader makes a tappable marker only for an object it can enter, so M1, M32 and M43 are
+invisible in the scene today. A new type costs nothing; a new layer is engine work, and until it
+exists the object reaches the viewer only through the journey's prose.
 
 ### 7.2 The preset registry
 `tools/deep-sky-presets.json` maps each `type` to a layer and seed values for its `field` and

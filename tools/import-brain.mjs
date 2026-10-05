@@ -84,6 +84,9 @@ for (const file of fs.readdirSync(path.join(VAULT, 'stars')).filter(f => f.endsW
     magnitude: fm.magnitude,
     spectralClass: fm.spectral_class,
     distanceLy: fm.distance_ly,
+    // The vault owns how a name is said; the app reads it from here. Undefined is omitted by
+    // JSON.stringify, so stars without one add nothing to the import.
+    pronunciation: fm.pronunciation,
     cultures: tags.filter(t => t.startsWith('culture/')).map(t => t.slice(8)),
     threads: tags.filter(t => t.startsWith('thread/')).map(t => t.slice(7)),
     constellations: tags.filter(t => t.startsWith('constellation/')).map(t => t.slice(14)),

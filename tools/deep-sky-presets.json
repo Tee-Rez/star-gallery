@@ -1,5 +1,5 @@
 {
-  "_note": "Deep-sky type -> renderer. A supported entry seeds a new object's field/render, copied inline so each object can still be tuned afterwards. A needs-renderer entry makes the object a tappable marker (layer none) and records a renderer gap; each gap is its own design task, starting from whether an existing generator can express it with a small change. Spec: docs/superpowers/specs/2026-10-05-constellation-authoring-pipeline-design.md section 7.",
+  "_note": "Deep-sky type -> renderer. A supported entry seeds a new object's field/render, copied inline so each object can still be tuned afterwards. A needs-renderer entry makes the object layer none - kept in the data, but drawing nothing and opening nothing in the scene, exactly as Andromeda's M32 and Taurus's M1 ship today - and records a renderer gap; each gap is its own design task, starting from whether an existing generator can express it with a small change. Spec: docs/superpowers/specs/2026-10-05-constellation-authoring-pipeline-design.md section 7.",
   "supported": {
     "emission_nebula": {
       "layer": "nebula",

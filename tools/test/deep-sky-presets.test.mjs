@@ -25,7 +25,7 @@ test('an open cluster is enterable only with named members', () => {
   assert.match(unnamed.rendererGap.startingPoint, /sparse/)
 })
 
-test('a type with no renderer is a marker carrying the reason', () => {
+test('a type with no renderer is layer none, carrying the reason', () => {
   for (const t of ['planetary_nebula', 'globular_cluster', 'supernova_remnant',
     'reflection_nebula', 'elliptical_galaxy', 'dwarf_elliptical_galaxy']) {
     const p = presetFor(t, false)

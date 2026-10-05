@@ -192,9 +192,10 @@ export function scientificLines(physics, spectralClass) {
 
 // What a deep-sky object becomes, from its astronomical type. A supported type gets a copy of
 // its renderer's seed values - a copy, so tuning one object's colours cannot reach back into the
-// registry and change the next constellation's. Anything else is a tappable marker carrying the
-// reason, so a constellation never waits on renderer work: the gap is designed separately and
-// the object is upgraded once its renderer exists.
+// registry and change the next constellation's. Anything else is layer none carrying the reason:
+// the object stays in the data but the loader draws no marker for it (createDeepSkyMarkers skips
+// layer none), as with M1 and M32 today. A constellation never waits on renderer work - the gap
+// is designed separately, and the object becomes visible once its renderer exists.
 export function presetFor(type, hasNamedMembers) {
   const sup = PRESETS.supported[type]
   if (sup && !(sup.requiresNamedMembers && !hasNamedMembers)) {
