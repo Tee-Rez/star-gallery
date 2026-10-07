@@ -31,6 +31,16 @@
       "stars": 12,
       "season": "Winter",
       "hemisphere": "Northern"
+    },
+    {
+      "id": "lyra",
+      "name": "Lyra",
+      "displayName": "Lyra the Lyre",
+      "description": "The lyre of Orpheus, which Hermes made from a tortoise shell. Brilliant Vega crowns a small parallelogram of stars, and the Star Journey follows it from an Arabic swooping eagle to the Chinese Weaving Girl, ending at the Ring Nebula.",
+      "path": "app/?c=lyra",
+      "stars": 5,
+      "season": "Summer",
+      "hemisphere": "Northern"
     }
   ]
 }
