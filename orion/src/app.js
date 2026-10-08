@@ -40,6 +40,14 @@ AFRAME.registerComponent('selection-hud', selectionHudComponent)
 import {hudTextStyleComponent} from './js/hud-text-style'
 AFRAME.registerComponent('hud-text-style', hudTextStyleComponent)
 
+import {spawnTunerComponent} from './js/spawn-tuner'
+AFRAME.registerComponent('spawn-tuner', spawnTunerComponent)
+
+// The spawn-distance slider is a testing tool: app-preview and local dev servers only, never
+// the live app.
+const IS_PREVIEW = /\/app-preview\//.test(window.location.pathname) ||
+  ['localhost', '127.0.0.1'].indexOf(window.location.hostname) !== -1
+
 // The Gallery (back to menu) control is switched off for now: each QR code opens one
 // constellation and visitors stay in it. Set this to true to bring the button back.
 const SHOW_GALLERY_BUTTON = false
@@ -50,6 +58,9 @@ window.addEventListener('DOMContentLoaded', () => {
   const scene = document.querySelector('a-scene')
   if (SHOW_GALLERY_BUTTON && scene && !scene.hasAttribute('gallery-back-button')) {
     scene.setAttribute('gallery-back-button', '')
+  }
+  if (IS_PREVIEW && scene && !scene.hasAttribute('spawn-tuner')) {
+    scene.setAttribute('spawn-tuner', '')
   }
   if (scene && !scene.hasAttribute('star-audio')) {
     scene.setAttribute('star-audio', '')

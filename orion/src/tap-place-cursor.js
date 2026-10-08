@@ -35,6 +35,10 @@ const tapPlaceCursorComponent = {
     fitMargin: {type: 'number', default: 1.06},   // a little air so nothing touches the edge
     minDistance: {type: 'number', default: 3},
     maxDistance: {type: 'number', default: 7},
+
+    // A fixed spawn distance in metres that replaces the fit above; 0 means use the fit. Only
+    // the preview's spawn tuner sets it, for trying distances out on a real phone.
+    distanceOverride: {type: 'number', default: 0},
   },
 
   init() {
@@ -266,6 +270,11 @@ const tapPlaceCursorComponent = {
   },
 
   fitDistance() {
+    if (this.data.distanceOverride > 0) return this.data.distanceOverride
+    return this.autoFitDistance()
+  },
+
+  autoFitDistance() {
     const camObj = this.camera.getObject3D('camera')
     const e = camObj && camObj.projectionMatrix && camObj.projectionMatrix.elements
     if (!e || !(e[5] > 0) || !(e[0] > 0)) return this.data.placementDistance
