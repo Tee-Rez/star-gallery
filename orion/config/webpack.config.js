@@ -71,6 +71,21 @@ const makeDefaultHtmlLoader = () => ({
   },
 })
 
+// Phones and GitHub Pages cache bundle.js by its URL, so a redeploy could leave a phone running
+// the old code under a fresh page. Stamping the script URL with this build's hash makes every
+// new build a new URL, fetched as soon as the page itself is.
+class StampBundleUrl {
+  apply(compiler) {
+    compiler.hooks.compilation.tap('StampBundleUrl', (compilation) => {
+      HtmlWebpackPlugin.getHooks(compilation).beforeEmit.tap('StampBundleUrl', (data) => {
+        const stamp = compilation.hash.slice(0, 12)
+        data.html = data.html.replace(/src="bundle\.js"/g, `src="bundle.js?v=${stamp}"`)
+        return data
+      })
+    })
+  }
+}
+
 const config = {
   entry: path.join(srcPath, 'app.js'),
   output: {
@@ -84,6 +99,7 @@ const config = {
       filename: 'index.html',
       inject: false,
     }),
+    new StampBundleUrl(),
     new CopyWebpackPlugin({
       patterns: [
         {
