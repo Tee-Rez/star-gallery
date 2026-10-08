@@ -111,6 +111,90 @@ const portalComponent = {
 
     this.hiderWalls = {left: leftWall, right: rightWall, top: topWall, bottom: bottomWall}
     console.log(`✅ Hider walls created in front of the border at z=${z}`)
+
+    this.createSeal(hiderWallsContainer, z)
+  },
+
+  // The sky dome is a unit-radius sphere scaled up (measured from 2k-space-skybox.glb: every
+  // vertex within +/-1), so its radius IS its scale. Read from the entity rather than assumed:
+  // the seal only hides anything while it sits INSIDE the sky in every direction - wherever it
+  // pokes outside, the sky is nearer than the hider, wins the depth test and shows again.
+  //
+  // The half-dome is centred on the wall plane at z and the sky at skyZ, so its widest point,
+  // the rim, lies sqrt(R^2 + (skyZ - z)^2) from the sky's centre. That must stay under the sky's
+  // radius; 4% under leaves depth-buffer room between the two surfaces.
+  sealRadius(z) {
+    const coords = AFRAME.utils.coordinates
+    const sky = document.querySelector('#galaxy-skybox')
+    const scale = sky ? coords.parse(sky.getAttribute('scale') || '25 25 25') : {x: 25}
+    const pos = sky ? coords.parse(sky.getAttribute('position') || '0 0 1') : {z: 1}
+    const S = scale.x || 25
+    const dz = (pos.z || 0) - z
+    return Math.sqrt(Math.max(S * S - dz * dz, 0)) * 0.96
+  },
+
+  // Seals off the sky everywhere except the opening, so it is seen ONLY through the door.
+  //
+  // The sky dome surrounds the viewer - they stand well inside its 25-unit radius - so the four
+  // door walls, which only mask the portal plane, left sky visible the moment they looked
+  // sideways, up or behind. Two pieces close it, both built with the same depth-only material:
+  //
+  //   frame      four bands tiling the portal plane out to the rim, with a hole cut exactly to
+  //              the opening. The door walls never sealed the plane on their own: they are
+  //              15-unit squares, so a point like (-10, 10) beside the portal is covered by
+  //              none of them and a glance toward a corner showed sky. The frame never touches
+  //              the opening, so the door animation is unchanged.
+  //   half-dome  the +z half of a sphere - the viewer's side - opening onto the portal plane.
+  //              It has no surface on the portal side at all, and a half-ball is convex, so the
+  //              line from the viewer's eye to the door can never touch it; it only sits in
+  //              directions pointing away from the portal.
+  //
+  // DoubleSide, because the viewer stands INSIDE the half-dome and so faces its back faces,
+  // which the default material culls - it would hide nothing. Both sides also keep it working
+  // once the Star Journey carries the viewer through the portal and they look back at it.
+  //
+  // DRAW ORDER is what makes any hider work: it writes depth but no colour, so it only hides
+  // what is drawn AFTER it. A-Frame leaves renderer.sortObjects off, so three.js draws in
+  // scene-graph order and ignores renderOrder entirely. The walls and this seal therefore win
+  // only because #hider-walls is #root's FIRST child in index.html and body.html, and the sky
+  // its last. Move the sky ahead of it and the sky shows straight through every hider - that
+  // was measured, not assumed. If sortObjects is ever turned on, ordering falls to renderOrder
+  // and then material id instead, and the hiders would need a renderOrder below the sky's.
+  createSeal(container, z) {
+    const T = window.THREE || AFRAME.THREE
+    const R = this.sealRadius(z)
+    const hw = this.data.width / 4
+    const hh = this.data.height / 4
+    if (!(R > Math.max(hw, hh))) {
+      console.warn('[portal] sky dome too small to seal around this portal; skipping seal', R)
+      return
+    }
+
+    const mat = new T.MeshBasicMaterial({colorWrite: false, side: T.DoubleSide})
+    const group = new T.Group()
+    const add = (geometry, x, y) => {
+      const mesh = new T.Mesh(geometry, mat)
+      mesh.position.set(x, y, 0)
+      group.add(mesh)
+    }
+
+    // [width, height, x, y]: above and below span the full width; left and right fill the
+    // strip beside the opening. Together they tile the square of half-size R minus the hole.
+    add(new T.PlaneGeometry(2 * R, R - hh), 0, (R + hh) / 2)
+    add(new T.PlaneGeometry(2 * R, R - hh), 0, -(R + hh) / 2)
+    add(new T.PlaneGeometry(R - hw, 2 * hh), -(R + hw) / 2, 0)
+    add(new T.PlaneGeometry(R - hw, 2 * hh), (R + hw) / 2, 0)
+
+    // phi 0..PI is the z >= 0 half: three.js puts z = R*sin(phi)*sin(theta).
+    add(new T.SphereGeometry(R, 48, 24, 0, Math.PI), 0, 0)
+
+    const seal = document.createElement('a-entity')
+    seal.setAttribute('id', 'hider-seal')
+    seal.setAttribute('position', `0 0 ${z}`)
+    seal.setObject3D('mesh', group)
+    container.appendChild(seal)
+    this.seal = seal
+    console.log(`✅ Sky seal: half-dome radius ${R.toFixed(2)} and frame, at z=${z}`)
   },
 
   // The walls live OUTSIDE the portal entity, under #root, so they have to add the portal's
@@ -127,6 +211,10 @@ const portalComponent = {
     Object.keys(walls).forEach((k) => {
       if (walls[k]) walls[k].setAttribute('position', `0 0 ${z}`)
     })
+    // The seal shares the walls' plane, so it moves with them once the portal's real offset is
+    // known. Its radius was fixed at init against the provisional z; the difference is a few
+    // hundredths against a 4% margin, so it stays inside the sky.
+    if (this.seal) this.seal.setAttribute('position', `0 0 ${z}`)
     return z
   },
 
