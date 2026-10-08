@@ -1,7 +1,11 @@
 // js/discovery-store.js - which stars and deep-sky objects have been visited.
 //
-// A direct port of the Unity build's DiscoveryStore.cs, swapping PlayerPrefs for
-// localStorage. Same shape: one comma-separated id set per constellation.
+// A direct port of the Unity build's DiscoveryStore.cs, swapping PlayerPrefs for web storage.
+// Same shape: one comma-separated id set per constellation.
+//
+// Each visit starts with nothing explored. Every scan of a QR code is a new visit, so the record
+// lives in sessionStorage and is wiped when the page is opened afresh. A reload in the same tab
+// (or the browser bringing the page back) is the same visit continuing, and keeps it.
 //
 // Storage is injected so this is testable without a browser, and so a hostile store - private
 // browsing, a full quota - degrades to memory rather than throwing. Losing the record is a
@@ -76,18 +80,57 @@ function createStore(storage) {
   return {load, isVisited, mark, countVisited, clear}
 }
 
-function browserStorage() {
+// Removes every discovery record from a storage, leaving anything else in it alone.
+function clearAll(storage) {
+  if (!storage) return
   try {
-    if (typeof window !== 'undefined' && window.localStorage) return window.localStorage
+    const keys = []
+    for (let i = 0; i < storage.length; i++) {
+      const k = storage.key(i)
+      if (k && k.indexOf(KEY_PREFIX) === 0) keys.push(k)
+    }
+    keys.forEach(k => storage.removeItem(k))
+  } catch (e) { /* nothing to clear, or nothing we may touch */ }
+}
+
+// 'reload' and 'back_forward' continue the visit already in this tab; anything else - a QR scan,
+// a typed or tapped link - begins a new one.
+function isContinuedVisit(navigationType) {
+  return navigationType === 'reload' || navigationType === 'back_forward'
+}
+
+function navigationType() {
+  try {
+    const entry = performance.getEntriesByType('navigation')[0]
+    if (entry && entry.type) return entry.type
+    const legacy = performance.navigation && performance.navigation.type
+    if (legacy === 1) return 'reload'
+    if (legacy === 2) return 'back_forward'
+  } catch (e) { /* no timing API: treat as a new visit */ }
+  return 'navigate'
+}
+
+function browserStorage(name) {
+  try {
+    if (typeof window !== 'undefined' && window[name]) return window[name]
   } catch (e) { /* blocked entirely */ }
   return null
 }
 
-const defaultStore = createStore(browserStorage())
+function openDefaultStore() {
+  if (typeof window === 'undefined') return createStore(null)
+  // Earlier builds kept the record in localStorage, where it outlived the visit.
+  clearAll(browserStorage('localStorage'))
+  const session = browserStorage('sessionStorage')
+  if (!isContinuedVisit(navigationType())) clearAll(session)
+  return createStore(session)
+}
 
-const DiscoveryStore = {KEY_PREFIX, createStore, defaultStore}
+const defaultStore = openDefaultStore()
+
+const DiscoveryStore = {KEY_PREFIX, createStore, clearAll, isContinuedVisit, defaultStore}
 
 if (typeof module !== 'undefined' && module.exports) module.exports = DiscoveryStore
 
-export {KEY_PREFIX, createStore, defaultStore}
+export {KEY_PREFIX, createStore, clearAll, isContinuedVisit, defaultStore}
 export default DiscoveryStore

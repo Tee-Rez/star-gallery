@@ -114,4 +114,41 @@ test('a storage that throws degrades to memory instead of raising', () => {
   assert.deepStrictEqual(s.load('andromeda'), [])
 })
 
+// clearAll walks keys, so this stand-in also needs the Storage length/key surface.
+function listableStorage(entries) {
+  const map = new Map(entries)
+  return {
+    get length() { return map.size },
+    key: i => Array.from(map.keys())[i] || null,
+    getItem: k => (map.has(k) ? map.get(k) : null),
+    setItem: (k, v) => { map.set(k, String(v)) },
+    removeItem: (k) => { map.delete(k) },
+    _map: map,
+  }
+}
+
+test('clearAll removes every discovery record and nothing else', () => {
+  const storage = listableStorage([
+    ['discovered:orion', 'rigel,betelgeuse'],
+    ['discovered:lyra', 'vega'],
+    ['star-audio:volume', '0.6'],
+  ])
+  D.clearAll(storage)
+  assert.deepStrictEqual(Array.from(storage._map.keys()), ['star-audio:volume'])
+  assert.deepStrictEqual(D.createStore(storage).load('orion'), [])
+})
+
+test('clearAll tolerates a missing or hostile storage', () => {
+  D.clearAll(null)
+  D.clearAll({get length() { throw new Error('denied') }})
+})
+
+test('only a reload or back/forward continues a visit', () => {
+  assert.strictEqual(D.isContinuedVisit('reload'), true)
+  assert.strictEqual(D.isContinuedVisit('back_forward'), true)
+  assert.strictEqual(D.isContinuedVisit('navigate'), false)    // a QR scan
+  assert.strictEqual(D.isContinuedVisit('prerender'), false)
+  assert.strictEqual(D.isContinuedVisit(undefined), false)
+})
+
 console.log('\n' + passed + ' passed')

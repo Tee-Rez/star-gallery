@@ -40,11 +40,15 @@ AFRAME.registerComponent('selection-hud', selectionHudComponent)
 import {hudTextStyleComponent} from './js/hud-text-style'
 AFRAME.registerComponent('hud-text-style', hudTextStyleComponent)
 
+// The Gallery (back to menu) control is switched off for now: each QR code opens one
+// constellation and visitors stay in it. Set this to true to bring the button back.
+const SHOW_GALLERY_BUTTON = false
+
 // The back control is attached here rather than in the scene markup so it exists for every
 // constellation, and from the first frame rather than only once a portal has been placed.
 window.addEventListener('DOMContentLoaded', () => {
   const scene = document.querySelector('a-scene')
-  if (scene && !scene.hasAttribute('gallery-back-button')) {
+  if (SHOW_GALLERY_BUTTON && scene && !scene.hasAttribute('gallery-back-button')) {
     scene.setAttribute('gallery-back-button', '')
   }
   if (scene && !scene.hasAttribute('star-audio')) {
