@@ -18,7 +18,8 @@ const loreJourneyComponent = {
   schema: {
     focusDistance: {type: 'number', default: 2.0},   // units in front of camera for the focused star
     detailMin: {type: 'number', default: 0.08},      // smallest body radius a highlighted star takes
-    detailMax: {type: 'number', default: 0.26},      // largest, before the overlap budget cuts it
+    detailMax: {type: 'number', default: 0.26},      // largest, before the boost below
+    detailBoost: {type: 'number', default: 2},       // highlighted stars grow this many times, room allowing
     zoomScale: {type: 'number', default: 2.5},        // how much #root scales up during the journey
     transitionDur: {type: 'number', default: 3000},   // ms to glide between stops
   },
@@ -236,10 +237,11 @@ const loreJourneyComponent = {
     this.hud.textContent = (i === this.stops.length - 1) ? 'End the Journey' : 'Next Star'
   },
 
-  // The largest body radius a plasma star may take at this stop. A star-visual is about five
-  // body radii wide once the halo is counted, so two of them stay clear of each other while
-  // 5*r fits inside the gap between their centres - hence the /5, and the margin under 1. With
-  // a single target there is nothing to collide with and only the outright cap applies.
+  // The largest body radius the boost may take a plasma star to at this stop. The halo is faint
+  // and overlapping halos read fine; it is the bodies, with their corona and loops (about 1.4
+  // body radii each), that run together into one blob. Two stay apart while 2 * 1.4 * r fits in
+  // 85% of the gap between their centres - hence 0.3. A single target has nothing to collide
+  // with, so the boost is unlimited.
   overlapCap(names) {
     const pts = (names || [])
       .map(n => this.getStarEntity(n))
@@ -256,8 +258,7 @@ const loreJourneyComponent = {
         nearest = Math.min(nearest, pts[i].distanceTo(pts[j]))
       }
     }
-    if (!isFinite(nearest)) return this.data.detailMax
-    return Math.min(this.data.detailMax, (nearest * 0.85) / 5)
+    return isFinite(nearest) ? nearest * 0.3 : Infinity
   },
 
   spawnDetailed(name, factor, cap) {
@@ -271,9 +272,13 @@ const loreJourneyComponent = {
     const size = parseFloat(starEntity.dataset.size) || 0.1
     if (core) core.setAttribute('visible', false)   // hide the dormant star under the detail one
 
-    const radius = Math.max(
+    // The boost doubles the star, but never past the room its neighbours leave (cap), and a
+    // crowded stop never shrinks below the size it had before the boost existed.
+    const base = Math.max(
       this.data.detailMin,
-      Math.min(cap === undefined ? this.data.detailMax : cap, size * (factor || 4) * 0.4))
+      Math.min(this.data.detailMax, size * (factor || 4) * 0.4))
+    const room = cap === undefined ? Infinity : cap
+    const radius = Math.max(base, Math.min(base * this.data.detailBoost, room))
 
     const detailed = document.createElement('a-entity')
     detailed.setAttribute('star-visual', {
@@ -392,7 +397,8 @@ const loreJourneyComponent = {
         this.animating = false
         this.index = i
         const factor = stop.detailScale || 4
-        stop.targetStarNames.forEach((n) => this.spawnDetailed(n, factor))
+        const cap = this.overlapCap(stop.targetStarNames)
+        stop.targetStarNames.forEach((n) => this.spawnDetailed(n, factor, cap))
         this.showLore(stop)
         this.soundStop(stop)
         this.hud.textContent = (i === this.stops.length - 1) ? 'End the Journey' : 'Next Star'

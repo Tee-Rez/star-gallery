@@ -13,6 +13,9 @@ const dynamicStarControllerComponent = {
     plasmaScale: {type: 'number', default: 1.6},
     plasmaMin: {type: 'number', default: 0.10},
     plasmaMax: {type: 'number', default: 0.26},
+    // Applied after the clamp above, so every selected star comes out this many times the size
+    // the three settings give it, small and large alike.
+    sizeBoost: {type: 'number', default: 2},
   },
 
   init() {
@@ -150,7 +153,7 @@ const dynamicStarControllerComponent = {
     // The entered star. Same component the figure stars use, with its surface and prominences
     // switched on - so the thing you tapped and the thing that opens are recognisably the same
     // object, coloured from the same temperature, rather than two unrelated renderers.
-    const radius = Math.max(
+    const radius = this.data.sizeBoost * Math.max(
       this.data.plasmaMin,
       Math.min(this.data.plasmaMax, (starSize || 0.1) * this.data.plasmaScale))
 
