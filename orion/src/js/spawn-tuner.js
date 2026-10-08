@@ -1,21 +1,24 @@
 // js/spawn-tuner.js - preview-only slider for how far ahead the portal spawns.
 //
 // app.js attaches this only on app-preview and on a local dev server; the live app never gets
-// it. The slider sets tap-place-cursor's distanceOverride, which the first placement and every
+// it. The slider sets tap-place-cursor's spawnDistance, which the first placement and every
 // Recenter read, and the readout under it shows how far away the portal actually is right now,
-// so after a Recenter you can see where it landed. "Auto" goes back to the screen fit.
+// so after a Recenter you can see where it landed. "Reset" goes back to the built-in default.
 //
 // It sits in the HUD's top-left slot (empty while the Gallery button is switched off), so a
 // touch on it counts as a HUD touch and never places the portal.
 import {HUD} from './hud-shell'
 
-const STORAGE_KEY = 'preview:spawnDistance'
+// v2: the default became a fixed 4.5 m, so values tried against the old screen fit are dropped.
+const STORAGE_KEY = 'preview:spawnDistance:v2'
+const OLD_KEYS = ['preview:spawnDistance']
 
 function readStored() {
   try {
+    OLD_KEYS.forEach(k => window.localStorage.removeItem(k))
     const v = parseFloat(window.localStorage.getItem(STORAGE_KEY))
-    return v > 0 ? v : 0
-  } catch (e) { return 0 }
+    return v > 0 ? v : null
+  } catch (e) { return null }
 }
 
 function writeStored(v) {
@@ -34,15 +37,21 @@ const spawnTunerComponent = {
   },
 
   init() {
-    this.override = readStored()
+    this.chosen = readStored()   // null = the cursor's own default
     this.build()
-    this.applyOverride()
     this.timer = setInterval(() => this.refresh(), 250)
+    this.refresh()
   },
 
   cursor() {
     const el = document.querySelector('[tap-place-cursor]')
     return el && el.components && el.components['tap-place-cursor']
+  },
+
+  // The distance the next placement should use: this phone's choice, else the built-in default.
+  target(cursor) {
+    if (this.chosen > 0) return this.chosen
+    return cursor ? cursor.schema.spawnDistance.default : null
   },
 
   build() {
@@ -60,8 +69,8 @@ const spawnTunerComponent = {
     panel.innerHTML = `
       <div style="display:flex;justify-content:space-between;align-items:center;gap:6px">
         <span style="font-size:10px;letter-spacing:.08em;text-transform:uppercase;opacity:.75">Spawn distance</span>
-        <button type="button" data-auto style="font:inherit;font-size:11px;color:#fff;background:transparent;
-          border:1px solid ${d.accent};border-radius:8px;padding:1px 7px">Auto</button>
+        <button type="button" data-reset style="font:inherit;font-size:11px;color:#fff;background:transparent;
+          border:1px solid ${d.accent};border-radius:8px;padding:1px 7px">Reset</button>
       </div>
       <input type="range" id="spawn-tuner-range" min="${d.min}" max="${d.max}" step="${d.step}"
         aria-label="Portal spawn distance in metres"
@@ -76,42 +85,32 @@ const spawnTunerComponent = {
     this.nowLabel = panel.querySelector('[data-now]')
 
     this.range.addEventListener('input', () => {
-      this.override = parseFloat(this.range.value)
-      writeStored(this.override)
-      this.applyOverride()
+      this.chosen = parseFloat(this.range.value)
+      writeStored(this.chosen)
+      this.refresh()
     })
-    panel.querySelector('[data-auto]').addEventListener('click', () => {
-      this.override = 0
+    panel.querySelector('[data-reset]').addEventListener('click', () => {
+      this.chosen = null
       writeStored(0)
-      this.applyOverride()
+      this.refresh()
     })
 
     HUD.mount(panel, 'top-start', 'spawn-tuner')
   },
 
-  applyOverride() {
-    const cursor = this.cursor()
-    if (cursor) cursor.el.setAttribute('tap-place-cursor', 'distanceOverride', this.override)
-    this.refresh()
-  },
-
   refresh() {
     if (!this.panel) return   // not built yet: the scene has not finished loading
     const cursor = this.cursor()
-    // The cursor may initialise after this component; push the stored value as soon as it does.
-    if (cursor && cursor.data.distanceOverride !== this.override) {
-      cursor.el.setAttribute('tap-place-cursor', 'distanceOverride', this.override)
+    const want = this.target(cursor)
+    // The cursor may initialise after this component; push the value as soon as it does.
+    if (cursor && want > 0 && cursor.data.spawnDistance !== want) {
+      cursor.el.setAttribute('tap-place-cursor', 'spawnDistance', want)
     }
-    const auto = cursor && cursor.camera ? cursor.autoFitDistance() : NaN
 
-    if (this.override > 0) {
-      this.setLabel.textContent = `Next spawn: ${this.override.toFixed(1)} m`
-    } else {
-      this.setLabel.textContent = isFinite(auto) ? `Next spawn: auto (${auto.toFixed(1)} m)` : 'Next spawn: auto'
-    }
-    if (document.activeElement !== this.range) {
-      this.range.value = this.override > 0 ? this.override : (isFinite(auto) ? auto : 4.5)
-    }
+    this.setLabel.textContent = want > 0
+      ? `Next spawn: ${want.toFixed(1)} m${this.chosen > 0 ? '' : ' (default)'}`
+      : 'Next spawn: -'
+    if (want > 0 && document.activeElement !== this.range) this.range.value = want
 
     this.nowLabel.textContent = this.portalDistanceText(cursor)
   },

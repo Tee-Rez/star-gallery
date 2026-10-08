@@ -36,9 +36,10 @@ const tapPlaceCursorComponent = {
     minDistance: {type: 'number', default: 3},
     maxDistance: {type: 'number', default: 7},
 
-    // A fixed spawn distance in metres that replaces the fit above; 0 means use the fit. Only
-    // the preview's spawn tuner sets it, for trying distances out on a real phone.
-    distanceOverride: {type: 'number', default: 0},
+    // How far ahead the portal spawns, in metres, on first placement and on every Recenter.
+    // Fixed rather than fitted: 4.5 was picked by testing on a phone with the preview's spawn
+    // tuner, which also changes it live. 0 goes back to the screen fit above.
+    spawnDistance: {type: 'number', default: 4.5},
   },
 
   init() {
@@ -270,7 +271,7 @@ const tapPlaceCursorComponent = {
   },
 
   fitDistance() {
-    if (this.data.distanceOverride > 0) return this.data.distanceOverride
+    if (this.data.spawnDistance > 0) return this.data.spawnDistance
     return this.autoFitDistance()
   },
 
