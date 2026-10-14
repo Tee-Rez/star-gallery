@@ -77,12 +77,14 @@ const spawnTunerComponent = {
         style="width:100%;margin:2px 0;touch-action:none;accent-color:${d.accent}">
       <div data-set style="font-weight:600"></div>
       <div data-now style="opacity:.8"></div>
+      <div data-audio style="opacity:.8"></div>
     `
 
     this.panel = panel
     this.range = panel.querySelector('input')
     this.setLabel = panel.querySelector('[data-set]')
     this.nowLabel = panel.querySelector('[data-now]')
+    this.audioLabel = panel.querySelector('[data-audio]')
 
     this.range.addEventListener('input', () => {
       this.chosen = parseFloat(this.range.value)
@@ -113,6 +115,16 @@ const spawnTunerComponent = {
     if (want > 0 && document.activeElement !== this.range) this.range.value = want
 
     this.nowLabel.textContent = this.portalDistanceText(cursor)
+    this.audioLabel.textContent = this.audioText()
+  },
+
+  // Not about spawning, but this is the one panel a test phone shows: when a phone is silent,
+  // this line says whether the audio engine is running and which channel it is on.
+  audioText() {
+    const audio = this.el.sceneEl.components['star-audio']
+    if (!audio || typeof audio.status !== 'function') return 'Sound: unavailable'
+    const s = audio.status()
+    return `Sound: ${s.state} · ${s.session}`
   },
 
   // Flat distance from the phone to the portal's origin - the same quantity the spawn distance

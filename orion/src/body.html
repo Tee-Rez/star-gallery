@@ -49,12 +49,13 @@
   <a-assets>
     <a-asset-item
       id="galaxy-sphere-skybox"
-      src="assets/2k-space-skybox.glb"
+      src="assets/space-sky-2k.glb"
       response-type="arraybuffer"></a-asset-item>
-    <img id="blue-star-texture" src="assets/sunBlue.jpg" />
-    <img id="red-star-texture" src="assets/sunRed.jpg" />
-    <img id="white-star-texture" src="assets/sunWhite.jpg" />
   </a-assets>
+  <!-- The sky is the same 2048px picture as 2k-space-skybox.glb, re-encoded from PNG to JPEG
+       (6.7 MB to 1 MB). Everything in a-assets holds the scene back until it arrives. The three
+       sun*.jpg textures that used to sit here fed the old dynamic-star sphere, which nothing
+       applies any more, so they were 1 MB of waiting for nothing. -->
 
   <a-light type="directional" intensity="0.5" position="1 1 1"></a-light>
   <a-light type="ambient" intensity="0.7"></a-light>

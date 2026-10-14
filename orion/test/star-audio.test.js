@@ -137,4 +137,45 @@ test('a missing spectralClass never produces NaN', () => {
   assert.ok(Number.isFinite(r.massSolar) && Number.isFinite(r.radiusSolar) && Number.isFinite(r.tempKelvin))
 })
 
+// ---- Getting sound out of a phone (audio-unlock.js) ----
+const U = require('../src/js/audio-unlock.js')
+
+test('every state except running and closed needs a resume', () => {
+  assert.strictEqual(U.needsResume('suspended'), true)
+  assert.strictEqual(U.needsResume('interrupted'), true)   // iOS only: camera start, lock, calls
+  assert.strictEqual(U.needsResume('running'), false)
+  assert.strictEqual(U.needsResume('closed'), false)
+})
+
+test('wake resumes an interrupted context and reports it usable', () => {
+  let resumed = 0
+  const ctx = {state: 'interrupted', resume: () => { resumed++; return Promise.resolve() }}
+  assert.strictEqual(U.wake(ctx), true)
+  assert.strictEqual(resumed, 1)
+})
+
+test('wake reports a context usable while its resume is still pending', () => {
+  // resume() is asynchronous: the state still reads suspended on the line after calling it.
+  // Notes scheduled now sound as soon as it lands, so this must not be treated as failure.
+  const ctx = {state: 'suspended', resume: () => new Promise(() => {})}
+  assert.strictEqual(U.wake(ctx), true)
+})
+
+test('wake leaves a running context alone and survives a resume that throws', () => {
+  let resumed = 0
+  assert.strictEqual(U.wake({state: 'running', resume: () => { resumed++ }}), true)
+  assert.strictEqual(resumed, 0)
+  assert.strictEqual(U.wake({state: 'suspended', resume: () => { throw new Error('no') }}), true)
+  assert.strictEqual(U.wake({state: 'closed', resume: () => {}}), false)
+  assert.strictEqual(U.wake(null), false)
+})
+
+test('playback session is requested where the browser offers one', () => {
+  const nav = {audioSession: {type: 'auto'}}
+  assert.strictEqual(U.usePlaybackSession(nav), true)
+  assert.strictEqual(nav.audioSession.type, 'playback')
+  assert.strictEqual(U.usePlaybackSession({}), false)        // Android, desktop, older iOS
+  assert.strictEqual(U.usePlaybackSession(null), false)
+})
+
 console.log('\n' + passed + ' passed')

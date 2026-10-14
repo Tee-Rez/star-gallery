@@ -7,6 +7,7 @@
 import {StarVoice} from './star-voice.js'
 import {physicsFor} from './star-physics.js'
 import {nuMaxMicroHz, toPitchHz, quantize} from './star-tone.js'
+import {wake, usePlaybackSession} from './audio-unlock.js'
 
 // The slider runs 0..1 and is multiplied by this into the master gain, so the midpoint
 // reproduces the level the tones had before the control existed and 100% is twice that.
@@ -45,11 +46,20 @@ const starAudioComponent = {
       window.matchMedia('(pointer: coarse)').matches
     this.voiceBudget = this.data.maxVoices > 0 ? this.data.maxVoices : (coarse ? 6 : 12)
 
+    // iPhone: keep these tones off the channel the ringer switch mutes. See audio-unlock.js.
+    this.playbackSession = usePlaybackSession(window.navigator)
+
     // Browsers refuse to start audio without a gesture. The tap that places the portal is one,
     // and the Starsong buttons call unlock() too as a backstop.
-    this.onGesture = this.unlock.bind(this)
-    window.addEventListener('touchend', this.onGesture, {once: true})
-    window.addEventListener('mousedown', this.onGesture, {once: true})
+    //
+    // On every gesture, not just the first. iOS re-silences the context whenever the camera
+    // starts, the phone locks or the tab loses focus, and only a gesture may wake it - while a
+    // journey stop sounds seconds after its tap, long past the gesture. Waking it on each touch
+    // means it is already running by the time anything needs it. The capture phase matters:
+    // HUD controls stop their touches from bubbling, and those are the taps that lead to sound.
+    this.onGesture = () => { this.unlock() }
+    window.addEventListener('touchend', this.onGesture, true)
+    window.addEventListener('mousedown', this.onGesture, true)
   },
 
   isAvailable() {
@@ -99,8 +109,15 @@ const starAudioComponent = {
       this.master.connect(this.limiter)
       this.limiter.connect(this.ctx.destination)
     }
-    if (this.ctx.state === 'suspended') this.ctx.resume()
-    return this.ctx.state !== 'suspended'
+    return wake(this.ctx)
+  },
+
+  // For the preview's on-screen readout, so a silent phone can report why.
+  status() {
+    return {
+      state: this.ctx ? this.ctx.state : 'not started',
+      session: this.playbackSession ? window.navigator.audioSession.type : 'default',
+    }
   },
 
   // Compress needs the constellation's own nu_max span so its stars keep their relative order.
@@ -214,8 +231,8 @@ const starAudioComponent = {
   },
 
   remove() {
-    window.removeEventListener('touchend', this.onGesture)
-    window.removeEventListener('mousedown', this.onGesture)
+    window.removeEventListener('touchend', this.onGesture, true)
+    window.removeEventListener('mousedown', this.onGesture, true)
     this.stopAll()
     this.voices.forEach(v => v.stop())
     this.voices = []
