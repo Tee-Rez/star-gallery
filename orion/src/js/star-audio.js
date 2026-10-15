@@ -9,10 +9,13 @@ import {physicsFor} from './star-physics.js'
 import {nuMaxMicroHz, toPitchHz, quantize} from './star-tone.js'
 import {wake, usePlaybackSession} from './audio-unlock.js'
 
-// The slider runs 0..1 and is multiplied by this into the master gain, so the midpoint
-// reproduces the level the tones had before the control existed and 100% is twice that.
-const VOLUME_HEADROOM = 2
-const VOLUME_KEY = 'starsong.volume'
+// The slider runs 0..1 and is multiplied by this into the master gain. Raised from 2 because
+// phone speakers lost the tones: at the 50% default a single star now peaks around -6 dBFS
+// (it was about -28), and 100% runs into the limiter just under full scale.
+const VOLUME_HEADROOM = 6
+// v2: the scale changed, so a level saved against the old one would no longer mean the same
+// thing. Everyone starts again from the 50% default.
+const VOLUME_KEY = 'starsong.volume.v2'
 
 const starAudioComponent = {
   schema: {
@@ -25,8 +28,8 @@ const starAudioComponent = {
     release: {type: 'number', default: 2.0},
     // Phones are already running SLAM, camera and bloom, so they get a smaller budget.
     maxVoices: {type: 'int', default: 0},  // 0 = choose from the device
-    // Listener volume, 0..1, scaled by VOLUME_HEADROOM into the master gain. 0.5 reproduces
-    // the original fixed level, so the slider opens with headroom in both directions.
+    // Listener volume, 0..1, scaled by VOLUME_HEADROOM into the master gain. Opens at 50%, with
+    // headroom in both directions.
     volume: {type: 'number', default: 0.5},
   },
 
@@ -98,9 +101,11 @@ const starAudioComponent = {
 
       // A chord stacks a dozen voices, and their peaks can sum past full scale even at modest
       // per-voice gain. This is a limiter rather than a compressor in spirit: it only engages
-      // near the ceiling, so single tones pass through untouched.
+      // near the ceiling. -3 dB rather than -6 so the top half of the volume slider still gets
+      // louder instead of being squashed flat; not -1, because the node adds its own make-up
+      // gain and at -1 a big chord at 100% rendered past full scale (+1.8 dBFS).
       this.limiter = this.ctx.createDynamicsCompressor()
-      this.limiter.threshold.value = -6
+      this.limiter.threshold.value = -3
       this.limiter.knee.value = 0
       this.limiter.ratio.value = 20
       this.limiter.attack.value = 0.003

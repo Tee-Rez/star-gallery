@@ -20,9 +20,12 @@ class StarVoice {
 
     this.panner = ctx.createPanner()
     this.panner.panningModel = 'equalpower'
+    // Direction only, no fall-off with distance. The listener is never moved to the camera, so
+    // "distance" was measured from the scene's origin, and with the portal spawning 4.5 m out
+    // the old inverse fall-off (ref 1.5 m) cut every star by about 12 dB - most of why the
+    // tones were hard to hear on a phone speaker.
     this.panner.distanceModel = 'inverse'
-    this.panner.refDistance = 1.5
-    this.panner.maxDistance = 40
+    this.panner.rolloffFactor = 0
 
     this.gain.connect(this.panner)
     this.panner.connect(destination)
