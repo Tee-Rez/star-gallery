@@ -270,9 +270,15 @@ const STYLE = `
    the gold line inlaid in it both shrink together, and 14:12 stays close to the slice's 37:31
    so the mitred corners stay square. The padding inside it tightens to match.
 
-   The star card leaves the grid and takes a fixed band on the left: from halfway down the
-   screen to 10% above the bottom, or higher if the actions row below needs the room. Its text
-   size is unchanged; the extra lines come from the taller band and the thinner frame. */
+   The star card leaves the grid and sits in the bottom-left corner as a tall, narrow column:
+   three quarters of the usable width (460px at most) and 48% of the screen height, which holds
+   a little more text than the full-width 40% band it replaced. It rests on the corner's gutter,
+   and lifts above the actions row only in the modes that show one (Next Star in the journey,
+   Back to the constellation inside a deep-sky object). Text size is unchanged. */
+html[data-card-style="slim"] #hud {
+  --slim-card-w: min(460px, calc((100% - 2 * var(--gutter)) * 0.75));
+  --slim-card-h: 48%;
+}
 html[data-card-style="slim"] #hud .hud-card {
   border-width: 14px 12px;
   padding: 8px 10px;
@@ -280,11 +286,14 @@ html[data-card-style="slim"] #hud .hud-card {
 html[data-card-style="slim"] #hud [data-hud-id="star-card"] {
   position: absolute;
   left: max(var(--gutter), env(safe-area-inset-left, 0px));
-  top: 50%;
-  bottom: max(10%, calc(var(--tap) + 2 * var(--gutter) + env(safe-area-inset-bottom, 0px)));
-  width: min(600px, calc(100% - 2 * var(--gutter)));
-  height: auto;
+  bottom: max(var(--gutter), env(safe-area-inset-bottom, 0px));
+  width: var(--slim-card-w);
+  height: var(--slim-card-h);
   max-height: none;
+}
+html[data-card-style="slim"] #hud[data-mode="lore"] [data-hud-id="star-card"],
+html[data-card-style="slim"] #hud[data-mode="deep-sky"] [data-hud-id="star-card"] {
+  bottom: calc(max(var(--gutter), env(safe-area-inset-bottom, 0px)) + var(--tap) + var(--gap));
 }
 #hud .hud-card .hud-rule {
   border-bottom: 1px solid var(--gold);
