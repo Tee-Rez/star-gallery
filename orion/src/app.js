@@ -48,9 +48,9 @@ AFRAME.registerComponent('spawn-tuner', spawnTunerComponent)
 const IS_PREVIEW = /\/app-preview\//.test(window.location.pathname) ||
   ['localhost', '127.0.0.1'].indexOf(window.location.hostname) !== -1
 
-// The slim star card (thinner frame, left band from mid-screen down) is on test in the
-// preview only; see "the slim card" in hud-shell.js.
-if (IS_PREVIEW) document.documentElement.dataset.cardStyle = 'slim'
+// The slim star card (thinner frame, anchored bottom-left) was tested in the preview and is now
+// the card everywhere; see "the slim card" in hud-shell.js.
+document.documentElement.dataset.cardStyle = 'slim'
 
 // The Gallery (back to menu) control is switched off for now: each QR code opens one
 // constellation and visitors stay in it. Set this to true to bring the button back.

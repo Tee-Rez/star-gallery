@@ -262,9 +262,9 @@ const STYLE = `
    so they land inside the marble without having to know how thick it is. */
 #hud .hud-card { position: relative; }
 
-/* ---- on test in app-preview: the slim card ----
-   app.js stamps data-card-style="slim" on the html element on preview builds only, so the
-   live app keeps the card above until this is promoted.
+/* ---- the slim card ----
+   app.js stamps data-card-style="slim" on the html element. It was tested in app-preview first
+   and is now on everywhere; drop the stamp to fall back to the card above.
 
    Thinner frame: the same nine-slice drawn at 14/12 instead of 24/20, so the marble rail and
    the gold line inlaid in it both shrink together, and 14:12 stays close to the slice's 37:31
