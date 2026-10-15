@@ -261,6 +261,31 @@ const STYLE = `
 /* Absolutely positioned children of a card - the close button - measure from the padding box,
    so they land inside the marble without having to know how thick it is. */
 #hud .hud-card { position: relative; }
+
+/* ---- on test in app-preview: the slim card ----
+   app.js stamps data-card-style="slim" on the html element on preview builds only, so the
+   live app keeps the card above until this is promoted.
+
+   Thinner frame: the same nine-slice drawn at 14/12 instead of 24/20, so the marble rail and
+   the gold line inlaid in it both shrink together, and 14:12 stays close to the slice's 37:31
+   so the mitred corners stay square. The padding inside it tightens to match.
+
+   The star card leaves the grid and takes a fixed band on the left: from halfway down the
+   screen to 10% above the bottom, or higher if the actions row below needs the room. Its text
+   size is unchanged; the extra lines come from the taller band and the thinner frame. */
+html[data-card-style="slim"] #hud .hud-card {
+  border-width: 14px 12px;
+  padding: 8px 10px;
+}
+html[data-card-style="slim"] #hud [data-hud-id="star-card"] {
+  position: absolute;
+  left: max(var(--gutter), env(safe-area-inset-left, 0px));
+  top: 50%;
+  bottom: max(10%, calc(var(--tap) + 2 * var(--gutter) + env(safe-area-inset-bottom, 0px)));
+  width: min(600px, calc(100% - 2 * var(--gutter)));
+  height: auto;
+  max-height: none;
+}
 #hud .hud-card .hud-rule {
   border-bottom: 1px solid var(--gold);
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
