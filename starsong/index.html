@@ -438,7 +438,18 @@ if (starAudioComponent) { AFRAME.registerComponent("star-audio", starAudioCompon
 
 const params = new URLSearchParams(location.search)
 const STATE = params.get('state') || ''
-const STEP = 3.2   // seconds each song gets on the bar: attack + hold, then the next begins
+// How long one song sounds, start to silence: star-audio fades it in over `attack`, holds it for
+// HOLD, then fades it out over `release` and frees the voice 0.1 s later. The song bar waits for
+// all of that - plus a short breath of silence - before the next song starts, so no two overlap.
+const HOLD = 2.5
+const GAP = 0.4
+const songSeconds = () => {
+  // The component exists before it has initialised, so its data may not be there yet.
+  const a = audioC(), d = (a && a.data) || {attack: 1.2, release: 2}
+  return d.attack + HOLD + d.release + 0.1
+}
+const tailSeconds = () => { const a = audioC(); return ((a && a.data && a.data.release) || 2) + 0.1 }
+let quietAt = 0   // performance.now() at which the last song has fully faded
 
 // ---- data ----
 const IDS = ['orion', 'taurus', 'pleiades', 'lyra', 'andromeda']
@@ -675,7 +686,7 @@ function drawWave() {
 ;(function anim() { waveT += 0.03 + 0.08 * waveLive; waveLive *= 0.985; drawWave(); requestAnimationFrame(anim) })()
 
 const audioC = () => document.getElementById('skyScene').components['star-audio']
-function sing(s, hold = 2.5) {
+function sing(s, hold = HOLD) {
   const a = audioC(); if (!a) return
   a.unlock()
   a.computeRange(s.con.stars)
@@ -709,7 +720,7 @@ function renderBar() {
       <button class="x" title="Remove">✕</button><span class="prog"><i></i></span></div>`
   }).join('') : '<span class="empty">Tap ＋ on any star to add its song here.</span>'
   document.getElementById('count').textContent = queue.length + (queue.length === 1 ? ' SONG' : ' SONGS')
-  const secs = Math.round(queue.length * STEP)
+  const secs = Math.round(queue.length * (songSeconds() + GAP))
   document.getElementById('len').textContent = (loop ? 'loops · ' : '') + Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0')
   document.getElementById('playAll').innerHTML = playing ? ICON.pause : ICON.play
   document.getElementById('playLbl').textContent = playing ? 'PAUSE' : 'PLAY'
@@ -741,26 +752,38 @@ function step() {
   if (s !== sel) select(s)
   sing(s)
   stepStart = performance.now()
+  quietAt = stepStart + songSeconds() * 1000
   renderBar()
   const chip = track.querySelector(`.chip[data-i="${cursor}"]`)
   if (chip) chip.scrollIntoView({inline: 'center', block: 'nearest', behavior: 'smooth'})
-  stepTimer = setTimeout(step, STEP * 1000)
+  // The next song begins only once this one has faded to silence.
+  stepTimer = setTimeout(step, (songSeconds() + GAP) * 1000)
 }
-function stop() { playing = false; clearTimeout(stepTimer); cursor = -1; const a = audioC(); if (a) a.stopAll(); renderBar() }
+// Stopping fades whatever is sounding; note when that tail ends so a quick restart waits for it.
+function hush() {
+  const a = audioC()
+  // A song still sounding is cut short, so silence comes after just its fade-out. One already
+  // fading on its own has left a.playing, and its natural end (quietAt) still stands.
+  if (a && a.playing.size) { a.stopAll(); quietAt = performance.now() + tailSeconds() * 1000 }
+}
+function stop() { playing = false; clearTimeout(stepTimer); cursor = -1; hush(); renderBar() }
 document.getElementById('playAll').onclick = () => {
-  if (playing) { playing = false; clearTimeout(stepTimer); const a = audioC(); if (a) a.stopAll(); renderBar(); return }
+  if (playing) { playing = false; clearTimeout(stepTimer); hush(); renderBar(); return }
   if (!queue.length) return
   playing = true
   // After a pause, start again on the song that was paused; otherwise begin with the first.
   // step() moves the cursor on by one before it plays, so set it one behind.
   cursor = (cursor >= 0 && cursor < queue.length) ? cursor - 1 : -1
-  step()
+  renderBar()
+  // If the paused song is still fading out, let it finish first.
+  clearTimeout(stepTimer)
+  stepTimer = setTimeout(step, Math.max(0, quietAt - performance.now()))
 }
 document.getElementById('loop').onclick = () => { loop = !loop; renderBar() }
 document.getElementById('clear').onclick = () => { stop(); queue = []; renderBar(); renderList(); syncAddBtn() }
 ;(function prog() {
   const c = track.querySelector('.chip.now .prog i')
-  if (c && playing) c.style.width = (STATE === 'playing' ? 45 : Math.min(100, (performance.now() - stepStart) / (STEP * 10))) + '%'
+  if (c && playing) c.style.width = (STATE === 'playing' ? 45 : Math.min(100, (performance.now() - stepStart) / (songSeconds() * 10))) + '%'
   if (STATE === 'playing') waveLive = 1
   requestAnimationFrame(prog)
 })()
