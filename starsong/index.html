@@ -633,7 +633,15 @@ function renderBar() {
 }
 track.addEventListener('click', e => {
   const x = e.target.closest('.x')
-  if (x) { queue.splice(+x.parentElement.dataset.i, 1); renderBar(); renderList(); syncAddBtn(); return }
+  if (x) {
+    const i = +x.parentElement.dataset.i
+    queue.splice(i, 1)
+    // Keep the playback position on the same song; removing the one that is singing lets the
+    // next song in line follow on when its turn comes.
+    if (cursor >= 0 && i <= cursor) cursor--
+    if (!queue.length) stop()
+    renderBar(); renderList(); syncAddBtn(); return
+  }
 })
 
 function step() {
@@ -644,6 +652,7 @@ function step() {
     cursor = 0
   }
   const s = byKey(queue[cursor])
+  if (!s) { stop(); return }
   // The sky and the panel follow the song: the star that is singing is the one on screen.
   if (s !== sel) select(s)
   sing(s)
@@ -656,7 +665,12 @@ function step() {
 function stop() { playing = false; clearTimeout(stepTimer); cursor = -1; const a = audioC(); if (a) a.stopAll(); renderBar() }
 document.getElementById('playAll').onclick = () => {
   if (playing) { playing = false; clearTimeout(stepTimer); const a = audioC(); if (a) a.stopAll(); renderBar(); return }
-  playing = true; if (cursor >= queue.length - 1) cursor = -1; else cursor--; step()
+  if (!queue.length) return
+  playing = true
+  // After a pause, start again on the song that was paused; otherwise begin with the first.
+  // step() moves the cursor on by one before it plays, so set it one behind.
+  cursor = (cursor >= 0 && cursor < queue.length) ? cursor - 1 : -1
+  step()
 }
 document.getElementById('loop').onclick = () => { loop = !loop; renderBar() }
 document.getElementById('clear').onclick = () => { stop(); queue = []; renderBar(); renderList(); syncAddBtn() }
