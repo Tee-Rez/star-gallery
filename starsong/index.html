@@ -230,6 +230,47 @@ button { font: inherit; color: inherit; }
 #bar .meta .big { font: 18px var(--display); letter-spacing: .06em; }
 #bar .meta .small { font-size: 11px; color: var(--cream-dim); }
 
+/* ---- folding panels ----
+   Each side panel folds into a small labelled tab, so the sky and the song bar can have the
+   screen. The star tab doubles as a mini player: the selected star, its song, and add-to-bar. */
+.fold { width: 30px; height: 30px; flex: none; border-radius: 50%; padding: 0; cursor: pointer;
+  border: 1px solid rgba(201,162,74,.6); background: rgba(0,0,0,.35); color: var(--gold-hi);
+  display: flex; align-items: center; justify-content: center; }
+.fold:hover { background: rgba(201,162,74,.2); }
+.fold svg { width: 12px; height: 12px; transition: transform .2s; }
+.fold.l svg { transform: rotate(180deg); }
+#right .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 0 8px; }
+#left .head .end { display: flex; align-items: center; gap: 10px; }
+.tab {
+  position: fixed; z-index: 4; top: calc(var(--top-h) + 10px); display: none; align-items: center; gap: 10px;
+  min-height: 46px; padding: 2px 4px 2px 10px; color: var(--cream); cursor: pointer; font: inherit; text-align: left;
+  border-width: 10px 9px; border-image-width: 10px 9px;
+}
+#leftTab { left: var(--gutter); }
+#leftTab > svg { width: 12px; height: 12px; color: var(--gold-hi); flex: none; }
+#leftTab .label { color: var(--cream-dim); }
+#leftTab b { font: 15px/1 var(--display); letter-spacing: .08em; font-weight: normal; color: var(--gold-hi); padding-right: 8px; }
+#rightTab { right: var(--gutter); max-width: calc(100vw - 2 * var(--gutter)); }
+#rightTab .dot { width: 18px; height: 18px; } #rightTab .dot::before { inset: 4px; }
+#rightTab .tt { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+#rightTab .tt b { font: 16px var(--display); letter-spacing: .07em; font-weight: normal; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#rightTab .tt i { font: normal 9.5px var(--display); letter-spacing: .14em; color: var(--cream-dim); }
+#rightTab .orb { width: 42px; height: 42px; background-size: 38px 38px; }
+#rightTab .orb.on { filter: drop-shadow(0 0 10px rgba(224,191,114,.95)) drop-shadow(0 1px 3px rgba(0,0,0,.5)); }
+.mini-add { width: 30px; height: 30px; flex: none; border-radius: 50%; padding: 0; cursor: pointer;
+  border: 1px solid rgba(201,162,74,.6); background: rgba(0,0,0,.35); color: var(--gold-hi);
+  display: flex; align-items: center; justify-content: center; }
+.mini-add svg { width: 12px; height: 12px; }
+.mini-add.in { background: var(--gold); color: var(--ink); }
+body.left-closed #left, body.right-closed #right { display: none; }
+body.left-closed #leftTab, body.right-closed #rightTab { display: flex; }
+
+/* tapping stars in the sky */
+#sky.hot { cursor: pointer; }
+#hoverTag { position: fixed; z-index: 2; pointer-events: none; display: none; transform: translate(14px, -50%);
+  font: 12px/1 var(--display); letter-spacing: .12em; color: var(--cream); padding: 5px 8px; border-radius: 6px;
+  background: rgba(4,5,10,.7); border: 1px solid rgba(143,216,255,.45); white-space: nowrap; }
+
 /* ---- phone ---- */
 #scrim { display: none; }
 @media (max-width: 760px) {
@@ -242,7 +283,14 @@ button { font: inherit; color: inherit; }
   #left .glass { background: #0d0d10; background-clip: padding-box; }
   body.drawer #scrim { display: block; position: fixed; inset: 0; z-index: 8; background: rgba(0,0,0,.55); }
   #right { top: auto; left: var(--gutter); right: var(--gutter); width: auto; bottom: calc(var(--bar-h) + var(--gutter) + 6px); height: auto; }
-  #right .glass { padding: 6px 8px; }
+  #right .glass { padding: 6px 8px; position: relative; }
+  #right .head { position: absolute; z-index: 3; top: 2px; right: 2px; margin: 0; }
+  #right .head .label { display: none; }
+  #right .fold svg { transform: rotate(90deg); }
+  #leftTab { display: none !important; }
+  #rightTab { top: auto; left: var(--gutter); right: var(--gutter); bottom: calc(var(--bar-h) + var(--gutter) + 6px); }
+  #rightTab .tt { flex: 1; }
+  #rightTab .fold svg { transform: rotate(-90deg); }
   #right .sheet { display: grid; grid-template-columns: 116px 1fr; gap: 0 12px; align-items: start; }
   #viewport { grid-row: span 3; aspect-ratio: 1 / 1; }
   #viewport .corner { display: none; }
@@ -294,14 +342,33 @@ button { font: inherit; color: inherit; }
 
 <aside id="left">
   <div class="glass">
-    <div class="head"><span class="label">Constellations</span><span class="label" style="color:var(--cream-dim)" id="total"></span></div>
+    <div class="head"><span class="label">Constellations</span>
+      <span class="end"><span class="label" style="color:var(--cream-dim)" id="total"></span>
+      <button class="fold l" id="leftFold" title="Fold the constellation list away"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M4 2l5 4-5 4z"/></svg></button></span></div>
     <input id="search" placeholder="Find a star or constellation">
     <div id="list"></div>
   </div>
 </aside>
 
+<button class="tab glass" id="leftTab" title="Open the constellation list">
+  <svg viewBox="0 0 12 12" fill="currentColor"><path d="M4 2l5 4-5 4z"/></svg><span class="label">Constellations</span><b id="ltCon"></b>
+</button>
+
+<div class="tab glass" id="rightTab" title="Open the star panel">
+  <span class="dot" id="rtDot"></span>
+  <span class="tt"><b id="rtName"></b><i>STAR · TAP TO OPEN</i></span>
+  <button class="orb" id="rtPlay" title="Play this star's song"><svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 2.5v11l9-5.5z"/></svg></button>
+  <button class="mini-add" id="rtAdd" title="Add to song bar"></button>
+  <button class="fold l" id="rtOpen" title="Open the star panel"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M4 2l5 4-5 4z"/></svg></button>
+</div>
+
+<div id="hoverTag"></div>
+
 <aside id="right">
-  <div class="glass"><div class="sheet">
+  <div class="glass">
+    <div class="head"><span class="label">Star</span>
+      <button class="fold" id="rightFold" title="Fold the star panel away"><svg viewBox="0 0 12 12" fill="currentColor"><path d="M4 2l5 4-5 4z"/></svg></button></div>
+    <div class="sheet">
     <div id="viewport">
       <span class="corner tl" id="vCon"></span><span class="corner tr" id="vClass"></span>
       <span class="corner bl" id="vTemp"></span><span class="corner br" id="vDist"></span>
@@ -455,9 +522,13 @@ let shownCon = null
 function layout() {
   // Centre the figure in the free space between the panels, not in the middle of the window.
   const W = innerWidth, H = innerHeight, phone = W <= 760
-  const L = phone ? 0 : 300 + 16, R = phone ? 0 : 360 + 16
-  const T = phone ? 56 : 66
-  const B = phone ? (document.getElementById('right').getBoundingClientRect().height + 92 + 20) : 112 + 26
+  const shown = id => { const r = document.getElementById(id).getBoundingClientRect(); return r.width > 0 ? r : null }
+  const lp = shown('left'), rp = shown('right'), lt = shown('leftTab'), rt = shown('rightTab')
+  const L = !phone && lp ? lp.right : 0
+  const R = !phone && rp ? W - rp.left : 0
+  // Folded tabs sit in the top corners; keep the figure clear of them.
+  const T = phone ? 56 : ((lt || rt) ? Math.max(lt ? lt.bottom : 0, rt ? rt.bottom : 0) + 8 : 66)
+  const B = H - (phone ? (rp || rt || {top: H - 112}).top - 10 : shown('bar').top - 12)
   const cx = (L + (W - R)) / 2 - W / 2, cy = -((T + (H - B)) / 2 - H / 2)
   const D = 8, half = Math.tan(25 * Math.PI / 180) * D   // fov 50 at distance D
   const k = half / (H / 2)
@@ -485,6 +556,7 @@ function showConstellation(c) {
     const p = P(s), e = document.createElement('a-entity')
     e.setAttribute('position', `${p.x} ${p.y} ${-L.D}`)
     e.setAttribute('data-name', s.name)
+    e.dataset.k = keyOf(s)
     e.setAttribute('star-visual', {
       radius: 0.075 * Math.max(0.6, Math.min(1.6, (s.size || 0.1) / 0.1)),
       color: s.color || '#ffffff', tempKelvin: temp(s), spectralClass: s.spectralClass || '',
@@ -543,6 +615,9 @@ function select(s) {
   document.getElementById('vTemp').textContent = T ? Math.round(T).toLocaleString() + ' K' : ''
   document.getElementById('vDist').textContent = s.distance ? s.distance.toLocaleString() + ' LY' : ''
   document.getElementById('sName').textContent = s.name
+  document.getElementById('rtName').textContent = s.name
+  document.getElementById('rtDot').style.setProperty('--c', rgbOf(s))
+  document.getElementById('ltCon').textContent = s.con.metadata.name.toUpperCase()
   document.querySelector('#selRing b').innerHTML = s.name.toUpperCase() + '<small>' + (s.designation || s.con.metadata.name) + '</small>'
   document.getElementById('sSay').textContent = [s.pronunciation, s.designation].filter(Boolean).join('  ·  ')
   const sci = (s.info && s.info.scientific) || {}
@@ -567,6 +642,10 @@ function syncAddBtn() {
   const inBar = queue.includes(keyOf(sel))
   const b = document.getElementById('addStar')
   b.innerHTML = inBar ? ICON.tick + 'On the song bar' : ICON.plus + 'Add to song bar'
+  const m = document.getElementById('rtAdd')
+  m.innerHTML = inBar ? ICON.tick : ICON.plus
+  m.classList.toggle('in', inBar)
+  m.title = inBar ? 'On the song bar' : 'Add to song bar'
 }
 document.querySelectorAll('#mode button').forEach(b => b.onclick = () => {
   mode = b.dataset.m
@@ -601,7 +680,12 @@ function sing(s, hold = 2.5) {
   a.unlock()
   a.computeRange(s.con.stars)
   a.playStar(s, mode === 'true' ? {mapping: 'fold', scale: 'true', hold} : {mapping: 'compress', scale: 'pentatonic', hold})
-  if (s === sel) { waveLive = 1; const b = document.getElementById('playStar'); b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 3500) }
+  if (s === sel) {
+    waveLive = 1
+    for (const id of ['playStar', 'rtPlay']) {
+      const b = document.getElementById(id); b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 3500)
+    }
+  }
 }
 document.getElementById('playStar').onclick = () => sing(sel)
 document.getElementById('addStar').onclick = () => addToBar(sel)
@@ -733,7 +817,77 @@ track.addEventListener('pointerup', () => {
   drag = null
 })
 
+// ---- folding the side panels ----
+// Remembered per browser and per layout (a phone and a computer want different defaults).
+const isPhone = () => innerWidth <= 760
+const foldKey = () => 'starsong.fold.' + (isPhone() ? 'phone' : 'desk')
+function loadFold() {
+  try { const v = JSON.parse(localStorage.getItem(foldKey())); if (v) return v } catch (e) { /* storage unavailable */ }
+  return {left: false, right: isPhone()}   // the phone opens with the star panel folded
+}
+function setFold(f, save = true) {
+  document.body.classList.toggle('left-closed', !!f.left)
+  document.body.classList.toggle('right-closed', !!f.right)
+  if (save) try { localStorage.setItem(foldKey(), JSON.stringify(f)) } catch (e) { /* storage unavailable */ }
+  // The star view was zero-sized while folded, so size it again, then re-centre the sky.
+  requestAnimationFrame(() => { fit(); if (shownCon) showConstellation(shownCon); drawWave() })
+}
+const folded = () => ({left: document.body.classList.contains('left-closed'), right: document.body.classList.contains('right-closed')})
+document.getElementById('leftFold').onclick = () => {
+  if (isPhone()) { document.body.classList.remove('drawer'); return }   // on a phone the list is a drawer
+  setFold({...folded(), left: true})
+}
+document.getElementById('leftTab').onclick = () => setFold({...folded(), left: false})
+document.getElementById('rightFold').onclick = () => setFold({...folded(), right: true})
+document.getElementById('rightTab').onclick = e => { if (!e.target.closest('#rtPlay, #rtAdd')) setFold({...folded(), right: false}) }
+document.getElementById('rtPlay').onclick = () => sing(sel)
+document.getElementById('rtAdd').onclick = () => addToBar(sel)
+
+// ---- touching a star in the sky ----
+// Stars are a few pixels wide, so rather than ray-cast their spheres, find the star drawn
+// nearest the touch on screen - with a finger-sized allowance.
+const skyEl = document.getElementById('sky')
+function starAt(x, y, reach) {
+  const sc = document.getElementById('skyScene')
+  if (!sc.camera) return null
+  const r = sc.canvas.getBoundingClientRect(), p = new THREE.Vector3()
+  let best = null, bd = reach * reach
+  figure.querySelectorAll('[data-k]').forEach(e => {
+    e.object3D.getWorldPosition(p); p.project(sc.camera)
+    const d = (r.left + (p.x + 1) / 2 * r.width - x) ** 2 + (r.top + (1 - p.y) / 2 * r.height - y) ** 2
+    if (d < bd) { bd = d; best = e }
+  })
+  return best ? byKey(best.dataset.k) : null
+}
+let skyDown = null
+skyEl.addEventListener('pointerdown', e => { skyDown = {x: e.clientX, y: e.clientY} })
+skyEl.addEventListener('pointerup', e => {
+  if (!skyDown) return
+  const moved = Math.hypot(e.clientX - skyDown.x, e.clientY - skyDown.y) > 10
+  skyDown = null
+  if (moved) return
+  const s = starAt(e.clientX, e.clientY, e.pointerType === 'mouse' ? 26 : 40)
+  if (!s) return
+  // First touch picks the star; touching the picked star again plays its song.
+  if (s === sel) sing(s); else select(s)
+})
+const tag = document.getElementById('hoverTag')
+skyEl.addEventListener('pointermove', e => {
+  if (e.pointerType !== 'mouse') return
+  const s = starAt(e.clientX, e.clientY, 26)
+  skyEl.classList.toggle('hot', !!s)
+  if (s) {
+    tag.textContent = s === sel ? 'Play ' + s.name : s.name
+    tag.style.left = e.clientX + 'px'; tag.style.top = e.clientY + 'px'; tag.style.display = 'block'
+  } else tag.style.display = 'none'
+})
+skyEl.addEventListener('pointerleave', () => { tag.style.display = 'none'; skyEl.classList.remove('hot') })
+
 // ---- go ----
+{
+  const f = params.get('fold')   // ?fold=both|left|right|none forces a layout for screenshots
+  setFold(f ? {left: f === 'both' || f === 'left', right: f === 'both' || f === 'right'} : loadFold(), !f)
+}
 renderList()
 renderBar()
 const sky = document.getElementById('skyScene')
