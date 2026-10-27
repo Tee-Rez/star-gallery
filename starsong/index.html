@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Starsong</title>
+<meta name="robots" content="noindex">
+<meta name="description" content="Every star in the STAR Arts constellations, and the song each one sings.">
+<!--
+  MOCKUP of the Starsong web app (not AR): every constellation, every star, every star's song,
+  and a bar at the bottom to string songs together.
+
+  The stars are drawn by the shipped js/star-visual.js and the songs by the shipped
+  js/star-audio.js, imported live, so the look and the sound are the AR app's own.
+
+  ?state= forces a screen for screenshots:
+    playing   the bar is mid-playback, loop on
+    dragging  a song is being dragged to a new place on the bar
+    drawer    (phone) the constellation list is open
+-->
+<script src="external/scripts/8frame-1.3.0.min.js"></script>
+<style>
+@font-face { font-family: 'Alien Cybernetics'; src: url('assets/fonts/AlienCybernetics-Regular.woff2') format('woff2'); }
+@font-face { font-family: 'Space Future Regular'; src: url('assets/fonts/SpaceFuture-Regular.woff2') format('woff2'); }
+
+:root {
+  --display: 'Alien Cybernetics', Arial, sans-serif;
+  --text: 'Space Future Regular', Arial, sans-serif;
+  --ink: #2b2318;
+  --gold: #c9a24a;
+  --gold-hi: #e0bf72;
+  --cream: #f2ece0;
+  --cream-dim: rgba(242, 236, 224, 0.62);
+  --cyan: #8fd8ff;
+  --bg: #04050a;
+  --gutter: 16px;
+  --left-w: 300px;
+  --right-w: 360px;
+  --bar-h: 112px;
+  --top-h: 56px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--cream); overflow: hidden; }
+body { font: 14px/1.45 var(--text); }
+button { font: inherit; color: inherit; }
+
+/* ---- the sky behind everything ---- */
+#sky { position: fixed; inset: 0; z-index: 0; }
+#sky a-scene, #sky .a-canvas { width: 100% !important; height: 100% !important; }
+
+/* ---- frames, the AR app's own ---- */
+.glass {
+  border-style: solid;
+  border-width: 14px 12px;
+  border-image: url('assets/ui/card-glass.png') 37 31 fill / 14px 12px stretch;
+  filter: drop-shadow(0 4px 14px rgba(0,0,0,.55));
+}
+.pill {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 46px; padding: 0 24px;
+  font: 15px/1.1 var(--display); letter-spacing: .05em; color: var(--ink);
+  background: none; border: 0;
+  border-image: url('assets/ui/pill.png') 0 144 fill / 0 23px stretch;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.55));
+  cursor: pointer; white-space: nowrap; user-select: none;
+}
+.pill:hover { filter: drop-shadow(0 2px 4px rgba(0,0,0,.55)) brightness(1.1); }
+.pill svg { width: 16px; height: 16px; flex: none; }
+.pill.glow { filter: drop-shadow(0 0 9px rgba(224,191,114,.85)) drop-shadow(0 2px 4px rgba(0,0,0,.55)); }
+.orb {
+  width: 44px; height: 44px; flex: none; border: 0; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: url('assets/ui/orb.png') center / 34px 34px no-repeat;
+  color: var(--ink); cursor: pointer;
+  filter: drop-shadow(0 1px 3px rgba(0,0,0,.5));
+}
+.orb svg { width: 14px; height: 14px; }
+.orb.big { width: 64px; height: 64px; background-size: 60px 60px; }
+.orb.big svg { width: 24px; height: 24px; }
+.orb.on { filter: drop-shadow(0 0 8px rgba(143,216,255,.95)) drop-shadow(0 1px 3px rgba(0,0,0,.5)); }
+.orb.on svg { color: #1d5d86; }
+.label { font: 11px/1 var(--display); letter-spacing: .14em; color: var(--gold-hi); text-transform: uppercase; }
+.rule { height: 1px; background: var(--gold); box-shadow: 0 1px 0 rgba(0,0,0,.35); opacity: .7; }
+
+/* a star as a dot of light, coloured off the same blackbody ramp star-visual uses */
+.dot { width: 14px; height: 14px; flex: none; border-radius: 50%; position: relative; }
+.dot::before { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 4px 2px var(--c), 0 0 10px 4px var(--c); }
+
+/* the selected star, marked in the sky */
+#selRing { position: fixed; z-index: 1; width: 64px; height: 64px; margin: -32px 0 0 -32px; pointer-events: none; display: none; }
+#selRing i { position: absolute; border-radius: 50%; }
+#selRing i:nth-child(1) { inset: 0; border: 1px solid rgba(143,216,255,.75); box-shadow: 0 0 14px rgba(143,216,255,.35), inset 0 0 10px rgba(143,216,255,.2); }
+#selRing i:nth-child(2) { inset: -9px; border: 1.5px dashed rgba(224,191,114,.75); animation: spin 22s linear infinite; }
+#selRing i:nth-child(3) { inset: -9px; border: 2px solid transparent; border-top-color: var(--gold-hi); border-bottom-color: var(--gold-hi); animation: spin 7s linear infinite reverse; }
+#selRing b { position: absolute; left: 100%; top: 50%; transform: translateY(-50%); margin-left: 20px; white-space: nowrap;
+  font: 15px/1 var(--display); letter-spacing: .14em; font-weight: normal; color: var(--cream); text-shadow: 0 0 10px rgba(0,0,0,.9);
+  padding: 7px 10px; border-radius: 8px; background: rgba(4,5,10,.62); border-left: 2px solid var(--gold); }
+#selRing.left b { border-left: 0; border-right: 2px solid var(--gold); }
+#selRing b small { display: block; font: 10px var(--text); letter-spacing: .14em; color: var(--gold-hi); margin-top: 5px; }
+#selRing.left b { left: auto; right: 100%; margin: 0 20px 0 0; text-align: right; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---- top ---- */
+#top {
+  position: fixed; z-index: 5; left: var(--gutter); right: var(--gutter); top: 12px; height: 44px;
+  display: flex; align-items: center; gap: 14px; pointer-events: none;
+}
+#top > * { pointer-events: auto; }
+#brand { font: 22px/1 var(--display); letter-spacing: .22em; color: var(--cream);
+  text-shadow: 0 0 12px rgba(143,216,255,.45); }
+#brand small { font-size: 11px; letter-spacing: .3em; color: var(--gold-hi); margin-left: 10px; }
+#top .spacer { flex: 1; }
+#menuBtn { display: none; }
+#vol { display: flex; align-items: center; gap: 10px; font: 11px var(--display); letter-spacing: .12em; color: var(--cream-dim); }
+#vol input { width: 110px; accent-color: var(--gold); }
+
+/* ---- left: the constellations ---- */
+#left {
+  position: fixed; z-index: 4; left: var(--gutter); top: calc(var(--top-h) + 10px);
+  bottom: calc(var(--bar-h) + var(--gutter) + 10px); width: var(--left-w);
+  display: flex; flex-direction: column;
+}
+#left .glass { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 8px 6px 8px 10px; }
+#left .head { display: flex; align-items: center; justify-content: space-between; padding: 2px 4px 8px; }
+#search { margin: 0 4px 8px; padding: 7px 10px; border-radius: 8px; border: 1px solid rgba(201,162,74,.45);
+  background: rgba(0,0,0,.35); color: var(--cream); font: 13px var(--text); outline: none; }
+#list { flex: 1; overflow-y: auto; padding-right: 4px; scrollbar-width: thin; scrollbar-color: var(--gold) rgba(0,0,0,.3); }
+.con { border-bottom: 1px solid rgba(201,162,74,.22); }
+.con-h { width: 100%; display: flex; align-items: center; gap: 10px; padding: 8px 6px; background: none; border: 0;
+  cursor: pointer; text-align: left; }
+.con-h .chev { width: 12px; height: 12px; color: var(--gold-hi); transition: transform .2s; flex: none; }
+.con.open .con-h .chev { transform: rotate(90deg); }
+.con-h .nm { flex: 1; font: 15px/1.1 var(--display); letter-spacing: .06em; }
+.con-h .ct { font: 11px var(--display); color: var(--cream-dim); letter-spacing: .08em; }
+.con.open .con-h .nm { color: var(--gold-hi); }
+.con-b { display: none; padding: 0 0 8px; }
+.con.open .con-b { display: block; }
+.con-b .sub { font-size: 11.5px; color: var(--cream-dim); padding: 0 6px 6px 28px; }
+.st { display: flex; align-items: center; gap: 10px; padding: 3px 4px 3px 24px; border-radius: 8px; cursor: pointer; }
+.st:hover { background: rgba(143,216,255,.08); }
+.st.sel { background: linear-gradient(90deg, rgba(201,162,74,.28), rgba(201,162,74,.04)); box-shadow: inset 2px 0 0 var(--gold-hi); }
+.st .n { flex: 1; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st .m { font-size: 11px; color: var(--cream-dim); width: 40px; text-align: right; }
+.st .add { width: 26px; height: 26px; border-radius: 50%; border: 1px solid rgba(201,162,74,.6); background: rgba(0,0,0,.35);
+  color: var(--gold-hi); display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; flex: none; opacity: .55; }
+.st:hover .add, .st.sel .add { opacity: 1; }
+.st .add svg { width: 12px; height: 12px; }
+.st .add.in { background: var(--gold); color: var(--ink); opacity: 1; }
+
+/* ---- right: the selected star ---- */
+#right {
+  position: fixed; z-index: 4; right: var(--gutter); top: calc(var(--top-h) + 10px);
+  bottom: calc(var(--bar-h) + var(--gutter) + 10px); width: var(--right-w);
+  display: flex; flex-direction: column;
+}
+#right .glass { flex: 1; min-height: 0; overflow-y: auto; padding: 10px 12px; scrollbar-width: thin; scrollbar-color: var(--gold) rgba(0,0,0,.3); }
+#viewport {
+  position: relative; aspect-ratio: 4 / 3; width: 100%; border-radius: 10px; overflow: hidden;
+  background: radial-gradient(circle at 50% 50%, #0b0f1a 0%, #030409 75%);
+  box-shadow: inset 0 0 0 1px rgba(201,162,74,.55), inset 0 0 30px rgba(0,0,0,.9);
+}
+#viewport a-scene, #viewport .a-canvas { position: absolute !important; inset: 0; width: 100% !important; height: 100% !important; }
+#viewport .corner { position: absolute; z-index: 2; font: 10.5px var(--text); letter-spacing: .12em; text-transform: uppercase; color: var(--cream-dim); }
+#viewport .tl { left: 10px; top: 9px; } #viewport .tr { right: 10px; top: 9px; color: var(--gold-hi); }
+#viewport .bl { left: 10px; bottom: 9px; } #viewport .br { right: 10px; bottom: 9px; }
+#sName { font: 24px/1.1 var(--display); letter-spacing: .06em; margin: 10px 0 2px; }
+#sSay { font-size: 12px; color: var(--cream-dim); letter-spacing: .04em; }
+#facts { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0; }
+.fact { background: rgba(0,0,0,.32); border: 1px solid rgba(201,162,74,.28); border-radius: 8px; padding: 4px 9px; }
+.fact b { display: block; font: 9.5px var(--display); letter-spacing: .14em; color: var(--gold-hi); font-weight: normal; margin-bottom: 2px; }
+.fact span { font-size: 13px; }
+#sBlurb { font-size: 12.5px; color: var(--cream); opacity: .88; margin: 0 0 10px;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+#song { border-top: 1px solid rgba(201,162,74,.35); padding-top: 10px; }
+.singrow { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+.singrow .col { display: flex; flex-direction: column; align-items: center; flex: none; }
+.singrow .cap { font: 8.5px var(--display); letter-spacing: .14em; color: var(--cream-dim); margin-top: -3px; }
+#playStar.on { filter: drop-shadow(0 0 10px rgba(224,191,114,.95)) drop-shadow(0 1px 3px rgba(0,0,0,.5)); }
+#song .row { display: flex; gap: 10px; margin-top: 10px; }
+#song .row .pill { flex: 1; }
+#wave { height: 58px; flex: 1; min-width: 0; display: block; }
+#mode { display: flex; gap: 6px; margin-top: 8px; }
+#mode button { flex: 1; padding: 6px 0; border-radius: 8px; border: 1px solid rgba(201,162,74,.45); background: rgba(0,0,0,.3);
+  font: 11px var(--display); letter-spacing: .1em; cursor: pointer; color: var(--cream-dim); }
+#mode button.on { background: rgba(201,162,74,.25); color: var(--cream); }
+.hz { font: 12px var(--display); letter-spacing: .08em; color: var(--cyan); }
+
+/* ---- bottom: the song bar ---- */
+#bar {
+  position: fixed; z-index: 6; left: var(--gutter); right: var(--gutter); bottom: var(--gutter); height: var(--bar-h);
+}
+#bar .glass { height: 100%; display: flex; align-items: center; gap: 12px; padding: 0 10px; }
+#bar .ctl { display: flex; align-items: center; gap: 4px; flex: none; }
+#bar .ctl .lbl { display: block; text-align: center; font: 9px var(--display); letter-spacing: .14em; color: var(--cream-dim); margin-top: -2px; }
+#bar .ctl .col { display: flex; flex-direction: column; align-items: center; }
+#bar .sep { width: 1px; align-self: stretch; margin: 10px 2px; background: linear-gradient(transparent, rgba(201,162,74,.6), transparent); }
+#track { flex: 1; min-width: 0; height: 100%; display: flex; align-items: center; gap: 10px; overflow-x: auto; padding: 0 6px;
+  scrollbar-width: thin; scrollbar-color: var(--gold) transparent; position: relative; }
+#track .arrow { color: rgba(201,162,74,.55); flex: none; width: 10px; height: 10px; }
+.chip {
+  flex: none; position: relative; height: 60px; min-width: 132px; padding: 0 12px 0 8px;
+  display: flex; align-items: center; gap: 9px;
+  border-radius: 12px; border: 1px solid rgba(201,162,74,.5);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(0,0,0,.35));
+  cursor: grab; user-select: none; touch-action: none;
+  transition: transform .18s ease, box-shadow .18s ease, opacity .18s;
+}
+.chip .grip { width: 10px; height: 22px; color: rgba(201,162,74,.75); flex: none; }
+.chip .num { position: absolute; top: -8px; left: -6px; width: 20px; height: 20px; border-radius: 50%;
+  background: url('assets/ui/orb.png') center / 20px 20px; color: var(--ink); font: 10px/20px var(--display); text-align: center; }
+.chip .dot { width: 22px; height: 22px; }
+.chip .dot::before { inset: 6px; }
+.chip .tx { display: flex; flex-direction: column; line-height: 1.2; }
+.chip .tx b { font: 13px var(--display); letter-spacing: .05em; font-weight: normal; white-space: nowrap; }
+.chip .tx i { font-style: normal; font-size: 10.5px; color: var(--cream-dim); }
+.chip .x { position: absolute; top: -7px; right: -7px; width: 18px; height: 18px; border-radius: 50%; border: 0; padding: 0;
+  background: rgba(0,0,0,.75); color: var(--cream-dim); font-size: 11px; line-height: 18px; cursor: pointer; display: none; }
+.chip:hover .x { display: block; }
+.chip .prog { position: absolute; left: 10px; right: 10px; bottom: 5px; height: 2px; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; }
+.chip .prog i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--cyan)); }
+.chip.now { border-color: var(--gold-hi); box-shadow: 0 0 0 1px var(--gold-hi), 0 0 18px rgba(224,191,114,.45), inset 0 0 18px rgba(143,216,255,.12); }
+.chip.done { opacity: .55; }
+.chip.lift { transform: translateY(-14px) rotate(-2deg) scale(1.06); box-shadow: 0 16px 26px rgba(0,0,0,.6), 0 0 0 1px var(--cyan), 0 0 20px rgba(143,216,255,.45);
+  cursor: grabbing; z-index: 5; background: linear-gradient(180deg, #2b2a2c, #121216); }
+.gap { flex: none; width: 132px; height: 60px; border-radius: 12px; border: 1.5px dashed var(--cyan);
+  background: rgba(143,216,255,.08); box-shadow: inset 0 0 14px rgba(143,216,255,.18); }
+.empty { color: var(--cream-dim); font-size: 13px; padding: 0 10px; }
+#bar .meta { flex: none; text-align: right; padding-right: 8px; }
+#bar .meta .big { font: 18px var(--display); letter-spacing: .06em; }
+#bar .meta .small { font-size: 11px; color: var(--cream-dim); }
+
+/* ---- phone ---- */
+#scrim { display: none; }
+@media (max-width: 760px) {
+  :root { --gutter: 10px; --bar-h: 92px; --top-h: 50px; }
+  #brand { font-size: 18px; letter-spacing: .18em; }
+  #brand small, #vol { display: none; }
+  #menuBtn { display: inline-flex; min-height: 40px; padding: 0 16px; font-size: 13px; border-image-width: 0 20px; }
+  #left { top: 0; bottom: 0; left: 0; width: min(86vw, 330px); z-index: 9; transform: translateX(-105%); transition: transform .25s ease; padding: 10px; }
+  body.drawer #left { transform: none; }
+  #left .glass { background: #0d0d10; background-clip: padding-box; }
+  body.drawer #scrim { display: block; position: fixed; inset: 0; z-index: 8; background: rgba(0,0,0,.55); }
+  #right { top: auto; left: var(--gutter); right: var(--gutter); width: auto; bottom: calc(var(--bar-h) + var(--gutter) + 6px); height: auto; }
+  #right .glass { padding: 6px 8px; }
+  #right .sheet { display: grid; grid-template-columns: 116px 1fr; gap: 0 12px; align-items: start; }
+  #viewport { grid-row: span 3; aspect-ratio: 1 / 1; }
+  #viewport .corner { display: none; }
+  #sName { font-size: 19px; margin: 2px 0 0; }
+  #sSay { font-size: 11px; }
+  #facts { grid-template-columns: 1fr 1fr; gap: 4px; margin: 6px 0 0; }
+  .fact { padding: 3px 6px; } .fact span { font-size: 11.5px; } .fact b { font-size: 8.5px; }
+  #sBlurb, #wave, #mode, .fact.x2 { display: none; }
+  #song { grid-column: 1 / -1; border-top: 0; padding-top: 0; display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  #song .lbl-row, .singrow .cap { display: none !important; }
+  .singrow { margin: 0; }
+  .singrow .orb.big { width: 46px; height: 46px; background-size: 42px 42px; }
+  #song .row { margin-top: 0; gap: 8px; flex: 1; }
+  #song .row .pill { min-height: 40px; font-size: 12.5px; padding: 0 12px; border-image-width: 0 20px; }
+  #bar .glass { gap: 6px; padding: 0 4px; }
+  #bar .ctl .lbl { display: none; }
+  #bar .orb.big { width: 52px; height: 52px; background-size: 48px 48px; }
+  #bar .meta, #bar .clear { display: none; }
+  .chip { min-width: 0; height: 52px; padding: 0 10px 0 6px; gap: 6px; }
+  .chip .tx i { display: none; }
+  .chip .grip { width: 8px; }
+  .gap { width: 96px; height: 52px; }
+}
+</style>
+</head>
+<body>
+
+<!-- the sky: the open constellation, drawn by star-visual -->
+<div id="sky">
+  <a-scene id="skyScene" embedded vr-mode-ui="enabled:false"
+           renderer="colorManagement:true; antialias:true" background="color:#04050a">
+    <a-entity id="field"></a-entity>
+    <a-entity id="figure"></a-entity>
+    <a-entity id="skyCam" camera="fov:50" position="0 0 0" look-controls="enabled:false" wasd-controls="enabled:false"></a-entity>
+  </a-scene>
+</div>
+
+<div id="selRing"><i></i><i></i><i></i><b></b></div>
+
+<div id="top">
+  <button class="pill" id="menuBtn">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 4h12M2 8h12M2 12h12"/></svg>Stars</button>
+  <div id="brand">STARSONG<small>THE SOUND OF EVERY STAR</small></div>
+  <div class="spacer"></div>
+  <div id="vol">VOLUME <input type="range" min="0" max="100" value="50"></div>
+</div>
+
+<div id="scrim"></div>
+
+<aside id="left">
+  <div class="glass">
+    <div class="head"><span class="label">Constellations</span><span class="label" style="color:var(--cream-dim)" id="total"></span></div>
+    <input id="search" placeholder="Find a star or constellation">
+    <div id="list"></div>
+  </div>
+</aside>
+
+<aside id="right">
+  <div class="glass"><div class="sheet">
+    <div id="viewport">
+      <span class="corner tl" id="vCon"></span><span class="corner tr" id="vClass"></span>
+      <span class="corner bl" id="vTemp"></span><span class="corner br" id="vDist"></span>
+      <a-scene id="starScene" embedded vr-mode-ui="enabled:false"
+               renderer="colorManagement:true; antialias:true" background="color:#030409">
+        <a-entity id="bigStar" position="0 0 -1.6"></a-entity>
+        <a-entity id="starCam" camera="fov:40" position="0 0 0" look-controls="enabled:false" wasd-controls="enabled:false"></a-entity>
+      </a-scene>
+    </div>
+    <div>
+      <div id="sName"></div>
+      <div id="sSay"></div>
+    </div>
+    <div id="facts"></div>
+    <p id="sBlurb"></p>
+    <div id="song">
+      <div class="lbl-row" style="display:flex;justify-content:space-between;align-items:baseline">
+        <span class="label">Starsong</span><span class="hz" id="hz"></span>
+      </div>
+      <div class="singrow">
+        <div class="col"><button class="orb big" id="playStar" title="Play this star's song">
+          <svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 2.5v11l9-5.5z"/></svg></button><span class="cap">PLAY</span></div>
+        <canvas id="wave"></canvas>
+      </div>
+      <div id="mode"><button class="on" data-m="musical">Musical</button><button data-m="true">True sound</button></div>
+      <div class="row">
+        <button class="pill" id="addStar">
+          <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v12M2 8h12"/></svg>Add to song bar</button>
+      </div>
+    </div>
+  </div></div>
+</aside>
+
+<footer id="bar">
+  <div class="glass">
+    <div class="ctl">
+      <div class="col"><button class="orb big" id="playAll" title="Play / pause"></button><span class="lbl" id="playLbl">PLAY</span></div>
+      <div class="col"><button class="orb" id="loop" title="Loop">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 7a4 4 0 0 1 4-4h5l-2-2M13 9a4 4 0 0 1-4 4H4l2 2"/></svg>
+      </button><span class="lbl">LOOP</span></div>
+      <div class="col clear"><button class="orb" id="clear" title="Clear">
+        <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 4l8 8M12 4l-8 8"/></svg>
+      </button><span class="lbl">CLEAR</span></div>
+    </div>
+    <div class="sep"></div>
+    <div id="track"></div>
+    <div class="sep"></div>
+    <div class="meta"><div class="big" id="count"></div><div class="small" id="len"></div></div>
+  </div>
+</footer>
+
+<script type="module">
+const {starVisualComponent} = await import('./js/star-visual.js')
+const {starAudioComponent} = await import('./js/star-audio.js').catch(() => ({}))
+const {bbColor, rampForStar} = await import('./js/star-color.js')
+AFRAME.registerComponent('star-visual', starVisualComponent)
+if (starAudioComponent) { AFRAME.registerComponent("star-audio", starAudioComponent); document.getElementById("skyScene").setAttribute("star-audio", "") }
+
+// 8frame holds every scene until the 8th Wall engine announces itself with 'xrloaded'. There is
+// no AR engine on this page, so announce it ourselves - once the scenes have their cameras.
+;(function kick(n) {
+  const scenes = [...document.querySelectorAll('a-scene')]
+  if (scenes.every(s => s.isPlaying)) return
+  if (n > 0 && scenes.every(s => s.camera)) window.dispatchEvent(new Event('xrloaded'))
+  if (n < 40) setTimeout(() => kick(n + 1), 100)
+})(0)
+
+const params = new URLSearchParams(location.search)
+const STATE = params.get('state') || ''
+const STEP = 3.2   // seconds each song gets on the bar: attack + hold, then the next begins
+
+// ---- data ----
+const IDS = ['orion', 'taurus', 'pleiades', 'lyra', 'andromeda']
+const CONS = []
+for (const id of IDS) {
+  const d = await (await fetch('data/' + id + '.json')).json()
+  d.id = id
+  d.stars.forEach(s => { s.con = d })
+  CONS.push(d)
+}
+const ALL = CONS.flatMap(c => c.stars)
+const byKey = k => ALL.find(s => s.con.id + '/' + s.id === k)
+const keyOf = s => s.con.id + '/' + s.id
+
+function rgbOf(s) {
+  const t = rampForStar(Object.assign({tempKelvin: s.physics && s.physics.tempKelvin}, s))
+  const c = t >= 0 ? bbColor(t) : [1, 1, 1]
+  return `rgb(${c.map(x => Math.round(x * 255)).join(',')})`
+}
+const temp = s => (s.physics && s.physics.tempKelvin) || 0
+const dot = s => `<span class="dot" style="--c:${rgbOf(s)}"></span>`
+const ICON = {
+  plus: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M8 3v10M3 8h10"/></svg>',
+  tick: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 8.5l3.2 3L13 4.5"/></svg>',
+  chev: '<svg class="chev" viewBox="0 0 12 12" fill="currentColor"><path d="M4 2l5 4-5 4z"/></svg>',
+  play: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4.5 2.5v11l9-5.5z"/></svg>',
+  pause: '<svg viewBox="0 0 16 16" fill="currentColor"><path d="M4 2.5h3v11H4zM9 2.5h3v11H9z"/></svg>',
+  grip: '<svg class="grip" viewBox="0 0 10 22" fill="currentColor"><circle cx="3" cy="5" r="1.4"/><circle cx="7" cy="5" r="1.4"/><circle cx="3" cy="11" r="1.4"/><circle cx="7" cy="11" r="1.4"/><circle cx="3" cy="17" r="1.4"/><circle cx="7" cy="17" r="1.4"/></svg>',
+  arrow: '<svg class="arrow" viewBox="0 0 10 10" fill="currentColor"><path d="M2 1l6 4-6 4z"/></svg>',
+}
+
+// ---- state ----
+let sel = byKey(params.get('star') || 'taurus/aldebaran') || CONS[0].stars[0]
+let openCon = sel.con.id
+let queue = ['orion/rigel', 'orion/betelgeuse', 'lyra/alpha_lyrae', 'pleiades/alcyone', 'taurus/aldebaran', 'orion/bellatrix']
+  .filter(byKey)
+let playing = false, loop = STATE === 'playing', cursor = -1, stepTimer = null, stepStart = 0, mode = 'musical'
+
+// ---- left: constellation list ----
+document.getElementById('total').textContent = ALL.length + ' STARS'
+function renderList(filter = '') {
+  const f = filter.trim().toLowerCase()
+  document.getElementById('list').innerHTML = CONS.map(c => {
+    const stars = c.stars.slice().sort((a, b) => (a.magnitude ?? 9) - (b.magnitude ?? 9))
+      .filter(s => !f || s.name.toLowerCase().includes(f) || c.metadata.name.toLowerCase().includes(f))
+    if (f && !stars.length) return ''
+    const open = f ? true : openCon === c.id
+    return `<div class="con ${open ? 'open' : ''}" data-con="${c.id}">
+      <button class="con-h">${ICON.chev}<span class="nm">${c.metadata.name}</span><span class="ct">${c.stars.length} STARS</span></button>
+      <div class="con-b"><div class="sub">${c.metadata.displayName || ''}</div>
+        ${stars.map(s => `<div class="st ${s === sel ? 'sel' : ''}" data-k="${keyOf(s)}">
+          ${dot(s)}<span class="n">${s.name}</span><span class="m">${(s.magnitude ?? 0).toFixed(1)}</span>
+          <button class="add ${queue.includes(keyOf(s)) ? 'in' : ''}" title="Add to song bar">${queue.includes(keyOf(s)) ? ICON.tick : ICON.plus}</button>
+        </div>`).join('')}
+      </div></div>`
+  }).join('')
+}
+document.getElementById('list').addEventListener('click', e => {
+  const h = e.target.closest('.con-h')
+  if (h) {
+    const id = h.parentElement.dataset.con
+    openCon = openCon === id ? '' : id
+    renderList(document.getElementById('search').value)
+    if (openCon) showConstellation(CONS.find(c => c.id === openCon))
+    return
+  }
+  const row = e.target.closest('.st')
+  if (!row) return
+  const s = byKey(row.dataset.k)
+  if (e.target.closest('.add')) { addToBar(s); return }
+  select(s)
+  document.body.classList.remove('drawer')
+})
+document.getElementById('search').addEventListener('input', e => renderList(e.target.value))
+document.getElementById('menuBtn').onclick = () => document.body.classList.toggle('drawer')
+document.getElementById('scrim').onclick = () => document.body.classList.remove('drawer')
+
+// ---- sky: the open constellation, star-visual stars and figure lines ----
+const figure = document.getElementById('figure')
+let shownCon = null
+function layout() {
+  // Centre the figure in the free space between the panels, not in the middle of the window.
+  const W = innerWidth, H = innerHeight, phone = W <= 760
+  const L = phone ? 0 : 300 + 16, R = phone ? 0 : 360 + 16
+  const T = phone ? 56 : 66
+  const B = phone ? (document.getElementById('right').getBoundingClientRect().height + 92 + 20) : 112 + 26
+  const cx = (L + (W - R)) / 2 - W / 2, cy = -((T + (H - B)) / 2 - H / 2)
+  const D = 8, half = Math.tan(25 * Math.PI / 180) * D   // fov 50 at distance D
+  const k = half / (H / 2)
+  const freeW = (W - L - R) * k * 0.86, freeH = (H - T - B) * k * 0.86
+  return {x: cx * k, y: cy * k, D, freeW, freeH}
+}
+function showConstellation(c) {
+  shownCon = c
+  figure.innerHTML = ''
+  // A window with no size yet (a background tab) would put every star at NaN - wait for resize.
+  if (!innerWidth || !innerHeight) return
+  const xs = c.stars.map(s => s.position2D.x), ys = c.stars.map(s => s.position2D.y)
+  const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys)
+  const L = layout()
+  const sc = Math.min(L.freeW / Math.max(0.5, maxX - minX), L.freeH / Math.max(0.5, maxY - minY))
+  const P = s => ({x: L.x + (s.position2D.x - (minX + maxX) / 2) * sc, y: L.y + (s.position2D.y - (minY + maxY) / 2) * sc})
+  ;(c.connections || []).forEach(cn => {
+    const a = c.stars.find(s => s.id === cn.from), b = c.stars.find(s => s.id === cn.to)
+    if (!a || !b) return
+    const pa = P(a), pb = P(b), e = document.createElement('a-entity')
+    e.setAttribute('line', {start: `${pa.x} ${pa.y} ${-L.D}`, end: `${pb.x} ${pb.y} ${-L.D}`, color: '#6fa8d8', opacity: 0.38})
+    figure.appendChild(e)
+  })
+  c.stars.forEach(s => {
+    const p = P(s), e = document.createElement('a-entity')
+    e.setAttribute('position', `${p.x} ${p.y} ${-L.D}`)
+    e.setAttribute('data-name', s.name)
+    e.setAttribute('star-visual', {
+      radius: 0.075 * Math.max(0.6, Math.min(1.6, (s.size || 0.1) / 0.1)),
+      color: s.color || '#ffffff', tempKelvin: temp(s), spectralClass: s.spectralClass || '',
+      magnitude: s.magnitude ?? 3,
+    })
+    if (s === sel) e.id = 'selStar'
+    figure.appendChild(e)
+  })
+}
+// Keep the HTML ring on the selected star: project its world position onto the sky canvas.
+;(function trackRing() {
+  const ring = document.getElementById('selRing'), e = document.getElementById('selStar')
+  const sc = document.getElementById('skyScene')
+  if (e && sc.camera && e.object3D) {
+    const p = new THREE.Vector3(); e.object3D.getWorldPosition(p); p.project(sc.camera)
+    const r = sc.canvas.getBoundingClientRect()
+    const x = r.left + (p.x + 1) / 2 * r.width, y = r.top + (1 - p.y) / 2 * r.height
+    ring.style.display = 'block'; ring.style.left = x + 'px'; ring.style.top = y + 'px'
+    ring.classList.toggle('left', x > r.left + r.width * 0.55)
+  } else ring.style.display = 'none'
+  requestAnimationFrame(trackRing)
+})()
+
+// A sprinkle of faint background stars so the sky is not a flat colour.
+{
+  const field = document.getElementById('field')
+  const g = new THREE.BufferGeometry(), N = 1400, pos = new Float32Array(N * 3), col = new Float32Array(N * 3)
+  let seed = 7; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647
+  for (let i = 0; i < N; i++) {
+    const u = rnd() * 2 - 1, th = rnd() * Math.PI * 2, r = 60, q = Math.sqrt(1 - u * u)
+    pos.set([r * q * Math.cos(th), r * u, r * q * Math.sin(th)], i * 3)
+    const c = bbColor(rnd()), b = 0.25 + rnd() * rnd() * 0.75
+    col.set([c[0] * b, c[1] * b, c[2] * b], i * 3)
+  }
+  g.setAttribute('position', new THREE.BufferAttribute(pos, 3))
+  g.setAttribute('color', new THREE.BufferAttribute(col, 3))
+  field.setObject3D('mesh', new THREE.Points(g, new THREE.PointsMaterial({size: 1.6, sizeAttenuation: false, vertexColors: true})))
+}
+
+// ---- right: the selected star ----
+const big = document.getElementById('bigStar')
+function select(s) {
+  sel = s
+  if (openCon !== s.con.id) openCon = s.con.id
+  renderList(document.getElementById('search').value)
+  showConstellation(s.con)
+  big.setAttribute('star-visual', {
+    radius: 0.36, color: s.color || '#ffffff', tempKelvin: temp(s), spectralClass: s.spectralClass || '',
+    magnitude: s.magnitude ?? 3,
+    // the entered-star look, exactly as dynamic-star-controller.js sets it
+    surface: 0.85, surfaceScale: 18, prominence: 0.55, arcs: 16, spots: 0.45, haloScale: 2.6, glareSpan: 0, twinkle: 0,
+  })
+  const T = temp(s)
+  document.getElementById('vCon').textContent = s.con.metadata.name.toUpperCase()
+  document.getElementById('vClass').textContent = (s.spectralClass || '').split(/\s+/).slice(0, 2).join(' ')
+  document.getElementById('vTemp').textContent = T ? Math.round(T).toLocaleString() + ' K' : ''
+  document.getElementById('vDist').textContent = s.distance ? s.distance.toLocaleString() + ' LY' : ''
+  document.getElementById('sName').textContent = s.name
+  document.querySelector('#selRing b').innerHTML = s.name.toUpperCase() + '<small>' + (s.designation || s.con.metadata.name) + '</small>'
+  document.getElementById('sSay').textContent = [s.pronunciation, s.designation].filter(Boolean).join('  ·  ')
+  const sci = (s.info && s.info.scientific) || {}
+  const facts = [
+    ['Brightness', 'mag ' + (s.magnitude ?? 0).toFixed(2)],
+    ['Surface', T ? Math.round(T).toLocaleString() + ' K' : '—'],
+    ['Size', s.physics && s.physics.radiusSolar ? s.physics.radiusSolar + '× Sun' : '—'],
+    ['Distance', s.distance ? s.distance.toLocaleString() + ' ly' : '—'],
+  ]
+  document.getElementById('facts').innerHTML = facts.map(([b, t], i) => `<div class="fact ${i > 1 ? 'x2' : ''}"><b>${b.toUpperCase()}</b><span>${t}</span></div>`).join('')
+  document.getElementById('sBlurb').textContent = (s.info && s.info.basic) || ''
+  const audio = audioC()
+  if (audio) {
+    audio.computeRange(s.con.stars)
+    const d = audio.describe(s)
+    document.getElementById('hz').textContent = (mode === 'true' ? d.truePitchHz : d.pitchHz).toFixed(1) + ' HZ'
+  }
+  syncAddBtn()
+  drawWave()
+}
+function syncAddBtn() {
+  const inBar = queue.includes(keyOf(sel))
+  const b = document.getElementById('addStar')
+  b.innerHTML = inBar ? ICON.tick + 'On the song bar' : ICON.plus + 'Add to song bar'
+}
+document.querySelectorAll('#mode button').forEach(b => b.onclick = () => {
+  mode = b.dataset.m
+  document.querySelectorAll('#mode button').forEach(x => x.classList.toggle('on', x === b))
+  select(sel)
+})
+
+// The star's tone as a waveform: its fundamental plus the overtones its temperature brightens.
+let waveT = 0, waveLive = 0
+function drawWave() {
+  const cv = document.getElementById('wave'); if (!cv.offsetWidth) return
+  const w = cv.width = cv.offsetWidth * 2, h = cv.height = cv.offsetHeight * 2, x = cv.getContext('2d')
+  const T = temp(sel) || 6000, bright = Math.min(1, Math.max(0.15, (T - 3000) / 25000))
+  const amp = 0.25 + 0.75 * waveLive
+  x.clearRect(0, 0, w, h)
+  const grad = x.createLinearGradient(0, 0, w, 0)
+  grad.addColorStop(0, 'rgba(201,162,74,0.15)'); grad.addColorStop(0.5, rgbOf(sel)); grad.addColorStop(1, 'rgba(201,162,74,0.15)')
+  x.strokeStyle = grad; x.lineWidth = 2.4; x.shadowColor = rgbOf(sel); x.shadowBlur = 10
+  x.beginPath()
+  for (let i = 0; i <= w; i += 2) {
+    const u = i / w, env = Math.sin(Math.PI * u)
+    const y = Math.sin(u * 22 + waveT) + 0.5 * bright * Math.sin(u * 44 + waveT * 2) + 0.28 * bright * Math.sin(u * 66 + waveT * 3)
+    x.lineTo(i, h / 2 + y * env * h * 0.26 * amp)
+  }
+  x.stroke()
+}
+;(function anim() { waveT += 0.03 + 0.08 * waveLive; waveLive *= 0.985; drawWave(); requestAnimationFrame(anim) })()
+
+const audioC = () => document.getElementById('skyScene').components['star-audio']
+function sing(s, hold = 2.5) {
+  const a = audioC(); if (!a) return
+  a.unlock()
+  a.computeRange(s.con.stars)
+  a.playStar(s, mode === 'true' ? {mapping: 'fold', scale: 'true', hold} : {mapping: 'compress', scale: 'pentatonic', hold})
+  if (s === sel) { waveLive = 1; const b = document.getElementById('playStar'); b.classList.add('on'); setTimeout(() => b.classList.remove('on'), 3500) }
+}
+document.getElementById('playStar').onclick = () => sing(sel)
+document.getElementById('addStar').onclick = () => addToBar(sel)
+document.querySelector('#vol input').oninput = e => { const a = audioC(); if (a) a.setVolume(e.target.value / 100) }
+
+// ---- bottom: the song bar ----
+const track = document.getElementById('track')
+function addToBar(s) {
+  const k = keyOf(s)
+  if (!queue.includes(k)) queue.push(k)
+  renderBar(); renderList(document.getElementById('search').value); syncAddBtn()
+  track.scrollTo({left: track.scrollWidth, behavior: 'smooth'})
+}
+function renderBar() {
+  track.innerHTML = queue.length ? queue.map((k, i) => {
+    const s = byKey(k)
+    const cls = i === cursor ? 'now' : (playing && i < cursor ? 'done' : '')
+    return (i ? ICON.arrow : '') + `<div class="chip ${cls}" data-i="${i}">
+      <span class="num">${i + 1}</span>${ICON.grip}${dot(s)}
+      <span class="tx"><b>${s.name}</b><i>${s.con.metadata.name}</i></span>
+      <button class="x" title="Remove">✕</button><span class="prog"><i></i></span></div>`
+  }).join('') : '<span class="empty">Tap ＋ on any star to add its song here.</span>'
+  document.getElementById('count').textContent = queue.length + (queue.length === 1 ? ' SONG' : ' SONGS')
+  const secs = Math.round(queue.length * STEP)
+  document.getElementById('len').textContent = (loop ? 'loops · ' : '') + Math.floor(secs / 60) + ':' + String(secs % 60).padStart(2, '0')
+  document.getElementById('playAll').innerHTML = playing ? ICON.pause : ICON.play
+  document.getElementById('playLbl').textContent = playing ? 'PAUSE' : 'PLAY'
+  document.getElementById('loop').classList.toggle('on', loop)
+}
+track.addEventListener('click', e => {
+  const x = e.target.closest('.x')
+  if (x) { queue.splice(+x.parentElement.dataset.i, 1); renderBar(); renderList(); syncAddBtn(); return }
+})
+
+function step() {
+  if (!playing) return
+  cursor++
+  if (cursor >= queue.length) {
+    if (!loop || !queue.length) { stop(); return }
+    cursor = 0
+  }
+  const s = byKey(queue[cursor])
+  // The sky and the panel follow the song: the star that is singing is the one on screen.
+  if (s !== sel) select(s)
+  sing(s)
+  stepStart = performance.now()
+  renderBar()
+  const chip = track.querySelector(`.chip[data-i="${cursor}"]`)
+  if (chip) chip.scrollIntoView({inline: 'center', block: 'nearest', behavior: 'smooth'})
+  stepTimer = setTimeout(step, STEP * 1000)
+}
+function stop() { playing = false; clearTimeout(stepTimer); cursor = -1; const a = audioC(); if (a) a.stopAll(); renderBar() }
+document.getElementById('playAll').onclick = () => {
+  if (playing) { playing = false; clearTimeout(stepTimer); const a = audioC(); if (a) a.stopAll(); renderBar(); return }
+  playing = true; if (cursor >= queue.length - 1) cursor = -1; else cursor--; step()
+}
+document.getElementById('loop').onclick = () => { loop = !loop; renderBar() }
+document.getElementById('clear').onclick = () => { stop(); queue = []; renderBar(); renderList(); syncAddBtn() }
+;(function prog() {
+  const c = track.querySelector('.chip.now .prog i')
+  if (c && playing) c.style.width = (STATE === 'playing' ? 45 : Math.min(100, (performance.now() - stepStart) / (STEP * 10))) + '%'
+  if (STATE === 'playing') waveLive = 1
+  requestAnimationFrame(prog)
+})()
+
+// Drag to reorder - pointer events, so a finger works as well as a mouse.
+function lift(chip, r) {
+  const tr = track.getBoundingClientRect()
+  const prev = chip.previousElementSibling
+  if (prev && prev.classList.contains('arrow')) prev.style.display = 'none'
+  chip.classList.add('lift')
+  chip.style.position = 'absolute'
+  chip.style.top = (r.top - tr.top) + 'px'
+  chip.style.left = (r.left - tr.left + track.scrollLeft) + 'px'
+}
+let drag = null
+track.addEventListener('pointerdown', e => {
+  const chip = e.target.closest('.chip'); if (!chip || e.target.closest('.x')) return
+  drag = {chip, from: +chip.dataset.i, x0: e.clientX, moved: false}
+  chip.setPointerCapture(e.pointerId)
+})
+track.addEventListener('pointermove', e => {
+  if (!drag) return
+  const dx = e.clientX - drag.x0
+  if (!drag.moved && Math.abs(dx) < 6) return
+  if (!drag.moved) {
+    drag.moved = true
+    const r = drag.chip.getBoundingClientRect()
+    drag.grab = e.clientX - r.left
+    drag.gap = document.createElement('div'); drag.gap.className = 'gap'
+    drag.chip.after(drag.gap)
+    lift(drag.chip, r)
+  }
+  // The bar's frame uses a CSS filter, which makes position:fixed measure from the frame rather
+  // than the window - so the lifted chip is placed inside the track instead.
+  const tr = track.getBoundingClientRect()
+  drag.chip.style.left = (e.clientX - drag.grab - tr.left + track.scrollLeft) + 'px'
+  const others = [...track.querySelectorAll('.chip')].filter(c => c !== drag.chip)
+  const before = others.find(c => { const r = c.getBoundingClientRect(); return e.clientX < r.left + r.width / 2 })
+  if (before) { const prev = before.previousElementSibling; (prev && prev.classList.contains('arrow') ? prev : before).before(drag.gap) }
+  else track.appendChild(drag.gap)
+})
+track.addEventListener('pointerup', () => {
+  if (!drag) return
+  if (drag.moved) {
+    const order = [...track.children].filter(c => c.classList.contains('chip') && c !== drag.chip || c === drag.gap)
+    const to = order.indexOf(drag.gap)
+    const nowKey = cursor >= 0 ? queue[cursor] : null
+    const [k] = queue.splice(drag.from, 1); queue.splice(to, 0, k)
+    if (nowKey) cursor = queue.indexOf(nowKey)
+    renderBar()
+  } else {
+    select(byKey(queue[drag.from]))
+  }
+  drag = null
+})
+
+// ---- go ----
+renderList()
+renderBar()
+const sky = document.getElementById('skyScene')
+// Each scene can end up on A-Frame's default camera (fov 80, standing 1.6 m up), which pushes
+// everything off-centre - so make ours the active one explicitly.
+const fit = () => {
+  for (const id of ['skyCam', 'starCam']) {
+    const c = document.getElementById(id)
+    if (c && c.components.camera && !c.components.camera.data.active) c.setAttribute('camera', 'active', true)
+  }
+  document.querySelectorAll('a-scene').forEach(s => s.resize && s.resize())
+}
+const ready = () => { fit(); select(sel); setTimeout(fit, 300) }
+if (sky.hasLoaded) ready(); else sky.addEventListener('loaded', ready)
+addEventListener('resize', () => { fit(); shownCon && showConstellation(shownCon) })
+
+// Forced screens for screenshots.
+if (STATE === 'playing') {
+  cursor = 2; playing = true; renderBar()
+  const showNow = () => select(byKey(queue[cursor]))
+  if (sky.hasLoaded) showNow(); else sky.addEventListener('loaded', () => setTimeout(showNow, 50))
+}
+if (STATE === 'dragging') {
+  setTimeout(() => {
+    const chips = [...track.querySelectorAll('.chip')]
+    const c = chips[4], r = c.getBoundingClientRect()
+    const gap = document.createElement('div'); gap.className = 'gap'
+    chips[1].previousElementSibling.before(gap)
+    lift(c, r)
+    const tr = track.getBoundingClientRect()
+    c.style.left = (gap.getBoundingClientRect().left - tr.left + track.scrollLeft + 22) + 'px'
+  }, 600)
+}
+if (STATE === 'drawer') document.body.classList.add('drawer')
+</script>
+</body>
+</html>

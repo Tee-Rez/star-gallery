@@ -1,0 +1,248 @@
+// js/star-audio.js
+// Owns the AudioContext, the master gain and a pool of voices, and turns a star's data into a
+// sounding tone. Attached to the scene; the info panel and the lore journey call into it.
+//
+// Nothing here plays on its own. Audio happens because the Starsong tab asked for it, or
+// because a journey stop arrived.
+import {StarVoice} from './star-voice.js'
+import {physicsFor} from './star-physics.js'
+import {nuMaxMicroHz, toPitchHz, quantize} from './star-tone.js'
+import {wake, usePlaybackSession} from './audio-unlock.js'
+
+// The slider runs 0..1 and is multiplied by this into the master gain. Raised from 2 because
+// phone speakers lost the tones: at the 50% default a single star now peaks around -6 dBFS
+// (it was about -28), and 100% runs into the limiter just under full scale.
+const VOLUME_HEADROOM = 6
+// v2: the scale changed, so a level saved against the old one would no longer mean the same
+// thing. Everyone starts again from the 50% default.
+const VOLUME_KEY = 'starsong.volume.v2'
+
+const starAudioComponent = {
+  schema: {
+    baseHz: {type: 'number', default: 110},
+    octaves: {type: 'int', default: 2},
+    maxPartials: {type: 'int', default: 4},
+    beatCents: {type: 'number', default: 6},
+    voiceGain: {type: 'number', default: 0.18},
+    attack: {type: 'number', default: 1.2},
+    release: {type: 'number', default: 2.0},
+    // Phones are already running SLAM, camera and bloom, so they get a smaller budget.
+    maxVoices: {type: 'int', default: 0},  // 0 = choose from the device
+    // Listener volume, 0..1, scaled by VOLUME_HEADROOM into the master gain. Opens at 50%, with
+    // headroom in both directions.
+    volume: {type: 'number', default: 0.5},
+  },
+
+  init() {
+    this.ctx = null
+    this.master = null
+    this.limiter = null
+    this.voices = []
+    this.playing = new Map()   // starId -> voice
+    this.range = null          // {min, max} nu_max across the loaded constellation
+
+    // One shared level for every star: the Starsong slider reads and writes this, so changing
+    // it on one star is reflected on every other star's slider. Remembered per browser.
+    this.volume = this.loadVolume()
+
+    const coarse = typeof window.matchMedia === 'function' &&
+      window.matchMedia('(pointer: coarse)').matches
+    this.voiceBudget = this.data.maxVoices > 0 ? this.data.maxVoices : (coarse ? 6 : 12)
+
+    // iPhone: keep these tones off the channel the ringer switch mutes. See audio-unlock.js.
+    this.playbackSession = usePlaybackSession(window.navigator)
+
+    // Browsers refuse to start audio without a gesture. The tap that places the portal is one,
+    // and the Starsong buttons call unlock() too as a backstop.
+    //
+    // On every gesture, not just the first. iOS re-silences the context whenever the camera
+    // starts, the phone locks or the tab loses focus, and only a gesture may wake it - while a
+    // journey stop sounds seconds after its tap, long past the gesture. Waking it on each touch
+    // means it is already running by the time anything needs it. The capture phase matters:
+    // HUD controls stop their touches from bubbling, and those are the taps that lead to sound.
+    this.onGesture = () => { this.unlock() }
+    window.addEventListener('touchend', this.onGesture, true)
+    window.addEventListener('mousedown', this.onGesture, true)
+  },
+
+  isAvailable() {
+    return typeof (window.AudioContext || window.webkitAudioContext) === 'function'
+  },
+
+  // ---- Listener volume ----
+  // Persisted per browser. Wrapped because storage throws in private modes and some embedded
+  // webviews, and a missing preference must never stop audio from working.
+  loadVolume() {
+    try {
+      const v = parseFloat(window.localStorage.getItem(VOLUME_KEY))
+      if (Number.isFinite(v)) return Math.min(1, Math.max(0, v))
+    } catch (e) { /* storage unavailable */ }
+    return this.data.volume
+  },
+
+  getVolume() { return this.volume },
+
+  setVolume(v) {
+    this.volume = Math.min(1, Math.max(0, Number(v) || 0))
+    if (this.master) this.master.gain.value = this.volume * VOLUME_HEADROOM
+    try { window.localStorage.setItem(VOLUME_KEY, String(this.volume)) } catch (e) { /* ignore */ }
+    return this.volume
+  },
+
+  // Safe to call repeatedly; creates the context on first use and resumes it if suspended.
+  unlock() {
+    if (!this.isAvailable()) return false
+    if (!this.ctx) {
+      const Ctor = window.AudioContext || window.webkitAudioContext
+      this.ctx = new Ctor()
+
+      this.master = this.ctx.createGain()
+      this.master.gain.value = this.volume * VOLUME_HEADROOM
+
+      // A chord stacks a dozen voices, and their peaks can sum past full scale even at modest
+      // per-voice gain. This is a limiter rather than a compressor in spirit: it only engages
+      // near the ceiling. -3 dB rather than -6 so the top half of the volume slider still gets
+      // louder instead of being squashed flat; not -1, because the node adds its own make-up
+      // gain and at -1 a big chord at 100% rendered past full scale (+1.8 dBFS).
+      this.limiter = this.ctx.createDynamicsCompressor()
+      this.limiter.threshold.value = -3
+      this.limiter.knee.value = 0
+      this.limiter.ratio.value = 20
+      this.limiter.attack.value = 0.003
+      this.limiter.release.value = 0.25
+
+      this.master.connect(this.limiter)
+      this.limiter.connect(this.ctx.destination)
+    }
+    return wake(this.ctx)
+  },
+
+  // For the preview's on-screen readout, so a silent phone can report why.
+  status() {
+    return {
+      state: this.ctx ? this.ctx.state : 'not started',
+      session: this.playbackSession ? window.navigator.audioSession.type : 'default',
+    }
+  },
+
+  // Compress needs the constellation's own nu_max span so its stars keep their relative order.
+  computeRange(stars) {
+    let min = Infinity
+    let max = -Infinity
+    stars.forEach((s) => {
+      const p = physicsFor(s)
+      const nu = nuMaxMicroHz(p.massSolar, p.radiusSolar, p.tempKelvin)
+      if (nu > 0) { min = Math.min(min, nu); max = Math.max(max, nu) }
+    })
+    this.range = (min < max) ? {min, max} : {min: 1, max: 1e4}
+    return this.range
+  },
+
+  loadedStars() {
+    const el = document.querySelector('[constellation-loader]')
+    const loader = el && el.components['constellation-loader']
+    return (loader && loader.constellationData && loader.constellationData.stars) || []
+  },
+
+  pitchFor(star, opts) {
+    const o = opts || {}
+    const mapping = o.mapping || 'compress'
+    const scale = o.scale || 'pentatonic'
+    if (!this.range) this.computeRange(this.loadedStars().length ? this.loadedStars() : [star])
+    const p = physicsFor(star)
+    const nu = nuMaxMicroHz(p.massSolar, p.radiusSolar, p.tempKelvin)
+    const hz = toPitchHz(nu, this.range.min, this.range.max, mapping, this.data.baseHz, this.data.octaves)
+    return quantize(hz, this.data.baseHz, scale)
+  },
+
+  // What the Starsong tab shows: both renderings and the physics they came from.
+  describe(star) {
+    return {
+      physics: physicsFor(star),
+      pitchHz: this.pitchFor(star, {mapping: 'compress', scale: 'pentatonic'}),
+      truePitchHz: this.pitchFor(star, {mapping: 'fold', scale: 'true'}),
+    }
+  },
+
+  acquireVoice() {
+    const free = this.voices.find(v => v.isFree)
+    if (free) return free
+    if (this.voices.length < this.voiceBudget) {
+      const v = new StarVoice(this.ctx, this.master)
+      this.voices.push(v)
+      return v
+    }
+    // Pool exhausted: steal the oldest sounding voice, as the Unity build does.
+    const oldestId = this.playing.keys().next().value
+    const stolen = this.playing.get(oldestId)
+    this.playing.delete(oldestId)
+    stolen.stop()
+    return stolen
+  },
+
+  playStar(star, opts) {
+    if (!this.unlock()) return
+    const o = opts || {}
+    const gain = (o.gainScale === undefined ? 1 : o.gainScale) * this.data.voiceGain
+
+    this.stopStar(star.id)
+    const voice = this.acquireVoice()
+    const p = physicsFor(star)
+    voice.starId = star.id
+    voice.configure({
+      pitchHz: this.pitchFor(star, o),
+      tempKelvin: p.tempKelvin,
+      maxPartials: this.data.maxPartials,
+      beatCents: this.data.beatCents,
+    })
+
+    const el = document.querySelector('[data-name="' + star.name + '"]')
+    if (el && el.object3D && typeof THREE !== 'undefined') {
+      const v = new THREE.Vector3()
+      el.object3D.getWorldPosition(v)
+      voice.setPosition(v.x, v.y, v.z)
+    }
+
+    this.playing.set(star.id, voice)
+    voice.fadeIn(gain, this.data.attack)
+
+    // hold, then fade to silence; omit `hold` to leave it sounding until stopped.
+    if (o.hold > 0) {
+      setTimeout(() => {
+        if (this.playing.get(star.id) === voice) this.stopStar(star.id)
+      }, (this.data.attack + o.hold) * 1000)
+    }
+  },
+
+  // Group stops sound together. Quantizing to a scale is what stops this clashing.
+  playChord(stars, opts) {
+    const o = Object.assign({gainScale: 0.7}, opts || {})
+    stars.forEach(s => this.playStar(s, o))
+  },
+
+  stopStar(id) {
+    const voice = this.playing.get(id)
+    if (!voice) return
+    this.playing.delete(id)
+    voice.fadeOut(this.data.release)
+    setTimeout(() => {
+      // Only release it if nothing has claimed the voice again in the meantime.
+      if (!this.playing.has(voice.starId)) voice.stop()
+    }, this.data.release * 1000 + 100)
+  },
+
+  stopAll() {
+    Array.from(this.playing.keys()).forEach(id => this.stopStar(id))
+  },
+
+  remove() {
+    window.removeEventListener('touchend', this.onGesture, true)
+    window.removeEventListener('mousedown', this.onGesture, true)
+    this.stopAll()
+    this.voices.forEach(v => v.stop())
+    this.voices = []
+    if (this.ctx) this.ctx.close()
+  },
+}
+
+export {starAudioComponent}
